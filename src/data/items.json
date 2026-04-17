@@ -1,0 +1,47 @@
+{
+  "$schema": {
+    "description": "裝備基礎資料 — 僅存「基礎數值」;使用者在背包中新增/強化 (星力 / Bonus Stats / 潛能 / 附加潛能) 屬於 entry 實例狀態,不寫回此表",
+    "fields": {
+      "id": "唯一 ID",
+      "name": "中文名稱",
+      "nameEn": "英文名稱",
+      "type": "裝備類型 (對應 equipmentSlots.js 中 slot.accepts)",
+      "subType": "子分類 (可選) 例如 sword / wand / bow",
+      "level": "REQ LEV",
+      "req": "其他需求屬性 { str, dex, int, luk } (可選)",
+      "classes": "限制職業大類 ['warrior','magician','bowman','thief','pirate'] (可選)",
+      "maxStars": "最大星力 (0 代表不可強化)",
+      "attackSpeed": "攻擊速度 (僅武器,1~10 數字)",
+      "stats": "基礎屬性加成;支援 str/dex/int/luk/hp/mp/atk/matk/def/bossDmg/ignoreDef/allStatPct 等,% 類以 bossDmg / ignoreDef / *Pct 判定",
+      "description": "敘述 (可選)",
+      "imageUrl": "裝備圖片 URL (可選)"
+    }
+  },
+  "items": [
+    {
+      "id": "wpn_fafnir_mana_taker",
+      "name": "Fafnir Mana Taker",
+      "nameEn": "Fafnir Mana Taker",
+      "type": "weapon",
+      "subType": "wand",
+      "level": 150,
+      "req": {
+        "int": 450
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 119,
+        "matk": 201,
+        "int": 40,
+        "luk": 40,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1372177.png"
+    }
+  ]
+}

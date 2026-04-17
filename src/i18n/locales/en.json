@@ -1,0 +1,226 @@
+{
+  "app": {
+    "title": "MSU Toolkit",
+    "subtitle": "MapleStory N utilities"
+  },
+  "nav": {
+    "character": "Character",
+    "equipment": "Equipment",
+    "cp": "CP Calculator",
+    "legion": "Legion"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "zh-TW": "繁體中文"
+  },
+  "pages": {
+    "character": {
+      "title": "Character",
+      "placeholder": "Character profile — coming soon."
+    },
+    "equipment": {
+      "title": "Equipment",
+      "placeholder": "Equipment management — coming soon."
+    },
+    "cp": {
+      "title": "CP Calculator",
+      "placeholder": "Combat Power calculator — coming soon."
+    },
+    "legion": {
+      "title": "Legion",
+      "placeholder": "Legion battlefield — coming soon."
+    }
+  },
+  "equipment": {
+    "panel": { "title": "Equipment" },
+    "bag": {
+      "title": "Inventory",
+      "filter": "Filter",
+      "all": "All",
+      "empty": "Bag is empty. Click + Add to add items you own.",
+      "filteredBySlot": "Filtered by selected slot",
+      "add": "Add",
+      "remove": "Remove from bag",
+      "edit": "Edit item"
+    },
+    "editor": {
+      "title": "Edit item",
+      "tab": {
+        "stars": "Star Force",
+        "bonusStats": "Bonus Stats",
+        "potential": "Potential",
+        "bonus": "Bonus Potential"
+      },
+      "soon": "soon",
+      "currentStars": "Current stars",
+      "starHint": "Click a star to set the count. Shift+click to reset to 0.",
+      "starNotSupported": "This item cannot be star-enhanced (maxStars = 0).",
+      "bsHint": "Enter the Bonus Stats as they appear on the item. 0 = none.",
+      "bsNotSupported": "This equipment slot never rolls Bonus Stats.",
+      "bsGroup": {
+        "base": "Base Stats",
+        "attack": "Attack",
+        "percent": "Percent Modifiers"
+      },
+      "bonusStatsPlaceholder": "Bonus Stats editor — coming soon",
+      "potentialPlaceholder": "Potential editor — coming soon",
+      "ptTier": {
+        "rare": "Rare",
+        "epic": "Epic",
+        "unique": "Unique",
+        "legendary": "Legendary"
+      },
+      "ptNone": "None",
+      "ptNotSupported": "No potential pool defined for this item yet.",
+      "ptTierEmpty": "No options defined for this tier yet.",
+      "bonusPlaceholder": "Bonus Potential editor — coming soon",
+      "bpNotSupported": "No bonus potential pool defined for this item yet.",
+      "zero": "Zero",
+      "max": "Max",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "picker": {
+      "title": "Add items to bag",
+      "search": "Search item name…",
+      "count": "{n} match(es)",
+      "add": "Add",
+      "added": "Added",
+      "noResult": "No items match your filter"
+    },
+    "stats": {
+      "title": "Total Stats",
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "Max HP",
+      "mp": "Max MP",
+      "atk": "ATT",
+      "matk": "Magic ATT",
+      "def": "DEF",
+      "bossDmg": "Boss Damage",
+      "ignoreDef": "Ignored Enemy DEF",
+      "allStatPct": "All Stats",
+      "dmgPct": "Damage",
+      "atkPct": "ATT %",
+      "matkPct": "Magic ATT %",
+      "hpPct": "Max HP %",
+      "mpPct": "Max MP %",
+      "strPct": "STR %",
+      "dexPct": "DEX %",
+      "intPct": "INT %",
+      "lukPct": "LUK %",
+      "attackSpeed": "Attack Speed"
+    },
+    "slots": {
+      "ring1": "Ring 1",
+      "ring2": "Ring 2",
+      "ring3": "Ring 3",
+      "ring4": "Ring 4",
+      "pendant1": "Pendant 1",
+      "pendant2": "Pendant 2",
+      "hat": "Hat",
+      "eye": "Eye Acc.",
+      "emblem": "Emblem",
+      "face": "Face Acc.",
+      "earring": "Earring",
+      "badge": "Badge",
+      "weapon": "Weapon",
+      "top": "Top/Overall",
+      "shoulder": "Shoulder",
+      "medal": "Medal",
+      "secondary": "Secondary",
+      "bottom": "Bottom",
+      "glove": "Glove",
+      "cape": "Cape",
+      "pocket": "Pocket",
+      "belt": "Belt",
+      "shoes": "Shoes",
+      "android": "Android",
+      "heart": "Heart"
+    },
+    "types": {
+      "ring": "Ring",
+      "pendant": "Pendant",
+      "hat": "Hat",
+      "eye": "Eye Acc.",
+      "emblem": "Emblem",
+      "face": "Face Acc.",
+      "earring": "Earring",
+      "badge": "Badge",
+      "weapon": "Weapon",
+      "top": "Top",
+      "overall": "Overall",
+      "shoulder": "Shoulder",
+      "medal": "Medal",
+      "secondary": "Secondary",
+      "bottom": "Bottom",
+      "glove": "Glove",
+      "cape": "Cape",
+      "pocket": "Pocket Item",
+      "belt": "Belt",
+      "shoes": "Shoes",
+      "android": "Android",
+      "heart": "Heart"
+    },
+    "action": {
+      "reset": "Reset",
+      "clearSelection": "Clear selection"
+    },
+    "tip": {
+      "weaponType": "Weapon Type",
+      "potential": "Potential",
+      "bonusPotential": "Bonus Potential",
+      "speedUnit": "Level"
+    },
+    "selectedHint": "Selected {slot}. Click an inventory item to equip. Click the slot again to cancel or unequip."
+  },
+  "character": {
+    "nameless": "Unnamed",
+    "primary": "Primary",
+    "world": "World",
+    "autoSaved": "Saved automatically",
+    "action": {
+      "reset": "Reset"
+    },
+    "fields": {
+      "name": "Character name",
+      "level": "Level",
+      "world": "World",
+      "legionLevel": "Legion level",
+      "branch": "Class branch",
+      "job": "Job",
+      "notes": "Notes"
+    },
+    "placeholders": {
+      "name": "Enter character name",
+      "world": "e.g. Scania",
+      "notes": "Jot down goals, progress, etc."
+    },
+    "branches": {
+      "beginner": "Beginner",
+      "warrior": "Warrior",
+      "magician": "Magician",
+      "bowman": "Bowman",
+      "thief": "Thief",
+      "pirate": "Pirate"
+    },
+    "jobs": {
+      "beginner": "Beginner",
+      "hero": "Hero",
+      "paladin": "Paladin",
+      "darkKnight": "Dark Knight",
+      "archmageFP": "Arch Mage (F/P)",
+      "archmageIL": "Arch Mage (I/L)",
+      "bishop": "Bishop",
+      "bowmaster": "Bowmaster",
+      "marksman": "Marksman",
+      "nightlord": "Night Lord",
+      "shadower": "Shadower",
+      "buccaneer": "Buccaneer",
+      "corsair": "Corsair"
+    }
+  }
+}

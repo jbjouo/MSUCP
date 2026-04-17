@@ -1,0 +1,226 @@
+{
+  "app": {
+    "title": "MSU 工具箱",
+    "subtitle": "新楓之谷 N 輔助工具"
+  },
+  "nav": {
+    "character": "角色",
+    "equipment": "裝備",
+    "cp": "戰鬥力計算",
+    "legion": "聯盟戰地"
+  },
+  "language": {
+    "label": "語言",
+    "en": "English",
+    "zh-TW": "繁體中文"
+  },
+  "pages": {
+    "character": {
+      "title": "角色",
+      "placeholder": "角色資料 — 建置中。"
+    },
+    "equipment": {
+      "title": "裝備",
+      "placeholder": "裝備管理 — 建置中。"
+    },
+    "cp": {
+      "title": "戰鬥力計算",
+      "placeholder": "戰鬥力 (CP) 計算器 — 建置中。"
+    },
+    "legion": {
+      "title": "聯盟戰地",
+      "placeholder": "聯盟戰地 — 建置中。"
+    }
+  },
+  "equipment": {
+    "panel": { "title": "裝備欄" },
+    "bag": {
+      "title": "背包",
+      "filter": "分類",
+      "all": "全部",
+      "empty": "背包空空如也,點右上「+ 新增」加入你擁有的裝備",
+      "filteredBySlot": "已依所選槽位篩選",
+      "add": "新增",
+      "remove": "從背包移除",
+      "edit": "編輯裝備"
+    },
+    "editor": {
+      "title": "編輯裝備",
+      "tab": {
+        "stars": "星力",
+        "bonusStats": "Bonus Stats",
+        "potential": "潛能",
+        "bonus": "附加潛能"
+      },
+      "soon": "建置中",
+      "currentStars": "目前星力",
+      "starHint": "點擊星條任一顆星即可設定星數,Shift+點擊可歸零。",
+      "starNotSupported": "此裝備不支援星力強化 (maxStars = 0)",
+      "bsHint": "輸入裝備上實際出現的 Bonus Stats 數值,0 表示沒有。",
+      "bsNotSupported": "此部位不會出現 Bonus Stats。",
+      "bsGroup": {
+        "base": "基礎屬性",
+        "attack": "攻擊",
+        "percent": "百分比加成"
+      },
+      "bonusStatsPlaceholder": "Bonus Stats 編輯 — 建置中",
+      "potentialPlaceholder": "潛能編輯 — 建置中",
+      "ptTier": {
+        "rare": "特殊",
+        "epic": "稀有",
+        "unique": "罕見",
+        "legendary": "傳說"
+      },
+      "ptNone": "未選擇",
+      "ptNotSupported": "此裝備沒有可用的潛能資料。",
+      "ptTierEmpty": "此階級尚未建立資料。",
+      "bonusPlaceholder": "附加潛能編輯 — 建置中",
+      "bpNotSupported": "此裝備沒有可用的附加潛能資料。",
+      "zero": "歸零",
+      "max": "滿星",
+      "cancel": "取消",
+      "confirm": "確定"
+    },
+    "picker": {
+      "title": "新增裝備到背包",
+      "search": "搜尋裝備名稱…",
+      "count": "{n} 件符合",
+      "add": "加入",
+      "added": "已加入",
+      "noResult": "查無符合的裝備"
+    },
+    "stats": {
+      "title": "合計屬性",
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "Max HP",
+      "mp": "Max MP",
+      "atk": "ATT",
+      "matk": "Magic ATT",
+      "def": "DEF",
+      "bossDmg": "Boss Damage",
+      "ignoreDef": "Ignored Enemy DEF",
+      "allStatPct": "All Stats",
+      "dmgPct": "Damage",
+      "atkPct": "ATT %",
+      "matkPct": "Magic ATT %",
+      "hpPct": "Max HP %",
+      "mpPct": "Max MP %",
+      "strPct": "STR %",
+      "dexPct": "DEX %",
+      "intPct": "INT %",
+      "lukPct": "LUK %",
+      "attackSpeed": "Attack Speed"
+    },
+    "slots": {
+      "ring1": "戒指1",
+      "ring2": "戒指2",
+      "ring3": "戒指3",
+      "ring4": "戒指4",
+      "pendant1": "項鍊1",
+      "pendant2": "項鍊2",
+      "hat": "帽子",
+      "eye": "眼飾",
+      "emblem": "紋章",
+      "face": "臉飾",
+      "earring": "耳環",
+      "badge": "徽章",
+      "weapon": "武器",
+      "top": "上衣/套服",
+      "shoulder": "肩飾",
+      "medal": "勳章",
+      "secondary": "副手",
+      "bottom": "下衣",
+      "glove": "手套",
+      "cape": "披風",
+      "pocket": "口袋",
+      "belt": "腰帶",
+      "shoes": "鞋子",
+      "android": "機器人",
+      "heart": "心臟"
+    },
+    "types": {
+      "ring": "戒指",
+      "pendant": "項鍊",
+      "hat": "帽子",
+      "eye": "眼飾",
+      "emblem": "紋章",
+      "face": "臉飾",
+      "earring": "耳環",
+      "badge": "徽章",
+      "weapon": "武器",
+      "top": "上衣",
+      "overall": "套服",
+      "shoulder": "肩飾",
+      "medal": "勳章",
+      "secondary": "副手",
+      "bottom": "下衣",
+      "glove": "手套",
+      "cape": "披風",
+      "pocket": "口袋道具",
+      "belt": "腰帶",
+      "shoes": "鞋子",
+      "android": "機器人",
+      "heart": "心臟"
+    },
+    "action": {
+      "reset": "重設",
+      "clearSelection": "取消選取"
+    },
+    "tip": {
+      "weaponType": "Weapon Type",
+      "potential": "Potential",
+      "bonusPotential": "Bonus Potential",
+      "speedUnit": "Level"
+    },
+    "selectedHint": "已選擇 {slot} 槽位,點背包物品以裝備。再次點該槽可取消或卸下。"
+  },
+  "character": {
+    "nameless": "未命名",
+    "primary": "主屬性",
+    "world": "伺服器",
+    "autoSaved": "已自動儲存",
+    "action": {
+      "reset": "重設"
+    },
+    "fields": {
+      "name": "角色名稱",
+      "level": "等級",
+      "world": "伺服器",
+      "legionLevel": "聯盟等級",
+      "branch": "職業大類",
+      "job": "職業",
+      "notes": "備註"
+    },
+    "placeholders": {
+      "name": "輸入角色名稱",
+      "world": "例如:台北一",
+      "notes": "隨手記錄角色筆記 (裝備目標、任務進度…)"
+    },
+    "branches": {
+      "beginner": "新手",
+      "warrior": "戰士",
+      "magician": "魔法師",
+      "bowman": "弓箭手",
+      "thief": "盜賊",
+      "pirate": "海盜"
+    },
+    "jobs": {
+      "beginner": "新手",
+      "hero": "英雄",
+      "paladin": "聖騎士",
+      "darkKnight": "黑騎士",
+      "archmageFP": "火毒大魔導士",
+      "archmageIL": "冰雷大魔導士",
+      "bishop": "主教",
+      "bowmaster": "箭神",
+      "marksman": "遊俠",
+      "nightlord": "夜使者",
+      "shadower": "暗影神偷",
+      "buccaneer": "衝鋒隊長",
+      "corsair": "槍神"
+    }
+  }
+}
