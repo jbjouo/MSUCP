@@ -6,8 +6,7 @@
   "nav": {
     "character": "角色",
     "equipment": "裝備",
-    "cp": "戰鬥力計算",
-    "legion": "聯盟戰地"
+    "cp": "戰鬥力計算"
   },
   "language": {
     "label": "語言",
@@ -26,10 +25,70 @@
     "cp": {
       "title": "戰鬥力計算",
       "placeholder": "戰鬥力 (CP) 計算器 — 建置中。"
-    },
-    "legion": {
-      "title": "聯盟戰地",
-      "placeholder": "聯盟戰地 — 建置中。"
+    }
+  },
+  "itemSet": {
+    "boss_accessory": {
+      "name": "首領套"
+    }
+  },
+  "hyperStat": {
+    "title": "HYPER STAT",
+    "reset": "重設",
+    "points": "點數",
+    "remaining": "剩餘 {n}",
+    "stats": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "critRate": "暴擊率",
+      "critDmg": "暴擊傷害",
+      "ignoreDef": "無視防禦",
+      "damage": "傷害",
+      "bossDmg": "首領傷害",
+      "normalMobDmg": "一般怪物傷害",
+      "abnormalResist": "異常狀態抗性",
+      "attMatk": "攻擊力 & 魔攻",
+      "bonusExp": "額外經驗值"
+    }
+  },
+  "puzzle": {
+    "title": "聯盟拼圖",
+    "entries": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "atk": "攻擊力",
+      "matk": "魔攻",
+      "crit_rate": "暴擊率",
+      "abnormal_resist": "異常狀態抗性",
+      "ignore_def": "無視防禦",
+      "normal_mob_dmg": "一般怪物傷害",
+      "crit_dmg": "暴擊傷害",
+      "bonus_exp": "額外經驗值",
+      "boss_dmg": "首領傷害",
+      "buff_duration": "增益持續時間"
+    }
+  },
+  "legion": {
+    "title": "聯盟戰地",
+    "reset": "重設",
+    "members": "戰地成員屬性",
+    "other": "聯盟幣 / 效果",
+    "placeholder": "建置中。",
+    "stats": {
+      "hpPct": "最大 HP",
+      "mpPct": "最大 MP",
+      "summonDuration": "召喚獸持續時間",
+      "cooldownReduction": "技能冷卻",
+      "hpRecoveryOnHit": "攻擊時回復 HP",
+      "mpRecoveryOnHit": "攻擊時回復 MP"
     }
   },
   "equipment": {
@@ -205,7 +264,10 @@
       "magician": "魔法師",
       "bowman": "弓箭手",
       "thief": "盜賊",
-      "pirate": "海盜"
+      "pirate": "海盜",
+      "cygnus": "西格諾斯騎士團",
+      "mihile": "米哈逸",
+      "heroes": "英雄團"
     },
     "jobs": {
       "beginner": "新手",
@@ -217,10 +279,294 @@
       "bishop": "主教",
       "bowmaster": "箭神",
       "marksman": "遊俠",
+      "pathfinder": "開拓者",
       "nightlord": "夜使者",
       "shadower": "暗影神偷",
-      "buccaneer": "衝鋒隊長",
-      "corsair": "槍神"
+      "dualblade": "影武者",
+      "buccaneer": "拳霸",
+      "corsair": "槍神",
+      "cannoneer": "重砲指揮官",
+      "dawnwarrior": "聖魂劍士",
+      "blazewizard": "烈焰巫師",
+      "windarcher": "破風使者",
+      "nightwalker": "暗夜行者",
+      "thunderbreaker": "閃雷悍將",
+      "mihile": "米哈逸",
+      "aran": "狂狼勇士",
+      "evan": "龍魔導士",
+      "mercedes": "精靈遊俠",
+      "phantom": "幻影俠盜",
+      "luminous": "夜光",
+      "shade": "隱月"
+    }
+  },
+  "collection": {
+    "title": "NFT 圖鑑效果",
+    "reset": "重設",
+    "tip": {
+      "toMin": "歸 0",
+      "toMax": "拉到滿"
+    },
+    "headers": {
+      "stat": "能力值",
+      "current": "當前",
+      "level": "等級",
+      "nextGain": "下一級"
+    },
+    "stats": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "MaxHP",
+      "mp": "MaxMP",
+      "hpPct": "MaxHP %",
+      "mpPct": "MaxMP %",
+      "atk": "攻擊力",
+      "matk": "魔攻",
+      "dmgPct": "傷害 %",
+      "bossDmg": "首領傷害 %",
+      "abnormalResist": "異常狀態抗性",
+      "ignoreDef": "無視防禦 %",
+      "critRate": "暴擊率 %",
+      "critDmg": "暴擊傷害 %"
+    }
+  },
+  "linkSkill": {
+    "title": "LINK SKILL",
+    "tabs": {
+      "active": "套用中的連結技能",
+      "preset": "PRESET {n}"
+    },
+    "save": "儲存",
+    "sections": {
+      "mine": "我的連結技能",
+      "applied": "套用的能力值",
+      "others": "其他角色的連結技能",
+      "owned": "持有的連結技能"
+    },
+    "actions": {
+      "link": "LINK",
+      "unlink": "UNLINK",
+      "add": "LINK SKILL"
+    },
+    "noRecipient": "沒有傳授對象。",
+    "empty": "尚無套用中的連結技能。",
+    "noLinkForJob": "此職業無連結技能。",
+    "levelLabel": "Lv.{lv}",
+    "ownCap": "自身最高 Lv.{lv}",
+    "totalCap": "合計上限 Lv.{lv}",
+    "fromJob": "來自 {job}",
+    "noCandidates": "沒有可選的連結技能。",
+    "stats": {
+      "damage": "傷害",
+      "ignoreDef": "無視防禦",
+      "allStatPct": "全屬性",
+      "atk": "攻擊力",
+      "matk": "魔攻",
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "bossDmg": "首領傷害",
+      "critRate": "暴擊率",
+      "damageTaken": "受到傷害"
+    },
+    "skills": {
+      "combo_kill_blessing": {
+        "name": "連擊的祝福",
+        "flavor": "瑪哈祝福你的連擊。",
+        "desc": {
+          "1": "累積擊殺球 EXP:+400%(永久)。",
+          "2": "累積擊殺球 EXP:+650%(永久)。",
+          "3": "累積擊殺球 EXP:+900%(永久)。"
+        }
+      },
+      "rune_persistence": {
+        "name": "符文的持續",
+        "flavor": "延長解放符文之力的持續時間。",
+        "desc": {
+          "1": "解放符文之力持續時間:+30%。",
+          "2": "解放符文之力持續時間:+50%。",
+          "3": "解放符文之力持續時間:+70%。"
+        }
+      },
+      "elven_blessing": {
+        "name": "精靈的祝福",
+        "flavor": "以精靈之力將你帶回 Elluel,並永久祝福你的經驗值獲得。",
+        "caveat": "本人冷卻時間 600 秒;傳授後冷卻時間 1800 秒。",
+        "desc": {
+          "1": "傳送回 Elluel(冷卻時間:1800 秒)。永久獲得經驗值 +10%。",
+          "2": "傳送回 Elluel(冷卻時間:1800 秒)。永久獲得經驗值 +15%。",
+          "3": "傳送回 Elluel(冷卻時間:1800 秒)。永久獲得經驗值 +20%。"
+        }
+      },
+      "phantom_instinct": {
+        "name": "幻影的直覺",
+        "flavor": "以敏銳的直覺捕捉敵人的致命弱點。",
+        "desc": {
+          "1": "暴擊率 +10%。",
+          "2": "暴擊率 +15%。",
+          "3": "暴擊率 +20%。"
+        }
+      },
+      "light_wash": {
+        "name": "光之洗禮",
+        "flavor": "光之力貫穿敵人的防禦,讓你的攻擊更具穿透性。",
+        "desc": {
+          "1": "無視怪物防禦 +10%。",
+          "2": "無視怪物防禦 +15%。",
+          "3": "無視怪物防禦 +20%。"
+        }
+      },
+      "close_call": {
+        "name": "千鈞一髮",
+        "flavor": "有機率從致命一擊中倖存下來。",
+        "desc": {
+          "1": "致命攻擊存活機率 5%。",
+          "2": "致命攻擊存活機率 10%。",
+          "3": "致命攻擊存活機率 15%。"
+        }
+      },
+      "knights_watch": {
+        "name": "騎士的守護",
+        "flavor": "光之騎士米哈逸暫時提升你的異常狀態抗性。",
+        "caveat": "本人的版本為主動防護罩技能;傳授版本僅提供異常狀態抗性增益。",
+        "selfDesc": "防護罩持續時間:20 秒。可抵擋敵人攻擊:6 次。傷害:+20%。對依最大 HP 比例計算傷害的攻擊,傷害 -20%。冷卻時間:120 秒。",
+        "desc": {
+          "1": "持續時間:10 秒。異常狀態抗性 +100。冷卻時間:120 秒。",
+          "2": "持續時間:15 秒。異常狀態抗性 +100。冷卻時間:120 秒。",
+          "3": "持續時間:20 秒。異常狀態抗性 +100。冷卻時間:120 秒。"
+        }
+      },
+      "cygnus_blessing": {
+        "name": "騎士團的祝福",
+        "flavor": "甦醒後的女皇西格諾斯降下祝福,守護你免於傷害。",
+        "caveat": "此連結技能最多可累加 5 層,每位不同的西格諾斯騎士團職業角色提供一層。",
+        "desc": {
+          "1":  "攻擊力與魔攻 +7、異常狀態抵抗 +1、全屬性抵抗 +1%。",
+          "2":  "攻擊力與魔攻 +9、異常狀態抵抗 +3、全屬性抵抗 +3%。",
+          "3":  "攻擊力與魔攻 +11、異常狀態抵抗 +4、全屬性抵抗 +4%。",
+          "4":  "攻擊力與魔攻 +13、異常狀態抵抗 +6、全屬性抵抗 +6%。",
+          "5":  "攻擊力與魔攻 +15、異常狀態抵抗 +7、全屬性抵抗 +7%。",
+          "6":  "攻擊力與魔攻 +17、異常狀態抵抗 +9、全屬性抵抗 +9%。",
+          "7":  "攻擊力與魔攻 +19、異常狀態抵抗 +10、全屬性抵抗 +10%。",
+          "8":  "攻擊力與魔攻 +21、異常狀態抵抗 +12、全屬性抵抗 +12%。",
+          "9":  "攻擊力與魔攻 +23、異常狀態抵抗 +13、全屬性抵抗 +13%。",
+          "10": "攻擊力與魔攻 +25、異常狀態抵抗 +15、全屬性抵抗 +15%。"
+        }
+      },
+      "invincible_belief": {
+        "name": "無敵的信念",
+        "flavor": "在最黑暗的時刻凝聚信念以回復生命。",
+        "caveat": "在城鎮內或受到阻止 HP 回復的狀態下不會觸發。不受冷卻重置、增益持續時間提升與回復技能加成影響。",
+        "desc": {
+          "1": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 20% 最大 HP。\n冷卻時間:410 秒。",
+          "2": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 23% 最大 HP。\n冷卻時間:370 秒。",
+          "3": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 26% 最大 HP。\n冷卻時間:330 秒。",
+          "4": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 29% 最大 HP。\n冷卻時間:290 秒。",
+          "5": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 32% 最大 HP。\n冷卻時間:250 秒。",
+          "6": "HP 降至 15% 以下時自動觸發,持續 3 秒內每秒回復 35% 最大 HP。\n冷卻時間:210 秒。"
+        }
+      },
+      "adventurers_curiosity": {
+        "name": "冒險家的好奇心",
+        "flavor": "你的好奇心與對細節的觀察為你帶來暴擊率加成。",
+        "desc": {
+          "1": "暴擊率 +3%。",
+          "2": "暴擊率 +4%。",
+          "3": "暴擊率 +6%。",
+          "4": "暴擊率 +7%。",
+          "5": "暴擊率 +9%。",
+          "6": "暴擊率 +10%。"
+        }
+      },
+      "pirate_blessing": {
+        "name": "海盜的祝福",
+        "flavor": "你的海盜氣魄賜予你減傷與屬性強化的恩賜。",
+        "selfOnly": "技能啟用時,裝備的 STR 與 DEX 數值會互換。(不含武器、副手、秘奧符號、神聖符號與寵物裝備欄位)",
+        "desc": {
+          "1": "STR +20、DEX +20、INT +20、LUK +20\n最大 HP +350、最大 MP +350\n受到傷害:-5%。冷卻時間:5 秒。",
+          "2": "STR +30、DEX +30、INT +30、LUK +30\n最大 HP +525、最大 MP +525\n受到傷害:-7%。冷卻時間:5 秒。",
+          "3": "STR +40、DEX +40、INT +40、LUK +40\n最大 HP +700、最大 MP +700\n受到傷害:-9%。冷卻時間:5 秒。",
+          "4": "STR +50、DEX +50、INT +50、LUK +50\n最大 HP +875、最大 MP +875\n受到傷害:-11%。冷卻時間:5 秒。",
+          "5": "STR +60、DEX +60、INT +60、LUK +60\n最大 HP +1050、最大 MP +1050\n受到傷害:-13%。冷卻時間:5 秒。",
+          "6": "STR +70、DEX +70、INT +70、LUK +70\n最大 HP +1225、最大 MP +1225\n受到傷害:-15%。冷卻時間:5 秒。"
+        }
+      },
+      "thiefs_cunning": {
+        "name": "盜賊的狡猾",
+        "flavor": "你的狡智與訓練讓你能充分掌握被削弱敵人的機會。",
+        "caveat": "不受冷卻重置與增益持續時間提升效果影響。",
+        "desc": {
+          "1": "對敵人施加負面狀態時,傷害 +3%。\n持續時間:10 秒,冷卻時間:20 秒。",
+          "2": "對敵人施加負面狀態時,傷害 +6%。\n持續時間:10 秒,冷卻時間:20 秒。",
+          "3": "對敵人施加負面狀態時,傷害 +9%。\n持續時間:10 秒,冷卻時間:20 秒。",
+          "4": "對敵人施加負面狀態時,傷害 +12%。\n持續時間:10 秒,冷卻時間:20 秒。",
+          "5": "對敵人施加負面狀態時,傷害 +15%。\n持續時間:10 秒,冷卻時間:20 秒。",
+          "6": "對敵人施加負面狀態時,傷害 +18%。\n持續時間:10 秒,冷卻時間:20 秒。"
+        }
+      },
+      "empirical_knowledge": {
+        "name": "經驗知識",
+        "flavor": "你對敵人弱點的鑽研與識別,讓你能精準挑出目標並撕裂其防禦,造成更高的傷害。",
+        "desc": {
+          "1": "攻擊時有 15% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+1%、每層無視防禦:+1%\n持續時間:10 秒,最多疊加 3 層",
+          "2": "攻擊時有 17% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+1%、每層無視防禦:+1%\n持續時間:10 秒,最多疊加 3 層",
+          "3": "攻擊時有 19% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+2%、每層無視防禦:+2%\n持續時間:10 秒,最多疊加 3 層",
+          "4": "攻擊時有 21% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+2%、每層無視防禦:+2%\n持續時間:10 秒,最多疊加 3 層",
+          "5": "攻擊時有 23% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+3%、每層無視防禦:+3%\n持續時間:10 秒,最多疊加 3 層",
+          "6": "攻擊時有 25% 機率識別出受擊敵人中 HP 上限最高者的弱點,對其獲得以下加成:\n每層傷害:+3%、每層無視防禦:+3%\n持續時間:10 秒,最多疊加 3 層"
+        }
+      }
+    },
+    "slotCounter": "佔用槽:{used} / {cap}",
+    "groupBoost": "同職業群加成",
+    "gaveThisSkill": "{jobs}傳授了此技能給你。",
+    "maxLevelLabel": "[最高等級:{lv}]",
+    "currentLevelLabel": "[當前等級 {lv}]"
+  },
+  "cp": {
+    "skillHeader": "技能",
+    "buffHeader": "增益",
+    "titleHeader": "稱號",
+    "tip": {
+      "flatTotal": "基本數值統計",
+      "fixedTotal": "固定值統計",
+      "pctTotal": "%數統計",
+      "baseSources": "基本數值來源",
+      "fixedSources": "固定值來源",
+      "pctSources": "%數來源",
+      "total": "合計",
+      "noSources": "無來源貢獻",
+      "buffPrefix": "增益:{name}",
+      "skillPrefix": "技能:{name}",
+      "collectionPrefix": "圖鑑:{name} Lv.{lv}",
+      "legionPrefix": "聯盟:{name} 階 {tier}",
+      "puzzlePrefix": "拼圖:{name} Lv.{lv}",
+      "hyperPrefix": "極限屬性:{name} Lv.{lv}",
+      "setPrefix": "套裝:{name}({count} 件)",
+      "titlePrefix": "稱號:{name}",
+      "characterLv": "角色 Lv {lv}",
+      "characterBase": "角色基礎",
+      "starSuffix": "★",
+      "bonusSuffix": "(星火)",
+      "potentialSuffix": "(潛能)",
+      "bonusPotentialSuffix": "(附加潛能)"
+    },
+    "attStats": {
+      "desc": "顯示實際 Damage 的部分。顯示內容包含從技能與裝備上獲得的 Damage 與 Final Damage。裝備 Wand、Staff、Shining Rod 時會顯示 Magic ATT,裝備其他武器時會顯示 ATT。",
+      "equippableWeapons": "[可裝備武器]",
+      "weaponConst": "[當前適用中的武器常數]",
+      "mastery": "[武器熟練度]",
+      "basic": "基本",
+      "normalEnemy": "一般怪物",
+      "boss": "首領怪物"
+    },
+    "buffs": {
+      "mapleWarriorLabel": "增益:{name} (Lv {lv},+{pct}% AP)"
     }
   }
 }

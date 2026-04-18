@@ -6,7 +6,7 @@ import {
   EQUIP_ACCEPT_TYPES,
   slotsAcceptingType,
 } from '../constants/equipmentSlots.js'
-import { computeStarStats, STAR_SETTABLE_CAP } from '../constants/starForce.js'
+import { computeStarStats, STAR_SETTABLE_CAP, maxStarsForLevel } from '../constants/starForce.js'
 import {
   POTENTIAL_TIERS,
   findPotentialOptionForLine,
@@ -66,10 +66,14 @@ function makeInitialState() {
   return { equipped: emptyEquipped(), inventory: [], entries: {} }
 }
 
-function clampStars(stars, maxStars) {
+function clampStars(stars, item) {
   const s = Number(stars) || 0
-  // 硬上限:就算 item.maxStars = 25 也不允許設到 24/25
-  const cap = Math.min(Math.max(0, Number(maxStars) || 0), STAR_SETTABLE_CAP)
+  // 依等級的架構上限 (100→8、110→10、120→15、130→20、140+→25)
+  const levelCap = maxStarsForLevel(item?.level || 0)
+  // item.maxStars 若設定,取較嚴格者 (可手動降低);未設則用 levelCap
+  const itemCap = Number.isFinite(item?.maxStars) ? item.maxStars : levelCap
+  // 硬上限:UI 封頂 STAR_SETTABLE_CAP (23);24/25 不允許設
+  const cap = Math.max(0, Math.min(itemCap, levelCap, STAR_SETTABLE_CAP))
   return Math.min(Math.max(0, Math.floor(s)), cap)
 }
 
@@ -134,7 +138,7 @@ function loadState() {
       const bp = sanitizeBonusPotential(e.bonusPotential, item)
       entries[uid] = {
         itemId: e.itemId,
-        stars: clampStars(e.stars, item.maxStars),
+        stars: clampStars(e.stars, item),
         ...(bs ? { bonusStats: bs } : {}),
         ...(pt ? { potential: pt } : {}),
         ...(bp ? { bonusPotential: bp } : {}),
@@ -253,7 +257,7 @@ function addToInventory(itemId, stars = 0) {
   const uid = newUid()
   state.entries[uid] = {
     itemId,
-    stars: clampStars(stars, item.maxStars),
+    stars: clampStars(stars, item),
   }
   state.inventory.push(uid)
   persist()
@@ -276,7 +280,7 @@ function removeEntry(uid) {
 function setStars(uid, stars) {
   const entry = resolveEntry(uid)
   if (!entry) return false
-  const next = clampStars(stars, entry.item.maxStars)
+  const next = clampStars(stars, entry.item)
   if (state.entries[uid].stars === next) return false
   state.entries[uid].stars = next
   persist()

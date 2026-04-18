@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEquipment, BONUS_STATS_KEYS, allowedBonusStatKeys, supportsBonusStats } from '../composables/useEquipment.js'
-import { STAR_SETTABLE_CAP } from '../constants/starForce.js'
+import { STAR_SETTABLE_CAP, maxStarsForLevel } from '../constants/starForce.js'
 import {
   POTENTIAL_TIERS,
   getPotentialOptionsForLine,
@@ -53,12 +53,13 @@ const { resolveEntry, setStars, setBonusStats, setPotential, setBonusPotential }
 const entry = computed(() => (props.uid ? resolveEntry(props.uid) : null))
 const item = computed(() => entry.value?.item || null)
 
+// 不適用的分頁直接隱藏 (例:戒指沒有 Bonus Stats)
 const tabs = computed(() => [
   { key: 'stars',      i18n: 'equipment.editor.tab.stars',      ready: (item.value?.maxStars || 0) > 0 },
   { key: 'bonusStats', i18n: 'equipment.editor.tab.bonusStats', ready: supportsBonusStats(item.value) },
   { key: 'potential',  i18n: 'equipment.editor.tab.potential',  ready: itemHasPotentialPool(item.value) },
   { key: 'bonus',      i18n: 'equipment.editor.tab.bonus',      ready: itemHasBonusPotentialPool(item.value) },
-])
+].filter((tab) => tab.ready))
 
 const bonusSupported = computed(() => supportsBonusStats(item.value))
 const allowedBsKeys = computed(() => new Set(allowedBonusStatKeys(item.value)))
@@ -96,7 +97,8 @@ watch(
   () => props.uid,
   (uid) => {
     if (!uid) return
-    activeTab.value = 'stars'
+    // 選第一個可用的分頁 (通常是 stars,但若該裝備不支援就跳到下一個)
+    activeTab.value = tabs.value[0]?.key || 'stars'
     const e = resolveEntry(uid)
     draft.value = {
       stars: e?.stars ?? 0,
@@ -144,7 +146,14 @@ function setBonusPotentialLine(idx, label) {
   draft.value.bonusPotential.lines[idx] = label || null
 }
 
-const maxStars = computed(() => item.value?.maxStars || 0)
+// 星力上限:取 item.maxStars 與依等級上限 (100→8、110→10、120→15、130→20、140+→25) 較嚴格者
+const maxStars = computed(() => {
+  const it = item.value
+  if (!it) return 0
+  const lvCap = maxStarsForLevel(it.level || 0)
+  const declared = Number.isFinite(it.maxStars) ? it.maxStars : lvCap
+  return Math.min(declared, lvCap)
+})
 // UI 可設定的實際上限 (即使 item 最大 25,24/25 不給選)
 const editableMax = computed(() => Math.min(maxStars.value, STAR_SETTABLE_CAP))
 
@@ -229,15 +238,10 @@ function onKey(e) {
             v-for="tab in tabs"
             :key="tab.key"
             class="editor__tab"
-            :class="{
-              'editor__tab--active': activeTab === tab.key,
-              'editor__tab--disabled': !tab.ready,
-            }"
-            :disabled="!tab.ready"
+            :class="{ 'editor__tab--active': activeTab === tab.key }"
             @click="activeTab = tab.key"
           >
             {{ t(tab.i18n) }}
-            <span v-if="!tab.ready" class="editor__soon">{{ t('equipment.editor.soon') }}</span>
           </button>
         </nav>
 

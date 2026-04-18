@@ -92,6 +92,386 @@ const WEAPON_120_LEGENDARY = [
   { label: 'Boss Damage: +18%',      weight: 2.564103, stats: { bossDmg: 18 } },
 ]
 
+// 戒指 Lv100+ Rare
+const RING_100_RARE = [
+  { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
+  { label: 'DEX : +10',          weight: 6.382979, stats: { dex: 10 } },
+  { label: 'INT : +10',          weight: 6.382979, stats: { int: 10 } },
+  { label: 'LUK : +10',          weight: 6.382979, stats: { luk: 10 } },
+  { label: 'Max HP: +100',       weight: 6.382979, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 6.382979, stats: { mp: 100 } },
+  { label: 'Movement Speed: +5', weight: 6.382979, stats: { moveSpeed: 5 } },
+  { label: 'Jump: +5',           weight: 6.382979, stats: { jump: 5 } },
+  { label: 'ATT: +10',           weight: 4.255319, stats: { atk: 10 } },
+  { label: 'Magic ATT: +10',     weight: 4.255319, stats: { matk: 10 } },
+  { label: 'DEF: +100',          weight: 6.382979, stats: { def: 100 } },
+  { label: 'STR : +2%',          weight: 4.255319, stats: { strPct: 2 } },
+  { label: 'DEX : +2%',          weight: 4.255319, stats: { dexPct: 2 } },
+  { label: 'INT : +2%',          weight: 4.255319, stats: { intPct: 2 } },
+  { label: 'LUK : +2%',          weight: 4.255319, stats: { lukPct: 2 } },
+  { label: 'Max HP: +2%',        weight: 4.255319, stats: { hpPct: 2 } },
+  { label: 'Max MP: +2%',        weight: 4.255319, stats: { mpPct: 2 } },
+  { label: 'DEF: +2%',           weight: 4.255319, stats: { defPct: 2 } },
+  { label: 'All Stats: +3',      weight: 4.255319, stats: { allStat: 3 } },
+]
+
+// 戒指 Lv100+ Epic
+const RING_100_EPIC = [
+  { label: 'STR : +14',          weight: 6.000000, stats: { str: 14 } },
+  { label: 'DEX : +14',          weight: 6.000000, stats: { dex: 14 } },
+  { label: 'INT : +14',          weight: 6.000000, stats: { int: 14 } },
+  { label: 'LUK : +14',          weight: 6.000000, stats: { luk: 14 } },
+  { label: 'Max HP: +150',       weight: 6.000000, stats: { hp: 150 } },
+  { label: 'Max MP: +150',       weight: 6.000000, stats: { mp: 150 } },
+  { label: 'Movement Speed: +6', weight: 6.000000, stats: { moveSpeed: 6 } },
+  { label: 'Jump: +6',           weight: 6.000000, stats: { jump: 6 } },
+  { label: 'ATT: +11',           weight: 4.000000, stats: { atk: 11 } },
+  { label: 'Magic ATT: +11',     weight: 4.000000, stats: { matk: 11 } },
+  { label: 'DEF: +120',          weight: 6.000000, stats: { def: 120 } },
+  { label: 'STR : +4%',          weight: 4.000000, stats: { strPct: 4 } },
+  { label: 'DEX : +4%',          weight: 4.000000, stats: { dexPct: 4 } },
+  { label: 'INT : +4%',          weight: 4.000000, stats: { intPct: 4 } },
+  { label: 'LUK : +4%',          weight: 4.000000, stats: { lukPct: 4 } },
+  { label: 'Max HP: +5%',        weight: 6.000000, stats: { hpPct: 5 } },
+  { label: 'Max MP: +5%',        weight: 6.000000, stats: { mpPct: 5 } },
+  { label: 'DEF: +4%',           weight: 6.000000, stats: { defPct: 4 } },
+  { label: 'All Stats: +2%',     weight: 4.000000, stats: { allStatPct: 2 } },
+]
+
+// 戒指 Lv100+ Unique
+const RING_100_UNIQUE = [
+  { label: 'STR : +16',                          weight: 6.122449, stats: { str: 16 } },
+  { label: 'DEX : +16',                          weight: 6.122449, stats: { dex: 16 } },
+  { label: 'INT : +16',                          weight: 6.122449, stats: { int: 16 } },
+  { label: 'LUK : +16',                          weight: 6.122449, stats: { luk: 16 } },
+  { label: 'Max HP: +200',                       weight: 6.122449, stats: { hp: 200 } },
+  { label: 'Max MP: +200',                       weight: 6.122449, stats: { mp: 200 } },
+  { label: 'ATT: +12',                           weight: 4.081633, stats: { atk: 12 } },
+  { label: 'Magic ATT: +12',                     weight: 4.081633, stats: { matk: 12 } },
+  { label: 'STR : +5%',                          weight: 4.081633, stats: { strPct: 5 } },
+  { label: 'DEX : +5%',                          weight: 4.081633, stats: { dexPct: 5 } },
+  { label: 'INT : +5%',                          weight: 4.081633, stats: { intPct: 5 } },
+  { label: 'LUK : +5%',                          weight: 4.081633, stats: { lukPct: 5 } },
+  { label: 'Max HP: +7%',                        weight: 6.122449, stats: { hpPct: 7 } },
+  { label: 'Max MP: +7%',                        weight: 6.122449, stats: { mpPct: 7 } },
+  { label: 'All Stats: +4%',                     weight: 4.081633, stats: { allStatPct: 4 } },
+  { label: 'STR per 10 Character Levels: +1',    weight: 4.081633, stats: { strPerLv10: 1 } },
+  { label: 'DEX per 10 Character Levels: +1',    weight: 4.081633, stats: { dexPerLv10: 1 } },
+  { label: 'INT per 10 Character Levels: +1',    weight: 4.081633, stats: { intPerLv10: 1 } },
+  { label: 'LUK per 10 Character Levels: +1',    weight: 4.081633, stats: { lukPerLv10: 1 } },
+  { label: 'HP Recovery Items and Skills: +20%', weight: 6.122449 },
+]
+
+// 戒指 Lv100+ Legendary
+const RING_100_LEGENDARY = [
+  { label: 'STR : +18',                          weight: 5.769231, stats: { str: 18 } },
+  { label: 'DEX : +18',                          weight: 5.769231, stats: { dex: 18 } },
+  { label: 'INT : +18',                          weight: 5.769231, stats: { int: 18 } },
+  { label: 'LUK : +18',                          weight: 5.769231, stats: { luk: 18 } },
+  { label: 'Max HP: +250',                       weight: 5.769231, stats: { hp: 250 } },
+  { label: 'Max MP: +250',                       weight: 5.769231, stats: { mp: 250 } },
+  { label: 'ATT: +14',                           weight: 3.846154, stats: { atk: 14 } },
+  { label: 'Magic ATT: +14',                     weight: 3.846154, stats: { matk: 14 } },
+  { label: 'STR : +7%',                          weight: 3.846154, stats: { strPct: 7 } },
+  { label: 'DEX : +7%',                          weight: 3.846154, stats: { dexPct: 7 } },
+  { label: 'INT : +7%',                          weight: 3.846154, stats: { intPct: 7 } },
+  { label: 'LUK : +7%',                          weight: 3.846154, stats: { lukPct: 7 } },
+  { label: 'Max HP: +10%',                       weight: 5.769231, stats: { hpPct: 10 } },
+  { label: 'Max MP: +10%',                       weight: 5.769231, stats: { mpPct: 10 } },
+  { label: 'All Stats: +5%',                     weight: 3.846154, stats: { allStatPct: 5 } },
+  { label: 'STR per 10 Character Levels: +2',    weight: 3.846154, stats: { strPerLv10: 2 } },
+  { label: 'DEX per 10 Character Levels: +2',    weight: 3.846154, stats: { dexPerLv10: 2 } },
+  { label: 'INT per 10 Character Levels: +2',    weight: 3.846154, stats: { intPerLv10: 2 } },
+  { label: 'LUK per 10 Character Levels: +2',    weight: 3.846154, stats: { lukPerLv10: 2 } },
+  { label: 'Skill MP Cost: -10%',                weight: 5.769231 },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 5.769231 },
+]
+
+// 戒指 Lv110+ Rare — 與 Lv100 相同
+const RING_110_RARE = [
+  { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
+  { label: 'DEX : +10',          weight: 6.382979, stats: { dex: 10 } },
+  { label: 'INT : +10',          weight: 6.382979, stats: { int: 10 } },
+  { label: 'LUK : +10',          weight: 6.382979, stats: { luk: 10 } },
+  { label: 'Max HP: +100',       weight: 6.382979, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 6.382979, stats: { mp: 100 } },
+  { label: 'Movement Speed: +5', weight: 6.382979, stats: { moveSpeed: 5 } },
+  { label: 'Jump: +5',           weight: 6.382979, stats: { jump: 5 } },
+  { label: 'ATT: +10',           weight: 4.255319, stats: { atk: 10 } },
+  { label: 'Magic ATT: +10',     weight: 4.255319, stats: { matk: 10 } },
+  { label: 'DEF: +100',          weight: 6.382979, stats: { def: 100 } },
+  { label: 'STR : +2%',          weight: 4.255319, stats: { strPct: 2 } },
+  { label: 'DEX : +2%',          weight: 4.255319, stats: { dexPct: 2 } },
+  { label: 'INT : +2%',          weight: 4.255319, stats: { intPct: 2 } },
+  { label: 'LUK : +2%',          weight: 4.255319, stats: { lukPct: 2 } },
+  { label: 'Max HP: +2%',        weight: 4.255319, stats: { hpPct: 2 } },
+  { label: 'Max MP: +2%',        weight: 4.255319, stats: { mpPct: 2 } },
+  { label: 'DEF: +2%',           weight: 4.255319, stats: { defPct: 2 } },
+  { label: 'All Stats: +3',      weight: 4.255319, stats: { allStat: 3 } },
+]
+
+// 戒指 Lv110+ Epic — Max HP/MP +165 (Lv100 為 +150,Lv120 為 +180)
+const RING_110_EPIC = [
+  { label: 'STR : +14',          weight: 6.000000, stats: { str: 14 } },
+  { label: 'DEX : +14',          weight: 6.000000, stats: { dex: 14 } },
+  { label: 'INT : +14',          weight: 6.000000, stats: { int: 14 } },
+  { label: 'LUK : +14',          weight: 6.000000, stats: { luk: 14 } },
+  { label: 'Max HP: +165',       weight: 6.000000, stats: { hp: 165 } },
+  { label: 'Max MP: +165',       weight: 6.000000, stats: { mp: 165 } },
+  { label: 'Movement Speed: +6', weight: 6.000000, stats: { moveSpeed: 6 } },
+  { label: 'Jump: +6',           weight: 6.000000, stats: { jump: 6 } },
+  { label: 'ATT: +11',           weight: 4.000000, stats: { atk: 11 } },
+  { label: 'Magic ATT: +11',     weight: 4.000000, stats: { matk: 11 } },
+  { label: 'DEF: +120',          weight: 6.000000, stats: { def: 120 } },
+  { label: 'STR : +4%',          weight: 4.000000, stats: { strPct: 4 } },
+  { label: 'DEX : +4%',          weight: 4.000000, stats: { dexPct: 4 } },
+  { label: 'INT : +4%',          weight: 4.000000, stats: { intPct: 4 } },
+  { label: 'LUK : +4%',          weight: 4.000000, stats: { lukPct: 4 } },
+  { label: 'Max HP: +5%',        weight: 6.000000, stats: { hpPct: 5 } },
+  { label: 'Max MP: +5%',        weight: 6.000000, stats: { mpPct: 5 } },
+  { label: 'DEF: +4%',           weight: 6.000000, stats: { defPct: 4 } },
+  { label: 'All Stats: +2%',     weight: 4.000000, stats: { allStatPct: 2 } },
+]
+
+// 戒指 Lv110+ Unique — Max HP/MP +220 (Lv100 為 +200,Lv120 為 +240)
+const RING_110_UNIQUE = [
+  { label: 'STR : +16',                          weight: 6.122449, stats: { str: 16 } },
+  { label: 'DEX : +16',                          weight: 6.122449, stats: { dex: 16 } },
+  { label: 'INT : +16',                          weight: 6.122449, stats: { int: 16 } },
+  { label: 'LUK : +16',                          weight: 6.122449, stats: { luk: 16 } },
+  { label: 'Max HP: +220',                       weight: 6.122449, stats: { hp: 220 } },
+  { label: 'Max MP: +220',                       weight: 6.122449, stats: { mp: 220 } },
+  { label: 'ATT: +12',                           weight: 4.081633, stats: { atk: 12 } },
+  { label: 'Magic ATT: +12',                     weight: 4.081633, stats: { matk: 12 } },
+  { label: 'STR : +5%',                          weight: 4.081633, stats: { strPct: 5 } },
+  { label: 'DEX : +5%',                          weight: 4.081633, stats: { dexPct: 5 } },
+  { label: 'INT : +5%',                          weight: 4.081633, stats: { intPct: 5 } },
+  { label: 'LUK : +5%',                          weight: 4.081633, stats: { lukPct: 5 } },
+  { label: 'Max HP: +7%',                        weight: 6.122449, stats: { hpPct: 7 } },
+  { label: 'Max MP: +7%',                        weight: 6.122449, stats: { mpPct: 7 } },
+  { label: 'All Stats: +4%',                     weight: 4.081633, stats: { allStatPct: 4 } },
+  { label: 'STR per 10 Character Levels: +1',    weight: 4.081633, stats: { strPerLv10: 1 } },
+  { label: 'DEX per 10 Character Levels: +1',    weight: 4.081633, stats: { dexPerLv10: 1 } },
+  { label: 'INT per 10 Character Levels: +1',    weight: 4.081633, stats: { intPerLv10: 1 } },
+  { label: 'LUK per 10 Character Levels: +1',    weight: 4.081633, stats: { lukPerLv10: 1 } },
+  { label: 'HP Recovery Items and Skills: +20%', weight: 6.122449 },
+]
+
+// 戒指 Lv110+ Legendary — Max HP/MP +275 (Lv100 為 +250,Lv120 為 +300)
+const RING_110_LEGENDARY = [
+  { label: 'STR : +18',                          weight: 5.769231, stats: { str: 18 } },
+  { label: 'DEX : +18',                          weight: 5.769231, stats: { dex: 18 } },
+  { label: 'INT : +18',                          weight: 5.769231, stats: { int: 18 } },
+  { label: 'LUK : +18',                          weight: 5.769231, stats: { luk: 18 } },
+  { label: 'Max HP: +275',                       weight: 5.769231, stats: { hp: 275 } },
+  { label: 'Max MP: +275',                       weight: 5.769231, stats: { mp: 275 } },
+  { label: 'ATT: +14',                           weight: 3.846154, stats: { atk: 14 } },
+  { label: 'Magic ATT: +14',                     weight: 3.846154, stats: { matk: 14 } },
+  { label: 'STR : +7%',                          weight: 3.846154, stats: { strPct: 7 } },
+  { label: 'DEX : +7%',                          weight: 3.846154, stats: { dexPct: 7 } },
+  { label: 'INT : +7%',                          weight: 3.846154, stats: { intPct: 7 } },
+  { label: 'LUK : +7%',                          weight: 3.846154, stats: { lukPct: 7 } },
+  { label: 'Max HP: +10%',                       weight: 5.769231, stats: { hpPct: 10 } },
+  { label: 'Max MP: +10%',                       weight: 5.769231, stats: { mpPct: 10 } },
+  { label: 'All Stats: +5%',                     weight: 3.846154, stats: { allStatPct: 5 } },
+  { label: 'STR per 10 Character Levels: +2',    weight: 3.846154, stats: { strPerLv10: 2 } },
+  { label: 'DEX per 10 Character Levels: +2',    weight: 3.846154, stats: { dexPerLv10: 2 } },
+  { label: 'INT per 10 Character Levels: +2',    weight: 3.846154, stats: { intPerLv10: 2 } },
+  { label: 'LUK per 10 Character Levels: +2',    weight: 3.846154, stats: { lukPerLv10: 2 } },
+  { label: 'Skill MP Cost: -10%',                weight: 5.769231 },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 5.769231 },
+]
+
+// 戒指 Lv120+ Rare (Bonus Potential)
+const RING_120_RARE = [
+  { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
+  { label: 'DEX : +10',          weight: 6.382979, stats: { dex: 10 } },
+  { label: 'INT : +10',          weight: 6.382979, stats: { int: 10 } },
+  { label: 'LUK : +10',          weight: 6.382979, stats: { luk: 10 } },
+  { label: 'Max HP: +100',       weight: 6.382979, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 6.382979, stats: { mp: 100 } },
+  { label: 'Movement Speed: +6', weight: 6.382979, stats: { moveSpeed: 6 } },
+  { label: 'Jump: +6',           weight: 6.382979, stats: { jump: 6 } },
+  { label: 'ATT: +10',           weight: 4.255319, stats: { atk: 10 } },
+  { label: 'Magic ATT: +10',     weight: 4.255319, stats: { matk: 10 } },
+  { label: 'DEF: +100',          weight: 6.382979, stats: { def: 100 } },
+  { label: 'STR : +2%',          weight: 4.255319, stats: { strPct: 2 } },
+  { label: 'DEX : +2%',          weight: 4.255319, stats: { dexPct: 2 } },
+  { label: 'INT : +2%',          weight: 4.255319, stats: { intPct: 2 } },
+  { label: 'LUK : +2%',          weight: 4.255319, stats: { lukPct: 2 } },
+  { label: 'Max HP: +2%',        weight: 4.255319, stats: { hpPct: 2 } },
+  { label: 'Max MP: +2%',        weight: 4.255319, stats: { mpPct: 2 } },
+  { label: 'DEF: +2%',           weight: 4.255319, stats: { defPct: 2 } },
+  { label: 'All Stats: +3',      weight: 4.255319, stats: { allStat: 3 } },
+]
+
+// 戒指 Lv120+ Epic
+const RING_120_EPIC = [
+  { label: 'STR : +14',          weight: 6.000000, stats: { str: 14 } },
+  { label: 'DEX : +14',          weight: 6.000000, stats: { dex: 14 } },
+  { label: 'INT : +14',          weight: 6.000000, stats: { int: 14 } },
+  { label: 'LUK : +14',          weight: 6.000000, stats: { luk: 14 } },
+  { label: 'Max HP: +180',       weight: 6.000000, stats: { hp: 180 } },
+  { label: 'Max MP: +180',       weight: 6.000000, stats: { mp: 180 } },
+  { label: 'Movement Speed: +8', weight: 6.000000, stats: { moveSpeed: 8 } },
+  { label: 'Jump: +8',           weight: 6.000000, stats: { jump: 8 } },
+  { label: 'ATT: +11',           weight: 4.000000, stats: { atk: 11 } },
+  { label: 'Magic ATT: +11',     weight: 4.000000, stats: { matk: 11 } },
+  { label: 'DEF: +120',          weight: 6.000000, stats: { def: 120 } },
+  { label: 'STR : +4%',          weight: 4.000000, stats: { strPct: 4 } },
+  { label: 'DEX : +4%',          weight: 4.000000, stats: { dexPct: 4 } },
+  { label: 'INT : +4%',          weight: 4.000000, stats: { intPct: 4 } },
+  { label: 'LUK : +4%',          weight: 4.000000, stats: { lukPct: 4 } },
+  { label: 'Max HP: +5%',        weight: 6.000000, stats: { hpPct: 5 } },
+  { label: 'Max MP: +5%',        weight: 6.000000, stats: { mpPct: 5 } },
+  { label: 'DEF: +4%',           weight: 6.000000, stats: { defPct: 4 } },
+  { label: 'All Stats: +2%',     weight: 4.000000, stats: { allStatPct: 2 } },
+]
+
+// 戒指 Lv120+ Unique
+const RING_120_UNIQUE = [
+  { label: 'STR : +16',                          weight: 6.122449, stats: { str: 16 } },
+  { label: 'DEX : +16',                          weight: 6.122449, stats: { dex: 16 } },
+  { label: 'INT : +16',                          weight: 6.122449, stats: { int: 16 } },
+  { label: 'LUK : +16',                          weight: 6.122449, stats: { luk: 16 } },
+  { label: 'Max HP: +240',                       weight: 6.122449, stats: { hp: 240 } },
+  { label: 'Max MP: +240',                       weight: 6.122449, stats: { mp: 240 } },
+  { label: 'ATT: +12',                           weight: 4.081633, stats: { atk: 12 } },
+  { label: 'Magic ATT: +12',                     weight: 4.081633, stats: { matk: 12 } },
+  { label: 'STR : +5%',                          weight: 4.081633, stats: { strPct: 5 } },
+  { label: 'DEX : +5%',                          weight: 4.081633, stats: { dexPct: 5 } },
+  { label: 'INT : +5%',                          weight: 4.081633, stats: { intPct: 5 } },
+  { label: 'LUK : +5%',                          weight: 4.081633, stats: { lukPct: 5 } },
+  { label: 'Max HP: +7%',                        weight: 6.122449, stats: { hpPct: 7 } },
+  { label: 'Max MP: +7%',                        weight: 6.122449, stats: { mpPct: 7 } },
+  { label: 'All Stats: +4%',                     weight: 4.081633, stats: { allStatPct: 4 } },
+  { label: 'STR per 10 Character Levels: +1',    weight: 4.081633, stats: { strPerLv10: 1 } },
+  { label: 'DEX per 10 Character Levels: +1',    weight: 4.081633, stats: { dexPerLv10: 1 } },
+  { label: 'INT per 10 Character Levels: +1',    weight: 4.081633, stats: { intPerLv10: 1 } },
+  { label: 'LUK per 10 Character Levels: +1',    weight: 4.081633, stats: { lukPerLv10: 1 } },
+  { label: 'HP Recovery Items and Skills: +20%', weight: 6.122449 },
+]
+
+// 戒指 Lv120+ Legendary
+const RING_120_LEGENDARY = [
+  { label: 'STR : +18',                          weight: 5.769231, stats: { str: 18 } },
+  { label: 'DEX : +18',                          weight: 5.769231, stats: { dex: 18 } },
+  { label: 'INT : +18',                          weight: 5.769231, stats: { int: 18 } },
+  { label: 'LUK : +18',                          weight: 5.769231, stats: { luk: 18 } },
+  { label: 'Max HP: +300',                       weight: 5.769231, stats: { hp: 300 } },
+  { label: 'Max MP: +300',                       weight: 5.769231, stats: { mp: 300 } },
+  { label: 'ATT: +14',                           weight: 3.846154, stats: { atk: 14 } },
+  { label: 'Magic ATT: +14',                     weight: 3.846154, stats: { matk: 14 } },
+  { label: 'STR : +7%',                          weight: 3.846154, stats: { strPct: 7 } },
+  { label: 'DEX : +7%',                          weight: 3.846154, stats: { dexPct: 7 } },
+  { label: 'INT : +7%',                          weight: 3.846154, stats: { intPct: 7 } },
+  { label: 'LUK : +7%',                          weight: 3.846154, stats: { lukPct: 7 } },
+  { label: 'Max HP: +10%',                       weight: 5.769231, stats: { hpPct: 10 } },
+  { label: 'Max MP: +10%',                       weight: 5.769231, stats: { mpPct: 10 } },
+  { label: 'All Stats: +5%',                     weight: 3.846154, stats: { allStatPct: 5 } },
+  { label: 'STR per 10 Character Levels: +2',    weight: 3.846154, stats: { strPerLv10: 2 } },
+  { label: 'DEX per 10 Character Levels: +2',    weight: 3.846154, stats: { dexPerLv10: 2 } },
+  { label: 'INT per 10 Character Levels: +2',    weight: 3.846154, stats: { intPerLv10: 2 } },
+  { label: 'LUK per 10 Character Levels: +2',    weight: 3.846154, stats: { lukPerLv10: 2 } },
+  { label: 'Skill MP Cost: -10%',                weight: 5.769231 },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 5.769231 },
+]
+
+// 腰帶 Lv120+ Rare — 與戒指 Lv120+ 相同
+const BELT_120_RARE = [
+  { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
+  { label: 'DEX : +10',          weight: 6.382979, stats: { dex: 10 } },
+  { label: 'INT : +10',          weight: 6.382979, stats: { int: 10 } },
+  { label: 'LUK : +10',          weight: 6.382979, stats: { luk: 10 } },
+  { label: 'Max HP: +100',       weight: 6.382979, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 6.382979, stats: { mp: 100 } },
+  { label: 'Movement Speed: +6', weight: 6.382979, stats: { moveSpeed: 6 } },
+  { label: 'Jump: +6',           weight: 6.382979, stats: { jump: 6 } },
+  { label: 'ATT: +10',           weight: 4.255319, stats: { atk: 10 } },
+  { label: 'Magic ATT: +10',     weight: 4.255319, stats: { matk: 10 } },
+  { label: 'DEF: +100',          weight: 6.382979, stats: { def: 100 } },
+  { label: 'STR : +2%',          weight: 4.255319, stats: { strPct: 2 } },
+  { label: 'DEX : +2%',          weight: 4.255319, stats: { dexPct: 2 } },
+  { label: 'INT : +2%',          weight: 4.255319, stats: { intPct: 2 } },
+  { label: 'LUK : +2%',          weight: 4.255319, stats: { lukPct: 2 } },
+  { label: 'Max HP: +2%',        weight: 4.255319, stats: { hpPct: 2 } },
+  { label: 'Max MP: +2%',        weight: 4.255319, stats: { mpPct: 2 } },
+  { label: 'DEF: +2%',           weight: 4.255319, stats: { defPct: 2 } },
+  { label: 'All Stats: +3',      weight: 4.255319, stats: { allStat: 3 } },
+]
+
+// 腰帶 Lv120+ Epic — 與戒指 Lv120+ 相同
+const BELT_120_EPIC = [
+  { label: 'STR : +14',          weight: 6.000000, stats: { str: 14 } },
+  { label: 'DEX : +14',          weight: 6.000000, stats: { dex: 14 } },
+  { label: 'INT : +14',          weight: 6.000000, stats: { int: 14 } },
+  { label: 'LUK : +14',          weight: 6.000000, stats: { luk: 14 } },
+  { label: 'Max HP: +180',       weight: 6.000000, stats: { hp: 180 } },
+  { label: 'Max MP: +180',       weight: 6.000000, stats: { mp: 180 } },
+  { label: 'Movement Speed: +8', weight: 6.000000, stats: { moveSpeed: 8 } },
+  { label: 'Jump: +8',           weight: 6.000000, stats: { jump: 8 } },
+  { label: 'ATT: +11',           weight: 4.000000, stats: { atk: 11 } },
+  { label: 'Magic ATT: +11',     weight: 4.000000, stats: { matk: 11 } },
+  { label: 'DEF: +120',          weight: 6.000000, stats: { def: 120 } },
+  { label: 'STR : +4%',          weight: 4.000000, stats: { strPct: 4 } },
+  { label: 'DEX : +4%',          weight: 4.000000, stats: { dexPct: 4 } },
+  { label: 'INT : +4%',          weight: 4.000000, stats: { intPct: 4 } },
+  { label: 'LUK : +4%',          weight: 4.000000, stats: { lukPct: 4 } },
+  { label: 'Max HP: +5%',        weight: 6.000000, stats: { hpPct: 5 } },
+  { label: 'Max MP: +5%',        weight: 6.000000, stats: { mpPct: 5 } },
+  { label: 'DEF: +4%',           weight: 6.000000, stats: { defPct: 4 } },
+  { label: 'All Stats: +2%',     weight: 4.000000, stats: { allStatPct: 2 } },
+]
+
+// 腰帶 Lv120+ Unique — 與戒指 Lv120+ 相同
+const BELT_120_UNIQUE = [
+  { label: 'STR : +16',                          weight: 6.122449, stats: { str: 16 } },
+  { label: 'DEX : +16',                          weight: 6.122449, stats: { dex: 16 } },
+  { label: 'INT : +16',                          weight: 6.122449, stats: { int: 16 } },
+  { label: 'LUK : +16',                          weight: 6.122449, stats: { luk: 16 } },
+  { label: 'Max HP: +240',                       weight: 6.122449, stats: { hp: 240 } },
+  { label: 'Max MP: +240',                       weight: 6.122449, stats: { mp: 240 } },
+  { label: 'ATT: +12',                           weight: 4.081633, stats: { atk: 12 } },
+  { label: 'Magic ATT: +12',                     weight: 4.081633, stats: { matk: 12 } },
+  { label: 'STR : +5%',                          weight: 4.081633, stats: { strPct: 5 } },
+  { label: 'DEX : +5%',                          weight: 4.081633, stats: { dexPct: 5 } },
+  { label: 'INT : +5%',                          weight: 4.081633, stats: { intPct: 5 } },
+  { label: 'LUK : +5%',                          weight: 4.081633, stats: { lukPct: 5 } },
+  { label: 'Max HP: +7%',                        weight: 6.122449, stats: { hpPct: 7 } },
+  { label: 'Max MP: +7%',                        weight: 6.122449, stats: { mpPct: 7 } },
+  { label: 'All Stats: +4%',                     weight: 4.081633, stats: { allStatPct: 4 } },
+  { label: 'STR per 10 Character Levels: +1',    weight: 4.081633, stats: { strPerLv10: 1 } },
+  { label: 'DEX per 10 Character Levels: +1',    weight: 4.081633, stats: { dexPerLv10: 1 } },
+  { label: 'INT per 10 Character Levels: +1',    weight: 4.081633, stats: { intPerLv10: 1 } },
+  { label: 'LUK per 10 Character Levels: +1',    weight: 4.081633, stats: { lukPerLv10: 1 } },
+  { label: 'HP Recovery Items and Skills: +20%', weight: 6.122449 },
+]
+
+// 腰帶 Lv120+ Legendary — 與戒指略有不同 (新增 Critical Damage 選項,無 Skill MP Cost)
+const BELT_120_LEGENDARY = [
+  { label: 'STR : +18',                          weight: 5.882353, stats: { str: 18 } },
+  { label: 'DEX : +18',                          weight: 5.882353, stats: { dex: 18 } },
+  { label: 'INT : +18',                          weight: 5.882353, stats: { int: 18 } },
+  { label: 'LUK : +18',                          weight: 5.882353, stats: { luk: 18 } },
+  { label: 'Max HP: +300',                       weight: 5.882353, stats: { hp: 300 } },
+  { label: 'Max MP: +300',                       weight: 5.882353, stats: { mp: 300 } },
+  { label: 'ATT: +14',                           weight: 3.921569, stats: { atk: 14 } },
+  { label: 'Magic ATT: +14',                     weight: 3.921569, stats: { matk: 14 } },
+  { label: 'STR : +7%',                          weight: 3.921569, stats: { strPct: 7 } },
+  { label: 'DEX : +7%',                          weight: 3.921569, stats: { dexPct: 7 } },
+  { label: 'INT : +7%',                          weight: 3.921569, stats: { intPct: 7 } },
+  { label: 'LUK : +7%',                          weight: 3.921569, stats: { lukPct: 7 } },
+  { label: 'Max HP: +10%',                       weight: 5.882353, stats: { hpPct: 10 } },
+  { label: 'Max MP: +10%',                       weight: 5.882353, stats: { mpPct: 10 } },
+  { label: 'Critical Damage: +1%',               weight: 3.921569, stats: { critDmg: 1 } },
+  { label: 'All Stats: +5%',                     weight: 3.921569, stats: { allStatPct: 5 } },
+  { label: 'STR per 10 Character Levels: +2',    weight: 3.921569, stats: { strPerLv10: 2 } },
+  { label: 'DEX per 10 Character Levels: +2',    weight: 3.921569, stats: { dexPerLv10: 2 } },
+  { label: 'INT per 10 Character Levels: +2',    weight: 3.921569, stats: { intPerLv10: 2 } },
+  { label: 'LUK per 10 Character Levels: +2',    weight: 3.921569, stats: { lukPerLv10: 2 } },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 5.882353 },
+]
+
 export const BONUS_POTENTIAL_POOLS = {
   weapon: {
     120: {
@@ -101,6 +481,43 @@ export const BONUS_POTENTIAL_POOLS = {
       legendary: WEAPON_120_LEGENDARY,
     },
   },
+  ring: {
+    100: {
+      rare:      RING_100_RARE,
+      epic:      RING_100_EPIC,
+      unique:    RING_100_UNIQUE,
+      legendary: RING_100_LEGENDARY,
+    },
+    110: {
+      rare:      RING_110_RARE,
+      epic:      RING_110_EPIC,
+      unique:    RING_110_UNIQUE,
+      legendary: RING_110_LEGENDARY,
+    },
+    120: {
+      rare:      RING_120_RARE,
+      epic:      RING_120_EPIC,
+      unique:    RING_120_UNIQUE,
+      legendary: RING_120_LEGENDARY,
+    },
+  },
+  belt: {
+    120: {
+      rare:      BELT_120_RARE,
+      epic:      BELT_120_EPIC,
+      unique:    BELT_120_UNIQUE,
+      legendary: BELT_120_LEGENDARY,
+    },
+  },
+  // Pendant Lv120+ 附加潛能與戒指 Lv120 完全相同
+  pendant: {
+    120: {
+      rare:      RING_120_RARE,
+      epic:      RING_120_EPIC,
+      unique:    RING_120_UNIQUE,
+      legendary: RING_120_LEGENDARY,
+    },
+  },
 }
 
 function categoryOf(item) {
@@ -108,6 +525,9 @@ function categoryOf(item) {
   if (item.type === 'weapon') return 'weapon'
   if (item.type === 'secondary') return 'weapon'
   if (item.type === 'glove') return 'glove'
+  if (item.type === 'ring') return 'ring'
+  if (item.type === 'belt') return 'belt'
+  if (item.type === 'pendant') return 'pendant'
   return 'armor'
 }
 

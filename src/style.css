@@ -3,12 +3,38 @@
     Roboto, sans-serif;
   line-height: 1.5;
   color-scheme: dark;
-  color: #e9edf5;
-  background-color: #0b0e1a;
+  color: #f1f3f7;
+  background-color: #1b1f27;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* MapleStory 面板風格 (對齊計算機) */
+  --ms-panel-bg: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);
+  --ms-panel-border: #3d4554;
+  --ms-panel-radius: 14px;
+  --ms-panel-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  --ms-section-bg: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
+  --ms-section-border: #2f3642;
+  --ms-section-radius: 8px;
+  --ms-section-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  --ms-head-bg: linear-gradient(180deg, #5b6577 0%, #49525f 100%);
+  --ms-head-border: #3d4554;
+
+  --ms-input-bg: #2b3441;
+  --ms-input-bg-deep: #1f2630;
+  --ms-input-border: #141a22;
+
+  --ms-text: #f1f3f7;
+  --ms-text-dim: #c9d2dd;
+  --ms-text-weak: #8ea6b8;
+  --ms-accent: #ffc857;
+  --ms-accent-cyan: #5cd1ea;
 }
 
 * {
@@ -19,9 +45,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at top, rgba(126, 232, 250, 0.08), transparent 60%),
-    radial-gradient(ellipse at bottom, rgba(255, 204, 51, 0.06), transparent 60%),
-    #0b0e1a;
+    radial-gradient(ellipse at top, rgba(139, 150, 168, 0.18), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(255, 200, 87, 0.06), transparent 60%),
+    #1b1f27;
 }
 
 #app {
@@ -32,24 +58,73 @@ a {
   color: inherit;
 }
 
+/* ── 共用 MapleStory 風格 utility ────────────────────────── */
+.ms-panel {
+  background: var(--ms-panel-bg);
+  border: 1px solid var(--ms-panel-border);
+  border-radius: var(--ms-panel-radius);
+  padding: 10px;
+  box-shadow: var(--ms-panel-shadow);
+  color: var(--ms-text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ms-panel__head {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  background: var(--ms-head-bg);
+  border: 1px solid var(--ms-head-border);
+  border-radius: 8px;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--ms-text);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+.ms-section {
+  background: var(--ms-section-bg);
+  border: 1px solid var(--ms-section-border);
+  border-radius: var(--ms-section-radius);
+  padding: 10px 14px;
+  box-shadow: var(--ms-section-shadow);
+}
+.ms-btn {
+  padding: 0.4rem 0.9rem;
+  background: var(--ms-head-bg);
+  color: var(--ms-text);
+  border: 1px solid var(--ms-head-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: filter 120ms ease, border-color 120ms ease;
+}
+.ms-btn:hover { filter: brightness(1.12); border-color: var(--ms-accent); }
+.ms-btn--ghost { background: transparent; }
+
+/* ── 頁面預設樣式 ─────────────────────────────── */
 .page {
   padding: 1rem 0;
 }
 .page h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.6rem;
-  letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #ffb347, #ffcc33, #7ee8fa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  color: var(--ms-accent);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 .page .placeholder {
-  color: #8089a3;
+  color: var(--ms-text-weak);
   font-size: 0.95rem;
   padding: 2rem 1rem;
-  border: 1px dashed #2e3550;
-  border-radius: 12px;
-  background: #131828;
+  background: var(--ms-section-bg);
+  border: 1px solid var(--ms-section-border);
+  border-radius: var(--ms-section-radius);
+  box-shadow: var(--ms-section-shadow);
   text-align: center;
 }

@@ -143,35 +143,30 @@ onUnmounted(() => {
 }
 .equip-page__head h1 {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #ffb347, #ffcc33, #7ee8fa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: #ffc857;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 .equip-page__actions {
   display: flex;
   gap: 0.5rem;
 }
 .btn {
-  background: #1b2140;
-  color: #e9edf5;
-  border: 1px solid #2a3152;
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  background: linear-gradient(180deg, #5b6577 0%, #49525f 100%);
+  color: #f1f3f7;
+  border: 1px solid #3d4554;
+  border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.85rem;
-  transition: background 120ms ease, border-color 120ms ease;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: filter 120ms ease, border-color 120ms ease;
 }
-.btn:hover {
-  background: #232a4f;
-  border-color: #7ee8fa;
-}
-.btn--ghost {
-  background: transparent;
-}
+.btn:hover { filter: brightness(1.12); border-color: #ffc857; }
+.btn--ghost { background: transparent; }
 
 .equip-page__body {
   display: grid;
@@ -187,13 +182,14 @@ onUnmounted(() => {
 }
 
 .selected-hint {
-  background: rgba(255, 204, 51, 0.1);
-  border: 1px solid rgba(255, 204, 51, 0.35);
-  color: #ffcc33;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  background: rgba(255, 200, 87, 0.12);
+  border: 1px solid rgba(255, 200, 87, 0.4);
+  color: #ffc857;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
   margin-bottom: 0.6rem;
   font-size: 0.85rem;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 860px) {

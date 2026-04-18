@@ -94,12 +94,13 @@ function onKey(e) {
             :key="item.id"
             class="picker__row"
             :class="{ 'picker__row--flash': addedFlash === item.id }"
-            @mouseenter="emit('hover', item)"
-            @mouseleave="emit('hover', null)"
-            @focus="emit('hover', item)"
-            @blur="emit('hover', null)"
           >
-            <div class="picker__thumb">
+            <!-- tooltip hover 只掛在 thumbnail + info 範圍,避免覆蓋到右邊的「新增」按鈕 -->
+            <div
+              class="picker__thumb"
+              @mouseenter="emit('hover', item)"
+              @mouseleave="emit('hover', null)"
+            >
               <img
                 v-if="item.imageUrl || item.icon"
                 :src="item.imageUrl || item.icon"
@@ -108,7 +109,11 @@ function onKey(e) {
               />
               <span v-else class="picker__thumb-ph" aria-hidden="true" />
             </div>
-            <div class="picker__info">
+            <div
+              class="picker__info"
+              @mouseenter="emit('hover', item)"
+              @mouseleave="emit('hover', null)"
+            >
               <div class="picker__name">{{ item.name }}</div>
               <div class="picker__meta">
                 <span>{{ t(`equipment.types.${item.type}`) }}</span>
@@ -116,7 +121,11 @@ function onKey(e) {
                 <span>Lv. {{ item.level }}</span>
               </div>
             </div>
-            <button class="picker__add" @click="onAdd(item)">
+            <button
+              class="picker__add"
+              @click="onAdd(item)"
+              @mouseenter="emit('hover', null)"
+            >
               {{ addedFlash === item.id ? t('equipment.picker.added') : t('equipment.picker.add') }}
             </button>
           </li>

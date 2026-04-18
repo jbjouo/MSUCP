@@ -6,8 +6,7 @@
   "nav": {
     "character": "Character",
     "equipment": "Equipment",
-    "cp": "CP Calculator",
-    "legion": "Legion"
+    "cp": "CP Calculator"
   },
   "language": {
     "label": "Language",
@@ -26,10 +25,70 @@
     "cp": {
       "title": "CP Calculator",
       "placeholder": "Combat Power calculator — coming soon."
-    },
-    "legion": {
-      "title": "Legion",
-      "placeholder": "Legion battlefield — coming soon."
+    }
+  },
+  "itemSet": {
+    "boss_accessory": {
+      "name": "Boss Accessory Set"
+    }
+  },
+  "hyperStat": {
+    "title": "HYPER STAT",
+    "reset": "Reset",
+    "points": "POINT",
+    "remaining": "{n} left",
+    "stats": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "critRate": "Critical Rate",
+      "critDmg": "Critical Damage",
+      "ignoreDef": "Ignore Defense",
+      "damage": "Damage",
+      "bossDmg": "Boss Damage",
+      "normalMobDmg": "Normal Enemy Damage",
+      "abnormalResist": "Abnormal Status Resistance",
+      "attMatk": "ATT & Magic ATT",
+      "bonusExp": "Bonus EXP"
+    }
+  },
+  "puzzle": {
+    "title": "LEGION PUZZLE",
+    "entries": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "atk": "ATT",
+      "matk": "Magic ATT",
+      "crit_rate": "Critical Rate",
+      "abnormal_resist": "Abnormal Status Resistance",
+      "ignore_def": "Ignore Defense",
+      "normal_mob_dmg": "Normal Monster Damage",
+      "crit_dmg": "Critical Damage",
+      "bonus_exp": "Bonus EXP",
+      "boss_dmg": "Boss Damage",
+      "buff_duration": "Buff Duration"
+    }
+  },
+  "legion": {
+    "title": "Legion Battlefield",
+    "reset": "Reset",
+    "members": "Legion Members",
+    "other": "Legion Coin / Effects",
+    "placeholder": "Coming soon.",
+    "stats": {
+      "hpPct": "Max HP",
+      "mpPct": "Max MP",
+      "summonDuration": "Summon Duration",
+      "cooldownReduction": "Skill Cooldown",
+      "hpRecoveryOnHit": "HP Recovery on Attack",
+      "mpRecoveryOnHit": "MP Recovery on Attack"
     }
   },
   "equipment": {
@@ -205,7 +264,10 @@
       "magician": "Magician",
       "bowman": "Bowman",
       "thief": "Thief",
-      "pirate": "Pirate"
+      "pirate": "Pirate",
+      "cygnus": "Cygnus Knights",
+      "mihile": "Mihile",
+      "heroes": "Heroes"
     },
     "jobs": {
       "beginner": "Beginner",
@@ -217,10 +279,294 @@
       "bishop": "Bishop",
       "bowmaster": "Bowmaster",
       "marksman": "Marksman",
+      "pathfinder": "Pathfinder",
       "nightlord": "Night Lord",
       "shadower": "Shadower",
+      "dualblade": "Dual Blade",
       "buccaneer": "Buccaneer",
-      "corsair": "Corsair"
+      "corsair": "Corsair",
+      "cannoneer": "Cannoneer",
+      "dawnwarrior": "Dawn Warrior",
+      "blazewizard": "Blaze Wizard",
+      "windarcher": "Wind Archer",
+      "nightwalker": "Night Walker",
+      "thunderbreaker": "Thunder Breaker",
+      "mihile": "Mihile",
+      "aran": "Aran",
+      "evan": "Evan",
+      "mercedes": "Mercedes",
+      "phantom": "Phantom",
+      "luminous": "Luminous",
+      "shade": "Shade"
+    }
+  },
+  "collection": {
+    "title": "NFT COLLECTION EFFECT",
+    "reset": "Reset",
+    "tip": {
+      "toMin": "Set to 0",
+      "toMax": "Set to max"
+    },
+    "headers": {
+      "stat": "Stat",
+      "current": "Current",
+      "level": "Level",
+      "nextGain": "Next"
+    },
+    "stats": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "MaxHP",
+      "mp": "MaxMP",
+      "hpPct": "MaxHP %",
+      "mpPct": "MaxMP %",
+      "atk": "Attack Power",
+      "matk": "Magic Attack",
+      "dmgPct": "Damage %",
+      "bossDmg": "Boss Damage %",
+      "abnormalResist": "Abnormal Status Resist",
+      "ignoreDef": "DEF Ignored %",
+      "critRate": "Critical Rate %",
+      "critDmg": "Critical Damage %"
+    }
+  },
+  "linkSkill": {
+    "title": "LINK SKILL",
+    "tabs": {
+      "active": "Active Link Skills",
+      "preset": "PRESET {n}"
+    },
+    "save": "SAVE",
+    "sections": {
+      "mine": "My Link Skill",
+      "applied": "Applied Effect",
+      "others": "From Other Characters",
+      "owned": "Owned Link Skills"
+    },
+    "actions": {
+      "link": "LINK",
+      "unlink": "UNLINK",
+      "add": "LINK SKILL"
+    },
+    "noRecipient": "No recipient yet.",
+    "empty": "No active link skills.",
+    "noLinkForJob": "This job has no link skill.",
+    "levelLabel": "Lv.{lv}",
+    "ownCap": "Own max Lv.{lv}",
+    "totalCap": "Total max Lv.{lv}",
+    "fromJob": "From {job}",
+    "noCandidates": "No candidate link skills.",
+    "stats": {
+      "damage": "Damage",
+      "ignoreDef": "Ignore DEF",
+      "allStatPct": "All Stats",
+      "atk": "ATT",
+      "matk": "Magic ATT",
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "hp": "HP",
+      "mp": "MP",
+      "bossDmg": "Boss Damage",
+      "critRate": "Critical Rate",
+      "damageTaken": "Damage Taken"
+    },
+    "skills": {
+      "combo_kill_blessing": {
+        "name": "Combo Kill Blessing",
+        "flavor": "Maha blesses your combos.",
+        "desc": {
+          "1": "Combo Kill Orb EXP: +400% (permanent).",
+          "2": "Combo Kill Orb EXP: +650% (permanent).",
+          "3": "Combo Kill Orb EXP: +900% (permanent)."
+        }
+      },
+      "rune_persistence": {
+        "name": "Rune Persistence",
+        "flavor": "Increases the duration of Liberated Rune Power.",
+        "desc": {
+          "1": "Liberated Rune Power Duration: +30%.",
+          "2": "Liberated Rune Power Duration: +50%.",
+          "3": "Liberated Rune Power Duration: +70%."
+        }
+      },
+      "elven_blessing": {
+        "name": "Elven Blessing",
+        "flavor": "Whisks you back to Elluel and blesses you with extra EXP gains through the power of Elven lore.",
+        "caveat": "Owner cooldown: 600 sec. Linked cooldown: 1800 sec.",
+        "desc": {
+          "1": "Returns you to Elluel (Cooldown: 1800 sec). EXP +10% permanently.",
+          "2": "Returns you to Elluel (Cooldown: 1800 sec). EXP +15% permanently.",
+          "3": "Returns you to Elluel (Cooldown: 1800 sec). EXP +20% permanently."
+        }
+      },
+      "phantom_instinct": {
+        "name": "Phantom Instinct",
+        "flavor": "Uses phenomenal insight to locate an enemy's critical weakness.",
+        "desc": {
+          "1": "Critical Rate: +10%.",
+          "2": "Critical Rate: +15%.",
+          "3": "Critical Rate: +20%."
+        }
+      },
+      "light_wash": {
+        "name": "Light Wash",
+        "flavor": "The power of light breaks down enemy DEF, allowing your attacks to penetrate.",
+        "desc": {
+          "1": "Enemy DEF Ignored: +10%.",
+          "2": "Enemy DEF Ignored: +15%.",
+          "3": "Enemy DEF Ignored: +20%."
+        }
+      },
+      "close_call": {
+        "name": "Close Call",
+        "flavor": "Grants you a chance to survive an attack that would have been fatal.",
+        "desc": {
+          "1": "Fatal Attack Survival Chance: 5%.",
+          "2": "Fatal Attack Survival Chance: 10%.",
+          "3": "Fatal Attack Survival Chance: 15%."
+        }
+      },
+      "knights_watch": {
+        "name": "Knight's Watch",
+        "flavor": "Mihile, Knight of Light, temporarily grants you Status Resistance.",
+        "caveat": "Owner's version is an active barrier; linked version grants only the Status Resistance buff.",
+        "selfDesc": "Barrier Duration: 20 sec. Enemy Blows Blocked: 6. Damage: +20%. Damage -20% (only for attacks that inflict damage at a certain ratio of Max HP). Cooldown: 120 sec.",
+        "desc": {
+          "1": "Duration: 10 sec. Status Resistance: +100. Cooldown: 120 sec.",
+          "2": "Duration: 15 sec. Status Resistance: +100. Cooldown: 120 sec.",
+          "3": "Duration: 20 sec. Status Resistance: +100. Cooldown: 120 sec."
+        }
+      },
+      "cygnus_blessing": {
+        "name": "Cygnus Blessing",
+        "flavor": "Blessings from an awakened Empress Cygnus protect you from harm.",
+        "caveat": "Stacks up to 5 times, once per unique Cygnus Knights job character on this world.",
+        "desc": {
+          "1":  "ATT / Magic ATT +7, Abnormal Status Resistance +1, All Elemental Resistance +1%.",
+          "2":  "ATT / Magic ATT +9, Abnormal Status Resistance +3, All Elemental Resistance +3%.",
+          "3":  "ATT / Magic ATT +11, Abnormal Status Resistance +4, All Elemental Resistance +4%.",
+          "4":  "ATT / Magic ATT +13, Abnormal Status Resistance +6, All Elemental Resistance +6%.",
+          "5":  "ATT / Magic ATT +15, Abnormal Status Resistance +7, All Elemental Resistance +7%.",
+          "6":  "ATT / Magic ATT +17, Abnormal Status Resistance +9, All Elemental Resistance +9%.",
+          "7":  "ATT / Magic ATT +19, Abnormal Status Resistance +10, All Elemental Resistance +10%.",
+          "8":  "ATT / Magic ATT +21, Abnormal Status Resistance +12, All Elemental Resistance +12%.",
+          "9":  "ATT / Magic ATT +23, Abnormal Status Resistance +13, All Elemental Resistance +13%.",
+          "10": "ATT / Magic ATT +25, Abnormal Status Resistance +15, All Elemental Resistance +15%."
+        }
+      },
+      "invincible_belief": {
+        "name": "Invincible Belief",
+        "flavor": "Muster your faith in the darkest of times to recover health.",
+        "caveat": "Does not activate in towns or while affected by statuses that prevent HP recovery. Not affected by cooldown resets, buff duration increases, or recovery-skill amplifiers.",
+        "desc": {
+          "1": "Auto-activates at ≤15% Max HP. Restores 20% Max HP/sec for 3 sec.\nCooldown: 410 sec.",
+          "2": "Auto-activates at ≤15% Max HP. Restores 23% Max HP/sec for 3 sec.\nCooldown: 370 sec.",
+          "3": "Auto-activates at ≤15% Max HP. Restores 26% Max HP/sec for 3 sec.\nCooldown: 330 sec.",
+          "4": "Auto-activates at ≤15% Max HP. Restores 29% Max HP/sec for 3 sec.\nCooldown: 290 sec.",
+          "5": "Auto-activates at ≤15% Max HP. Restores 32% Max HP/sec for 3 sec.\nCooldown: 250 sec.",
+          "6": "Auto-activates at ≤15% Max HP. Restores 35% Max HP/sec for 3 sec.\nCooldown: 210 sec."
+        }
+      },
+      "adventurers_curiosity": {
+        "name": "Adventurer's Curiosity",
+        "flavor": "Your curiosity and attention to detail grants you bonuses to Critical Rate.",
+        "desc": {
+          "1": "Critical Rate +3%.",
+          "2": "Critical Rate +4%.",
+          "3": "Critical Rate +6%.",
+          "4": "Critical Rate +7%.",
+          "5": "Critical Rate +9%.",
+          "6": "Critical Rate +10%."
+        }
+      },
+      "pirate_blessing": {
+        "name": "Pirate Blessing",
+        "flavor": "Your piratical tenacity instills you with the boons of damage reduction and improved stats.",
+        "selfOnly": "While this skill is active, the STR and DEX values for your equipment will be swapped. (Excludes weapon, secondary weapon, Arcane Symbol, Sacred Symbol, and pet equipment slots.)",
+        "desc": {
+          "1": "STR +20, DEX +20, INT +20, LUK +20\nMax HP +350, Max MP +350\nDamage Taken: -5%. Cooldown: 5 sec.",
+          "2": "STR +30, DEX +30, INT +30, LUK +30\nMax HP +525, Max MP +525\nDamage Taken: -7%. Cooldown: 5 sec.",
+          "3": "STR +40, DEX +40, INT +40, LUK +40\nMax HP +700, Max MP +700\nDamage Taken: -9%. Cooldown: 5 sec.",
+          "4": "STR +50, DEX +50, INT +50, LUK +50\nMax HP +875, Max MP +875\nDamage Taken: -11%. Cooldown: 5 sec.",
+          "5": "STR +60, DEX +60, INT +60, LUK +60\nMax HP +1050, Max MP +1050\nDamage Taken: -13%. Cooldown: 5 sec.",
+          "6": "STR +70, DEX +70, INT +70, LUK +70\nMax HP +1225, Max MP +1225\nDamage Taken: -15%. Cooldown: 5 sec."
+        }
+      },
+      "thiefs_cunning": {
+        "name": "Thief's Cunning",
+        "flavor": "Your cunning and training allow you to take full advantage of a weakened opponent.",
+        "caveat": "Not affected by cooldown resets or buff duration increases.",
+        "desc": {
+          "1": "Upon debuffing an enemy, Damage: +3%.\nDuration: 10 sec. Cooldown: 20 sec.",
+          "2": "Upon debuffing an enemy, Damage: +6%.\nDuration: 10 sec. Cooldown: 20 sec.",
+          "3": "Upon debuffing an enemy, Damage: +9%.\nDuration: 10 sec. Cooldown: 20 sec.",
+          "4": "Upon debuffing an enemy, Damage: +12%.\nDuration: 10 sec. Cooldown: 20 sec.",
+          "5": "Upon debuffing an enemy, Damage: +15%.\nDuration: 10 sec. Cooldown: 20 sec.",
+          "6": "Upon debuffing an enemy, Damage: +18%.\nDuration: 10 sec. Cooldown: 20 sec."
+        }
+      },
+      "empirical_knowledge": {
+        "name": "Empirical Knowledge",
+        "flavor": "Your studious efforts in researching and identifying enemy weaknesses has increased your ability to single out enemies and tear through their defenses, dealing increased damage.",
+        "desc": {
+          "1": "When attacking, has a 15% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +1%, Enemy DEF Ignored per Stack: +1%\nEffect Duration: 10 sec, Stacks up to 3 times",
+          "2": "When attacking, has a 17% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +1%, Enemy DEF Ignored per Stack: +1%\nEffect Duration: 10 sec, Stacks up to 3 times",
+          "3": "When attacking, has a 19% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +2%, Enemy DEF Ignored per Stack: +2%\nEffect Duration: 10 sec, Stacks up to 3 times",
+          "4": "When attacking, has a 21% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +2%, Enemy DEF Ignored per Stack: +2%\nEffect Duration: 10 sec, Stacks up to 3 times",
+          "5": "When attacking, has a 23% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times",
+          "6": "When attacking, has a 25% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times"
+        }
+      }
+    },
+    "slotCounter": "Slots: {used} / {cap}",
+    "groupBoost": "Class group boost",
+    "gaveThisSkill": "{jobs} gave you this skill.",
+    "maxLevelLabel": "[Max Lv. {lv}]",
+    "currentLevelLabel": "[Current Lv. {lv}]"
+  },
+  "cp": {
+    "skillHeader": "SKILL",
+    "buffHeader": "BUFF",
+    "titleHeader": "TITLE",
+    "tip": {
+      "flatTotal": "Flat Total",
+      "fixedTotal": "Fixed Total",
+      "pctTotal": "% Total",
+      "baseSources": "Base Sources",
+      "fixedSources": "Fixed Sources",
+      "pctSources": "% Sources",
+      "total": "Total",
+      "noSources": "No contributing sources",
+      "buffPrefix": "Buff: {name}",
+      "skillPrefix": "Skill: {name}",
+      "collectionPrefix": "Collection: {name} Lv.{lv}",
+      "legionPrefix": "Legion: {name} Tier {tier}",
+      "puzzlePrefix": "Puzzle: {name} Lv.{lv}",
+      "hyperPrefix": "Hyper: {name} Lv.{lv}",
+      "setPrefix": "Set: {name} ({count} pcs)",
+      "titlePrefix": "Title: {name}",
+      "characterLv": "Character Lv {lv}",
+      "characterBase": "Character base",
+      "starSuffix": "★",
+      "bonusSuffix": "(Bonus)",
+      "potentialSuffix": "(Potential)",
+      "bonusPotentialSuffix": "(Bonus Potential)"
+    },
+    "attStats": {
+      "desc": "Displays the actual Damage dealt. Includes Damage and Final Damage from skills and equipment. Shows Magic ATT when wielding a Wand, Staff, or Shining Rod; shows ATT otherwise.",
+      "equippableWeapons": "[Equippable Weapons]",
+      "weaponConst": "[Current Weapon Constant]",
+      "mastery": "[Weapon Mastery]",
+      "basic": "Basic",
+      "normalEnemy": "Normal Enemy",
+      "boss": "Boss"
+    },
+    "buffs": {
+      "mapleWarriorLabel": "Buff: {name} (Lv {lv}, +{pct}% AP)"
     }
   }
 }

@@ -2,6 +2,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCharacter } from '../composables/useCharacter.js'
+import LinkSkillPanel from '../components/LinkSkillPanel.vue'
+import CollectionPanel from '../components/CollectionPanel.vue'
+import LegionPanel from '../components/LegionPanel.vue'
+import HyperStatPanel from '../components/HyperStatPanel.vue'
 
 const { t } = useI18n()
 const {
@@ -31,124 +35,76 @@ function onField(key, e) {
       <button class="btn btn--ghost" @click="reset">{{ t('character.action.reset') }}</button>
     </header>
 
-    <div class="char-page__body">
-      <!-- 總覽卡 -->
-      <aside class="summary-card">
-        <div class="summary-card__avatar" aria-hidden="true">
-          <span>{{ state.name ? state.name.charAt(0).toUpperCase() : '?' }}</span>
-        </div>
-        <div class="summary-card__info">
-          <div class="summary-card__name">
-            {{ state.name || t('character.nameless') }}
-          </div>
-          <div class="summary-card__meta">
-            <span class="chip">Lv. {{ state.level }}</span>
-            <span class="chip">
-              {{ currentJob ? t(`character.jobs.${state.job}`) : t('character.jobs.beginner') }}
-            </span>
-            <span class="chip chip--stat">
-              {{ t('character.primary') }}:
-              {{ t(`equipment.stats.${primaryStat}`) }}
-            </span>
-          </div>
-          <div v-if="state.world" class="summary-card__world">
-            {{ t('character.world') }} · {{ state.world }}
-          </div>
-        </div>
-      </aside>
+    <!-- 總覽卡 (上方) -->
+    <aside class="summary-card">
+      <div class="summary-card__meta">
+        <span class="chip">Lv. {{ state.level }}</span>
+        <span class="chip">
+          {{ currentJob ? t(`character.jobs.${state.job}`) : t('character.jobs.beginner') }}
+        </span>
+        <span class="chip chip--stat">
+          {{ t('character.primary') }}:
+          {{ t(`equipment.stats.${primaryStat}`) }}
+        </span>
+      </div>
+    </aside>
 
-      <!-- 表單 -->
-      <form class="form" @submit.prevent>
+    <!-- 表單 -->
+    <form class="form" @submit.prevent>
+      <div class="form__grid">
         <div class="form__row">
-          <label class="form__label">{{ t('character.fields.name') }}</label>
+          <label class="form__label">{{ t('character.fields.level') }}</label>
           <input
+            type="number"
             class="form__input"
-            :value="state.name"
-            :placeholder="t('character.placeholders.name')"
-            maxlength="16"
-            @input="(e) => onField('name', e)"
+            :value="state.level"
+            :min="LEVEL_MIN"
+            :max="LEVEL_MAX"
+            @input="(e) => onField('level', e)"
           />
-        </div>
-
-        <div class="form__grid">
-          <div class="form__row">
-            <label class="form__label">{{ t('character.fields.level') }}</label>
-            <input
-              type="number"
-              class="form__input"
-              :value="state.level"
-              :min="LEVEL_MIN"
-              :max="LEVEL_MAX"
-              @input="(e) => onField('level', e)"
-            />
-            <small class="form__hint">{{ LEVEL_MIN }}–{{ LEVEL_MAX }}</small>
-          </div>
-
-          <div class="form__row">
-            <label class="form__label">{{ t('character.fields.world') }}</label>
-            <input
-              class="form__input"
-              :value="state.world"
-              :placeholder="t('character.placeholders.world')"
-              maxlength="24"
-              @input="(e) => onField('world', e)"
-            />
-          </div>
-
-          <div class="form__row">
-            <label class="form__label">{{ t('character.fields.legionLevel') }}</label>
-            <input
-              type="number"
-              class="form__input"
-              :value="state.legionLevel"
-              :min="0"
-              @input="(e) => onField('legionLevel', e)"
-            />
-          </div>
-        </div>
-
-        <div class="form__grid">
-          <div class="form__row">
-            <label class="form__label">{{ t('character.fields.branch') }}</label>
-            <select
-              class="form__input"
-              :value="state.branch"
-              @change="(e) => onField('branch', e)"
-            >
-              <option v-for="b in branchOptions" :key="b" :value="b">
-                {{ t(`character.branches.${b}`) }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form__row">
-            <label class="form__label">{{ t('character.fields.job') }}</label>
-            <select
-              class="form__input"
-              :value="state.job"
-              @change="(e) => onField('job', e)"
-            >
-              <option v-for="j in jobOptions" :key="j.key" :value="j.key">
-                {{ t(`character.jobs.${j.key}`) }}
-              </option>
-            </select>
-          </div>
+          <small class="form__hint">{{ LEVEL_MIN }}–{{ LEVEL_MAX }}</small>
         </div>
 
         <div class="form__row">
-          <label class="form__label">{{ t('character.fields.notes') }}</label>
-          <textarea
-            class="form__input form__textarea"
-            :value="state.notes"
-            :placeholder="t('character.placeholders.notes')"
-            rows="3"
-            maxlength="500"
-            @input="(e) => onField('notes', e)"
-          />
+          <label class="form__label">{{ t('character.fields.branch') }}</label>
+          <select
+            class="form__input"
+            :value="state.branch"
+            @change="(e) => onField('branch', e)"
+          >
+            <option v-for="b in branchOptions" :key="b" :value="b">
+              {{ t(`character.branches.${b}`) }}
+            </option>
+          </select>
         </div>
 
-        <p class="form__saved">{{ t('character.autoSaved') }}</p>
-      </form>
+        <div class="form__row">
+          <label class="form__label">{{ t('character.fields.job') }}</label>
+          <select
+            class="form__input"
+            :value="state.job"
+            @change="(e) => onField('job', e)"
+          >
+            <option v-for="j in jobOptions" :key="j.key" :value="j.key">
+              {{ t(`character.jobs.${j.key}`) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <p class="form__saved">{{ t('character.autoSaved') }}</p>
+    </form>
+
+    <!-- Link Skill 系統 -->
+    <LinkSkillPanel />
+
+    <!-- 聯盟戰地 (獨立一整塊) -->
+    <LegionPanel />
+
+    <!-- 圖鑑 + Hyper Stat (左右分割) -->
+    <div class="char-page__split">
+      <CollectionPanel />
+      <HyperStatPanel />
     </div>
   </section>
 </template>
@@ -156,141 +112,125 @@ function onField(key, e) {
 <style scoped>
 .char-page {
   padding: 0.5rem 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.char-page__split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .char-page__split { grid-template-columns: 1fr; }
 }
 .char-page__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 .char-page__head h1 {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #ffb347, #ffcc33, #7ee8fa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: #ffc857;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
-.char-page__body {
-  display: grid;
-  grid-template-columns: minmax(260px, 340px) 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.summary-card {
-  background: linear-gradient(180deg, #141a2e 0%, #0f1324 100%);
-  border: 1px solid #2a3152;
+.summary-card,
+.form {
+  background: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);
+  border: 1px solid #3d4554;
   border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-.summary-card__avatar {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ffb347, #ffcc33);
-  color: #1b2133;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
-}
-.summary-card__info { min-width: 0; flex: 1; }
-.summary-card__name {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #e9edf5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 0.3rem;
+  padding: 10px;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  color: #f1f3f7;
 }
 .summary-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 0.4rem;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
+  border: 1px solid #2f3642;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .chip {
-  font-size: 0.72rem;
-  padding: 0.12rem 0.5rem;
+  font-size: 0.82rem;
+  padding: 0.18rem 0.7rem;
   border-radius: 999px;
-  background: #0a0e1c;
-  border: 1px solid #2a3152;
-  color: #c9cfe3;
+  background: #2b3441;
+  border: 1px solid #141a22;
+  color: #e8edf2;
+  letter-spacing: 0.02em;
 }
-.chip--stat { color: #7ee8fa; border-color: #2a3152; }
-.summary-card__world {
-  color: #8089a3;
-  font-size: 0.78rem;
-  margin-top: 0.4rem;
-}
+.chip--stat { color: #5cd1ea; }
 
 .form {
-  background: linear-gradient(180deg, #141a2e 0%, #0f1324 100%);
-  border: 1px solid #2a3152;
-  border-radius: 14px;
-  padding: 1rem 1.1rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 10px;
 }
-
 .form__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.85rem;
-}
-
-.form__row { display: flex; flex-direction: column; gap: 0.3rem; }
-.form__label { font-size: 0.82rem; color: #8089a3; letter-spacing: 0.02em; }
-.form__input {
-  background: #0a0e1c;
-  color: #e9edf5;
-  border: 1px solid #2a3152;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
+  border: 1px solid #2f3642;
   border-radius: 8px;
-  padding: 0.5rem 0.7rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.form__row { display: flex; flex-direction: column; gap: 0.25rem; }
+.form__label {
+  font-size: 0.78rem;
+  color: #c9d2dd;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+.form__input {
+  background: #1f2630;
+  color: #f1f3f7;
+  border: 1px solid #141a22;
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   transition: border-color 100ms ease;
 }
-.form__input:focus { outline: none; border-color: #7ee8fa; }
-.form__textarea { resize: vertical; min-height: 72px; }
-.form__hint { color: #4a5170; font-size: 0.7rem; }
+.form__input:focus { outline: none; border-color: #ffc857; }
+.form__hint { color: #8ea6b8; font-size: 0.7rem; }
 
 .form__saved {
   margin: 0;
-  color: #22c55e;
+  color: #8fe09d;
   font-size: 0.72rem;
   text-align: right;
 }
 
 .btn {
-  background: #1b2140;
-  color: #e9edf5;
-  border: 1px solid #2a3152;
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  background: linear-gradient(180deg, #5b6577 0%, #49525f 100%);
+  color: #f1f3f7;
+  border: 1px solid #3d4554;
+  border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.85rem;
-  transition: background 120ms ease, border-color 120ms ease;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: filter 120ms ease, border-color 120ms ease;
 }
-.btn:hover { background: #232a4f; border-color: #7ee8fa; }
+.btn:hover { filter: brightness(1.12); border-color: #ffc857; }
 .btn--ghost { background: transparent; }
 
 @media (max-width: 720px) {
-  .char-page__body { grid-template-columns: 1fr; }
   .char-page__head h1 { font-size: 1.2rem; }
 }
 </style>

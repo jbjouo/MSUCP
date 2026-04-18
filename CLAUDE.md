@@ -1,38 +1,50 @@
 # MSUCP — Claude Code 專案指引
 
-本檔案讓 Claude 在任何新 clone 的機器上能快速接續開發。不含會變動太快的 TODO,著重「資料模型」與「不變的慣例」。
+本檔案讓 Claude 在任何新 clone 的機器上能快速接續開發。著重「資料模型」與「不變的慣例」。
 
 ## 專案總覽
 
-**MapleStory Universe (MSU)** 輔助工具:角色管理 / 裝備管理 / (規劃中) 戰鬥力計算 / 聯盟戰地。
+**MapleStory Universe (MSU)** 輔助工具:角色 + 聯盟戰地 + 圖鑑 + Hyper Stat / 裝備管理 / 戰鬥力計算。
 
 - Stack: **Vue 3 (Composition API, `<script setup>`) + Vite + vue-router + vue-i18n**
 - 部署形式: Vite SPA,`createWebHistory` (無 `#`)
-- 資料持久化: **瀏覽器 localStorage**,並呼叫 `navigator.storage.persist()` 要求長期儲存
+- 資料持久化: **瀏覽器 localStorage**(每個子系統一個 key),`navigator.storage.persist()` 要求長期儲存
 
-啟動:`npm install && npm run dev`;驗證:`npx vite build`。
+啟動 `npm install && npm run dev`;驗證 `npx vite build`(build 過即代表通過)。
 
 ## 路由
 
 | path | page | 說明 |
 |---|---|---|
-| `/character` | `CharacterPage.vue` | 角色資料 (等級/職業/伺服器/備註) |
-| `/equipment` | `EquipmentPage.vue` | 裝備 + 背包 (主戰場) |
-| `/cp` | `CpCalculatorPage.vue` | 戰鬥力計算 (建置中) |
-| `/legion` | `LegionPage.vue` | 聯盟戰地 (建置中) |
+| `/character` | `CharacterPage.vue` | 角色基礎 + Link Skill + 聯盟戰地(內含拼圖屬性)+ 圖鑑 + Hyper Stat |
+| `/equipment` | `EquipmentPage.vue` | 裝備 + 背包 |
+| `/cp` | `CpCalculatorPage.vue` | 戰鬥力計算(主要工作面板,統整所有來源) |
+| `/legion` | 重導至 `/character` | (舊路由保留相容) |
 
 `/` 重導到 `/character`。
 
+## 全站風格
+
+整站統一 **MapleStory 灰色面板**(以 CP 計算機為範本):
+
+- `--ms-panel-bg`:`linear-gradient(180deg, #8b96a8, #6b7689)` + `#3d4554` 邊框 + 14px 圓角
+- `--ms-section-bg`:`linear-gradient(180deg, #4f5867, #434c59)` + `#2f3642` 邊框 + 8px 圓角
+- `--ms-head-bg`:灰色頂條 + 金色字 / 白字
+- `--ms-accent` = `#ffc857`(金)、`--ms-accent-cyan` = `#5cd1ea`(青)
+- 共用 class `.ms-panel / .ms-panel__head / .ms-section / .ms-btn`(在 `src/style.css`)
+
+TopBar 亦改為灰色條 + 金字 brand。
+
 ## 核心資料模型
 
-### 1. `items.json` — 裝備「模板」(`src/data/items.json`)
-僅存**基礎數值**,不含使用者強化狀態。
+### 1. `items.json` — 裝備模板 (`src/data/items.json`)
 
-```json
+僅存**基礎數值**,使用者強化狀態放在 entry 實例。
+
+```jsonc
 {
   "id": "唯一 ID",
-  "name": "名稱",
-  "nameEn": "英文名稱 (可選)",
+  "name": "名稱", "nameEn": "英文名稱 (可選)",
   "type": "weapon | hat | top | bottom | shoes | glove | cape | shoulder | belt | pocket | ring | pendant | earring | eye | face | emblem | badge | medal | secondary | overall | android | heart",
   "subType": "sword | wand | bow | dagger | totem | ...",
   "level": "REQ LEV",
@@ -40,133 +52,271 @@
   "classes": ["warrior" | "magician" | "bowman" | "thief" | "pirate"],
   "maxStars": 25,
   "attackSpeed": 4,
-  "stats": { "atk?": 119, "matk?": 201, "str?": 40, "...": "..." },
+  "stats": { "atk?": 119, "matk?": 201, "str?": 40, ... },
   "imageUrl": "https://..."
 }
 ```
 
-- **沒有** `rarity` 欄位 (稀有度概念已整個移除)
-- `stats` key 支援:`str / dex / int / luk / atk / matk / hp / mp / def`,及百分比類 `bossDmg / ignoreDef / allStatPct / atkPct / matkPct / strPct / ...`。% 類由 tooltip 的 `PCT_KEYS` 判定顯示
+- **沒有** `rarity`(已整個移除)
+- `stats` key:`str / dex / int / luk / atk / matk / hp / mp / def`,% 類 `bossDmg / ignoreDef / allStatPct / atkPct / matkPct / hpPct / mpPct / strPct / ...`
+- 若 `maxStars` 省略,以 `maxStarsForLevel(level)` 自動推算(見下方 架構)
 
 ### 2. Entry (使用者實例,`useEquipment.js`)
-每件使用者擁有的裝備都是一個 entry,有獨立 uid,與 template 分離。
 
 ```js
 state.entries[uid] = {
-  itemId,                 // 對應 items.json id
-  stars,                  // 星數 (0..min(item.maxStars, 23))
-  bonusStats?,            // { str, dex, int, luk, atk, matk, bossDmg, dmgPct, allStatPct }
-  potential?,             // { tier: 'rare|epic|unique|legendary', lines: [l1, l2, l3] (label 字串 or null) }
-  bonusPotential?,        // 同 potential 結構
+  itemId,
+  stars,                 // 0..min(item.maxStars, levelCap, STAR_SETTABLE_CAP=23)
+  bonusStats?,           // { str, dex, int, luk, atk, matk, bossDmg, dmgPct, allStatPct }
+  potential?,            // { tier, lines: [label|null, ..., ×3] }
+  bonusPotential?,
 }
-state.inventory = [uid, ...]                      // 在背包中的 entry
-state.equipped  = { [slotKey]: uid | null }       // 裝備在各槽位的 entry
+state.inventory = [uid, ...]
+state.equipped  = { [slotKey]: uid | null }
 ```
 
+- 儲存 key:`msucp.equipment.v3`(v1/v2 會清除)
 - `resolveEntry(uid)` → `{ uid, stars, item, starStats, bonusStats, potential, bonusPotential }`
-- 儲存 key:`msucp.equipment.v3` (v1/v2 會在首次載入時清掉,換語意不相容)
-- 任何 setter 皆會 `persist()`
 
 ### 3. 裝備槽 (`src/constants/equipmentSlots.js`)
-5 欄 × 6 列,仿 MS N 遊戲內排列。23 個槽位;**無 android / heart / medal** (使用者指示)。每個 slot 有 `accepts: ['ring' | 'weapon' | 'top' | 'overall' | ...]`。
 
-## 強化規則
+5×6 佈局,23 個槽位;**無 android / heart / medal**。`accepts: [type, ...]`。
+
+## 強化與計算相關子系統
 
 ### 星力 (`src/constants/starForce.js`)
-資料驅動、分 **部位** × **等級級距**。
 
-- 目前僅實作 **Lv150** (包含以上)、**weapon / glove / other**
-- 武器前 15 星:**逐星以「當下攻擊力」查表** (每 50 ATT 區間 +1 ATT/星),ATT 與 MATK 獨立計算
-- 1-5 星每星主&副屬 +2,6-15 每星主&副屬 +3
-- **16 星以上每星** (非一次性) +11 全屬 (weapon/other) 或 +11 主&副屬 (glove);累加到 `rangeTo: 23` 封頂
-- 16-22 星 ATT 表 (weapon/other/glove 各不同) + 23 星獨立規則
-- `STAR_SETTABLE_CAP = 23` — 24/25 星 UI 不可設定
-- 擴充方式:在 `TABLES` 物件加新 level bucket
+**資料驅動、兩個維度:等級級距 × 部位類別。**
 
-主/副屬對照 `JOB_MAIN_SUB`:warrior(str/dex)、magician(int/luk)、bowman(dex/str)、thief(luk/dex)、pirate(str/dex)。武器以 `item.classes[0]` 判斷。
+**等級級距 → 最大星數(架構規範 `maxStarsForLevel`)**:
+| 裝備等級 | 上限 |
+|---|---|
+| 100-109 | 8 |
+| 110-119 | 10 |
+| 120-129 | 15 |
+| 130-139 | 20 |
+| 140+ | 25(UI 封頂 23) |
+| <100 | 0(不可強化) |
 
-### 潛能 (`src/constants/potentials.js`)
-- 結構:`POTENTIAL_POOLS[cat][bucket][tier] = options[]`
-- option: `{ label, weight, stats? }` — `stats` 給後續計算機用,某些狀態效果沒有 stats
+`STAR_SETTABLE_CAP = 23` — UI 永遠封頂 23。
+
+**部位類別 `categoryOf`**:
+- `weapon`:weapon / secondary
+- `glove`:glove(含 Lv160 的 5/7/9/11/13/14/15★ 特殊 ATT/MATK +1)
+- `armor`:hat / top / bottom / shoes / overall(16★+ 主&副屬)
+- `other`:其餘飾品 + 披風(16★+ 全屬)
+
+**1-15★ 規則**(動態判定,在 `computeStarStats` 內):
+- 全職業裝備(`item.classes.length >= 2`)→ 每星加**全屬性**
+- 單職業裝備 → 每星僅加**主&副屬**(依 `item.classes[0]`)
+- `tier.target === 'allStat'` 可強制所有類別走全屬(保留 Lv100 表相容)
+
+**武器 1-15★**:逐星以**當下攻擊力**查表(每 50 ATT 區間 +1 ATT/星),ATT 與 MATK 獨立計算(`accumulateWeaponAtt`)。
+
+**16★+ 規則**:`perStarFrom16[cat]` 提供 `allStat` 或 `mainSub` + `rangeTo`;per-cat `rangeTo` 可覆寫頂層。23★(或 24/25)走 `attByStar` 特例表。
+
+**已實作表格**:
+- `TABLE_100`(Lv100-139):1-5 +2、6-25 +3(`target: 'allStat'`)
+- `TABLE_140`:16-22★ 全屬/主&副 +9;其中武器 17+ 未完成
+- `TABLE_150`:全屬/主&副 +11
+- `TABLE_160`:全屬/主&副 +13;手套 1-15 特殊 ATT 加成
+
+**主/副屬 `JOB_MAIN_SUB`**:warrior(str/dex)、magician(int/luk)、bowman(dex/str)、thief(luk/dex)、pirate(str/dex)。武器以 `item.classes[0]` 判斷。
+
+### 潛能 `POTENTIAL_POOLS` (`src/constants/potentials.js`)
+
+結構:`POTENTIAL_POOLS[category][levelBucket][tier] = options[]`
+- `option = { label, weight, stats? }` — `stats` 供計算機;沒 stats 者(條件型如 Skill MP Cost / HP Recovery / chance to ignore damage)不進統計
 - 階級:`rare → epic → unique → legendary`
-- **疊加規則**:第 1 行只吃該階級池;第 2、3 行 (epic 以上) 包含**低一階**池
-- 已有資料:**weapon.120** 全四階
-- 新 stat keys:`critRate`、`atkPerLv10`、`matkPerLv10`、`strPerLv10`...
+- 疊加規則:第 1 行只吃該階級池;第 2、3 行(epic+)包含**低一階**池
+- **已有資料**:
+  - weapon.120 全四階
+  - ring.100 / ring.110 / ring.120 全四階
+  - belt.120 全四階(Unique / Legendary 帶「chance to ignore damage」條件效果)
+  - pendant.120 全四階(資料同 ring.120,程式內共用引用)
 
-### 附加潛能 (`src/constants/bonusPotentials.js`)
-- 與潛能相同結構、池分離
-- 同樣疊加規則 (第 2/3 行含低一階)
-- 已有資料:**weapon.120** 全四階
-- 新 stat keys:`moveSpeed`、`jump`
+### 附加潛能 `BONUS_POTENTIAL_POOLS` (`src/constants/bonusPotentials.js`)
 
-### Bonus Stats (星火屬性)
-欄位集中在 `useEquipment.js`:
+同潛能結構(池獨立)。疊加規則亦同。
+- 已有:weapon.120 / ring.100/110/120 / belt.120 / pendant.120
+- 特殊 stat keys:`moveSpeed`、`jump`、`*PerLv10`
+
+### Bonus Stats (星火) (`useEquipment.js`)
+
 - `BONUS_STATS_KEYS = [str, dex, int, luk, atk, matk, bossDmg, dmgPct, allStatPct]`
 - `NO_BONUS_TYPES = { ring, shoulder, secondary, emblem, badge }` — 完全不支援
-- `WEAPON_ONLY_KEYS = { bossDmg, dmgPct }` — 只有武器 type 能有
+- `WEAPON_ONLY_KEYS = { bossDmg, dmgPct }` — 只有武器能有
 - `allowedBonusStatKeys(item)` / `supportsBonusStats(item)`
+
+### 套裝 (`src/constants/itemSets.js`)
+
+```js
+{ id, nameKey, itemIds[], tiers: [{ count, stats }] }
+```
+
+累加式階層加成(觸發 9 件 = 3/5/7/9 件效果全部生效)。
+已實作:`boss_accessory` 全階,itemIds 列出 19 件成員(目前 items.json 已有:Guardian Angel Ring / Noble Ifia's Ring / Silver Blossom Ring / Mechanator Pendant / Dominator Pendant / Golden Clover Belt / Pink Holy Cup)。
+
+### Link Skill (`src/data/linkSkills.js` + `src/composables/useLinkSkills.js`)
+
+- 資料庫:每個 skill 有 `owners / classGroup / uniqueByJob / specialEffect / ownMaxLevel / maxTotalLevel / levels[]`,可有 `flavorKey / caveatKey / selfDescKey`
+- 職業 `jobs.js` 在 job 設 `linkSkill: 'xxx'`
+- **規則**:
+  - 同 ownerJob 不可重複連結
+  - 同職業群(classGroup = 我的 branch)→ 疊加自身等級,**不佔 slot**
+  - 不同職業群 → 佔 1 slot(slot cap 12,同 skill 多個 owner 合併後仍只算 1 slot)
+- Applied Effect 左下面板:固定列出所有 active skill 的描述 + 統計(specialEffect 的跳過統計)
+- Hover tooltip:自動翻轉、來源職業顯示(`linkSkill.fromJob`)、selfDescKey 切換(擁有者看自己版本)
+- 已實作技能:`empirical_knowledge`(mage)、`thiefs_cunning`(thief)、`pirate_blessing`(pirate)、`invincible_belief`(warrior)、`adventurers_curiosity`(bowman,僅留 Critical Rate)、`cygnus_blessing`(5 人 Lv 上限 10)、`knights_watch`(mihile,self/linked 版本分開)、Heroes 六支(`combo_kill_blessing / rune_persistence / elven_blessing / phantom_instinct / light_wash / close_call`)
+
+### NFT 圖鑑 (`src/constants/collection.js` + `useCollection.js`)
+
+16 項屬性 × 各自 0-25 等,每項獨立可調:
+- 大多線性(STR/DEX/INT/LUK 每級 +20、HP/MP +80、ATT/MATK +2、Damage/BossDmg/CritDmg/AbnormalResist 等 +1/級、Max HP/MP% +1%/級、Bonus EXP 等)
+- **不規則曲線**:`ignoreDef`、`critRate`(`IRREGULAR_PCT_CURVE`:Lv1→1%、Lv2→2%、Lv3→4%… Lv25→38%)
+- 儲存 `msucp.collection.v1`
+
+### 聯盟戰地 (`src/constants/legion.js` + `src/constants/puzzle.js`)
+
+Legion 分兩區,在 `LegionPanel.vue`:
+- **左:戰地成員屬性** — 分分支列出,每位成員 `effects[5]` 依 tier(B/A/S/SS/SSS = 1-5),下拉切換
+  - 主屬系(STR/DEX/INT/LUK)標 `fixed: true` → 計算機不吃 % 加成,直接加到 final
+  - 條件型(Aran / Evan 攻擊回復)標 `specialEffect: true` → 不進計算機統計
+- **右:拼圖屬性** — 16 條目(str/dex/int/luk/hp/mp/atk/matk 各 15 等;critRate/critDmg/ignoreDef/bossDmg/normalMobDmg/bonusExp/buffDuration/abnormalResist 各 40 等),直接輸入數字框即可
+- 儲存:`msucp.legion.v1` / `msucp.puzzle.v1`
+
+### Hyper Stat (`src/constants/hyperStat.js` + `useHyperStat.js`)
+
+- 解鎖 Lv140;`hyperPointsAtLevel(lv) = Σ floor((k-140)/10)+3`
+- 每級固定 cost:`[1,2,4,8,10,15,20,25,30,35,50,65,80,95,110]`
+- STR / DEX / INT / LUK 標 `fixed: true`(不吃 % 加成)
+- 非線性曲線:Critical Rate、Boss Damage、Normal Mob Dmg、Abnormal Resist、Bonus EXP
+- 儲存:`msucp.hyperStat.v1`
+
+### CP 計算機 (`src/pages/CpCalculatorPage.vue`)
+
+**breakdown 管線**(依順序把所有來源收斂到每個 stat key 的 `{ flat: [], pct: [] }`):
+
+1. 角色 base(主屬 Lv 公式、HP/MP、critRate 保底 5%)
+2. 已裝備裝備:**每件內部先合併**(base + star + bonusStats + potentials + bonusPotentials;`*PerLv10` 展開為 floor(charLv/10)×值 併入 flat;`ignoreDef / damageTaken` 屬 `MULTIPLICATIVE_KEYS` 在裝備內用 `1-Π(1-x/100)` 合併),最後對每個 stat key **只發一條「{裝備名} +N」** 的來源
+3. 套裝加成:觸發的所有 tier 屬性合計 → 單一來源 `套裝:{name}({count} 件)`
+4. 稱號(TITLE,toggle,只能 1 個啟用)
+5. 技能 SKILL:
+   - 共通開關型(Will of the Alliance / Blessing of the Fairy ↔ Empress's Blessing ...)
+   - 被動職業技能(`passive: true`,依 `jobs` + `contribute(ctx)` 自動生效,ctx 含 `jobKey / weaponSubType / characterLevel / skillLevelBonus`)
+   - 群組互斥 `group`(同群只能啟用一個,如 blessing)
+6. Buff(BUFF 面板開關;`jobs?` 限定職業可見;`skillLevelBonus` 會加到 passive skill 的 effectiveLevel 例 Arcane Aim / Buff Mastery 因 Combat Orders +1)
+7. NFT 圖鑑 `collectionContribs`
+8. 聯盟拼圖 `puzzleContribs`
+9. Hyper Stat `hyperStatContribs`(STR/DEX/INT/LUK 為 `fixed: true`)
+10. 聯盟成員 `legionContribs`(主屬為 `fixed: true`)
+11. Link Skill `activeSkillContributions`(僅非 specialEffect)
+
+**PCT_KEYS**:`bossDmg / ignoreDef / allStatPct / dmgPct / atkPct / matkPct / hpPct / mpPct / strPct / dexPct / intPct / lukPct / critRate / critDmg / finalDmg / buffDuration / damageTaken / elementalResist / summonDuration / cooldownReduction / normalMobDmg / bonusExp`
+
+**MULTIPLICATIVE_KEYS**:`ignoreDef / damageTaken` — 走 `1 - Π(1 - Xᵢ/100)`。Tooltip 會隱藏「基本 / %數」摘要(因相乘疊加不適用加總)。
+
+**breakdownFor**(hover tooltip):
+- 主屬(STR/DEX/INT/LUK)額外納入 `<stat>Pct / allStatPct / allStat`(`allStat` flat 併入 flat 陣列;同裝備的 `<stat>Pct` + `allStatPct` 會**依 label 合併**成一條)
+- `final = floor(normalFlatTotal × (1 + pctTotal/100)) + fixedFlatTotal`(非 % stat)
+- 相乘型:`1 - Π(1 - Xᵢ/100)`,damageTaken 保留負號
+- 純 % stat:`flatTotal + pctTotal`
+- Tooltip 顯示:`flatTotal / fixedFlatTotal(有 fixed 來源才出現)/ pctTotal` 三列摘要;Base / Fixed / % Sources 三段明細;最後 Total
+- Label 允許自動換行(`white-space: normal`),值保留單行對齊右
+
+### ATT STATS(`CpCalculatorPage.vue`)
+
+`JOB_ATT_META[jobKey]` 含 `weapons / weaponConst / mastery / usesMatk`;傷害公式:
+```
+basic = (主屬 × 4 + 副屬) × ATT/100 × 武器常數 × 熟練度 × (1 + Damage%)
+首領 = basic × (1 + Boss Damage%)
+```
+- 基礎熟練度 95%;Combat Orders 開 → 96%
+- Hover ATT STATS cell 顯示武器常數、熟練度、基本/一般/首領傷害
 
 ## UI 慣例
 
 ### Tooltip (`ItemTooltip.vue`)
-- 浮動 `position: fixed`、`<Teleport to="body">`、跟隨滑鼠、邊緣自動翻轉
-- 格式仿 MS 內遊戲:星力條 → 粉紅色名稱 → REQ (圖+需求值) → 職業列 (僅武器/副手) → 屬性列表 → L 徽章 Potential / Bonus Potential
-- **屬性顏色規則**:
-  - 純基礎無強化 → 全白
-  - 有任何強化 (star/bonusStats) → 名稱 + 總值 + 冒號轉青 `#5cd1ea`
-  - Breakdown 顯示順序 **(base + bonus + star)**:
-    - base 段白色
-    - bonus 段綠色 `#22c55e`
-    - star 段青色
-- **總值 `+N` 不跟著染綠** (使用者要求保留藍色)
-- 名稱後面 `(N)` 星數後綴已移除 — 星圖本身就夠直觀
+- 浮動 `position: fixed`、`<Teleport to="body">`、跟隨滑鼠、邊緣自動翻轉(`offsetWidth`)
+- 格式仿 MS:星力條 → 粉紅色名稱 → REQ → 職業列(僅武器/副手)→ 屬性列表(含 base + bonus + star 色彩)→ L 徽章 Potential / Bonus Potential
+- **屬性顏色**:純 base = 白;有星力/星火 = 青;bonus 段綠;star 段青(總值 +N 仍藍)
 - 英文名與中文名相同時只顯示一行
+- **右側套裝面板**(若物件有所屬套裝):
+  - 成員清單僅列出 items.json 已登錄者(未加入不顯示)
+  - 穿上的成員 → 白字亮;未穿 → 灰字
+  - 階層加成:觸發的 tier 白字亮、未觸發 → opacity 0.45、灰字 + 暗黃標題
 
 ### Star Bar (`StarBar.vue`)
-- **每 5 顆一組、組間留白、每 3 組換行、不滿 3 組整列 `justify-content: center`**
-- 用 CSS grid:每組 `grid-template-columns: repeat(5, 1em)` 強制等寬
-- 三種大小 `compact` / `normal` / `large`
-- `editableMax` prop 用來鎖超過上限的星 (顯示但不可點)
+- 每 5 顆一組、組間留白、每 3 組換行、不滿 3 組 `justify-content: center`
+- 三種大小 `compact / normal / large`;`editableMax` 鎖上限
 
 ### Entry Editor (`EntryEditor.vue`)
-- 四個分頁:Stars / Bonus Stats / Potential / Bonus Potential — 各分頁的 `ready` 由 item 動態決定,不支援則禁用 (同「建置中」樣式)
-- 草稿模式:`draft` 物件,按「確定」才呼叫各 setter 寫回
-- Bonus Stats / Potential 分頁下拉選項依 item 過濾
-- 潛能下拉 **不顯示機率** (已移除)
+- 分頁:Stars / Bonus Stats / Potential / Bonus Potential
+- **不適用分頁直接隱藏**(ring 沒有 Bonus Stats → 不顯示該分頁;pocket 沒星力 → Stars 分頁隱藏)
+- 草稿模式:`draft` + 確定寫回
+- 星數上限:`min(item.maxStars, maxStarsForLevel(item.level), STAR_SETTABLE_CAP)`
 
-### 背包格 (`InventoryGrid.vue`)
-- 以圖為主、名稱為輔;左上角 `★N` 徽章僅在 `stars > 0` 時顯示
+### CP 計算機 側欄(`SKILL / BUFF / TITLE`)
+- 每排固定 4 顆,超過自動換行
+- 40×40 icon、金色高亮啟用中
+- TITLE 互斥:同時只能啟用 1 個
+- SKILL `group` 互斥:同群只能啟用 1 個(例 blessing = `blessing_of_the_fairy` ↔ `empress_blessing`)
+- BUFF `jobs?` 限定可見(例 Meditation 只對 archmageFP 顯示)
+
+### 背包格 / 裝備欄
+- 圖+名、左上角 `★N` 徽章僅在 stars > 0 顯示
 - Hover 顯示 ✎ 編輯 + × 移除
-- 無星力條 (空間太小會跑版)
-- Grid columns 用 `minmax(0, 1fr)` 防止長名稱撐大格子
+- Grid cols `minmax(0, 1fr)` 防撐開
+- 選中槽位 → 黃色外框 + 背包自動過濾符合類型
 
-### 裝備欄 (`EquipmentSlots.vue`)
-- 與背包格相同:圖+名、左上角星數徽章
-- 選中槽位 → 黃色外框 + 背包自動過濾為符合類型
+### CatalogPicker(+ 新增 按鈕)
+- Tooltip hover 僅綁在 thumbnail + info 範圍,**不含 Add 按鈕**(避免遮擋)
+
+## 職業資料庫 (`src/constants/jobs.js`)
+
+分支 / 職業 / 主屬 / `linkSkill?`:
+
+- **beginner**:新手(str)
+- **warrior**:英雄 / 聖騎士 / 黑騎士 → `invincible_belief`
+- **magician**:火毒 / 冰雷 / 主教 → `empirical_knowledge`
+- **bowman**:箭神 / 遊俠 / 開拓者 → `adventurers_curiosity`
+- **thief**:夜使者 / 暗影神偷 / 影武者 → `thiefs_cunning`
+- **pirate**:拳霸 / 槍神 / 重砲指揮官 → `pirate_blessing`
+- **cygnus**:聖魂劍士 / 烈焰巫師 / 破風使者 / 暗夜行者 / 閃雷悍將 → `cygnus_blessing`
+- **mihile**:米哈逸 → `knights_watch`
+- **heroes**:狂狼勇士(aran)→ `combo_kill_blessing`;龍魔導士(evan)→ `rune_persistence`;精靈遊俠(mercedes)→ `elven_blessing`;幻影俠盜(phantom)→ `phantom_instinct`;夜光(luminous)→ `light_wash`;隱月(shade)→ `close_call`
+
+`findBranchByJob(jobKey)` 取得 branch key。
 
 ## 工作慣例
 
-- 所有 i18n 字串放 `src/i18n/locales/zh-TW.json` + `en.json`,Bonus Stats / Potential / 稀有度等術語統一使用英文 (Bonus Stats / Rare / Epic / Unique / Legendary)
-- 新增或更動資料模型時,`loadState()` 內要 sanitize 確保向後相容
-- 驗證:`npx vite build` 需過、之後 `rm -rf dist`
-- 不要在 UI 層做重計算 — 純衍生值放 composable 的 computed,資料層儲存 raw
+- **i18n**:所有字串放 `src/i18n/locales/zh-TW.json` + `en.json`;Bonus Stats / Potential / Rare / Epic / Unique / Legendary 等術語保留英文
+- 新增或變更資料模型,`loadState()` 要 sanitize(向後相容)
+- 驗證:`npx vite build` 需過,之後 `rm -rf dist`
+- 不要在 UI 層做重計算 — 純衍生值放 composable 的 computed,資料層存 raw
+- **禁止事項**:
+  - 不再加 `rarity` 欄位
+  - 背包格不可直接編輯星力(用 EntryEditor dialog)
+  - 不在頁面底部做背景 tooltip 卡(用浮動 tooltip)
+  - 每格子不顯示 `N/M` 計數
 
 ## Git
 
-- remote: `https://github.com/jbjouo/MSUCP.git`
-- `main` 為主分支
-- 新功能建議走 `feat/xxx` 分支 + PR;bug 修小的直接 commit to main
+- remote:`https://github.com/jbjouo/MSUCP.git`
+- main 為主分支
+- 小修直 commit to main;新功能可開 `feat/xxx` 分支 + PR
 
-## 未實作 / 下一步方向
+## localStorage key 清單
 
-1. **計算機** (`CpCalculatorPage.vue`):以 `useEquipment().totalStats` (已含 base + star + bonusStats) 為起點,再加入主屬性倍率、職業公式
-2. **其他等級/部位的星力表**:`TABLES` 加 140 / 130 / ...,`categoryOf()` 也要對應
-3. **其他部位/等級的潛能與附加潛能池**:目前只有 weapon.120
-4. **Wallet 整合**:MSU Open API (v1rc1) GameMeta / Character & Item;拿 API key → Node 腳本轉 items.json;同時做 wallet connect 匯入玩家擁有的 NFT → 映射到 itemId
-
-## 禁止事項 (使用者已拒絕的模式)
-
-- 重新加入 `rarity` 欄位 — 已整個移除
-- 在背包格內直接編輯星力 — 改用編輯 dialog
-- Tooltip 背景卡片在頁面底部 — 改為浮動 tooltip
-- 每格子顯示 `N/M` 計數 — 已移除,只留左上角 `★N` 徽章
+| key | 用途 |
+|---|---|
+| `msucp.equipment.v3` | 裝備 entries + inventory + equipped |
+| `msucp.character.v1` | 角色等級 / 職業 |
+| `msucp.collection.v1` | 圖鑑等級表 |
+| `msucp.legion.v1` | 戰地成員 tier |
+| `msucp.puzzle.v1` | 拼圖屬性等級 |
+| `msucp.hyperStat.v1` | Hyper Stat 配點 |
+| `msucp.linkSkills.applied.v3` | 已連結的 link skill |
+| `msucp.cpBuffs.v1` | Buff 開關狀態 |
+| `msucp.cpSkills.v1` | Skill 開關狀態 |
+| `msucp.cpTitles.v1` | Title 開關狀態 |
