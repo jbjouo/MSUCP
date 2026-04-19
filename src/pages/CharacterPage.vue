@@ -1,11 +1,22 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCharacter } from '../composables/useCharacter.js'
 import LinkSkillPanel from '../components/LinkSkillPanel.vue'
 import CollectionPanel from '../components/CollectionPanel.vue'
 import LegionPanel from '../components/LegionPanel.vue'
 import HyperStatPanel from '../components/HyperStatPanel.vue'
+import ArcanePanel from '../components/ArcanePanel.vue'
+import PetPanel from '../components/PetPanel.vue'
+import InnerPotentialPanel from '../components/InnerPotentialPanel.vue'
+import VMatrixPanel from '../components/VMatrixPanel.vue'
+import {
+  exportData,
+  importData,
+  downloadJSON,
+  readFileAsJSON,
+  loadSeedFile,
+} from '../composables/useDataIO.js'
 
 const { t } = useI18n()
 const {
@@ -26,13 +37,63 @@ const jobOptions = computed(() => JOBS_BY_BRANCH[state.branch] || [])
 function onField(key, e) {
   setField(key, e.target.value)
 }
+
+// ── 資料匯出 / 匯入 ───────────────────────────
+const fileInput = ref(null)
+const ioStatus = ref('')
+
+function onExport() {
+  const payload = exportData()
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  downloadJSON(payload, `msucp-data-${stamp}.json`)
+  ioStatus.value = t('character.io.exported')
+  setTimeout(() => { ioStatus.value = '' }, 2500)
+}
+function triggerImport() { fileInput.value?.click() }
+async function onFileSelected(e) {
+  const f = e.target.files?.[0]
+  if (!f) return
+  if (!confirm(t('character.io.confirmImport'))) {
+    e.target.value = ''
+    return
+  }
+  try {
+    const payload = await readFileAsJSON(f)
+    importData(payload) // reload inside
+  } catch (err) {
+    alert(`${t('character.io.importFailed')}\n${err.message || err}`)
+    e.target.value = ''
+  }
+}
+async function onLoadSeed() {
+  if (!confirm(t('character.io.confirmSeed'))) return
+  try {
+    const payload = await loadSeedFile()
+    importData(payload)
+  } catch (err) {
+    alert(`${t('character.io.seedFailed')}\n${err.message || err}`)
+  }
+}
 </script>
 
 <template>
   <section class="char-page">
     <header class="char-page__head">
       <h1>{{ t('pages.character.title') }}</h1>
-      <button class="btn btn--ghost" @click="reset">{{ t('character.action.reset') }}</button>
+      <div class="char-page__actions">
+        <span v-if="ioStatus" class="char-page__status">{{ ioStatus }}</span>
+        <button class="btn" type="button" @click="onExport">{{ t('character.io.export') }}</button>
+        <button class="btn" type="button" @click="triggerImport">{{ t('character.io.import') }}</button>
+        <button class="btn btn--ghost" type="button" @click="onLoadSeed">{{ t('character.io.loadSeed') }}</button>
+        <button class="btn btn--ghost" type="button" @click="reset">{{ t('character.action.reset') }}</button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="application/json,.json"
+          class="char-page__file"
+          @change="onFileSelected"
+        />
+      </div>
     </header>
 
     <!-- 總覽卡 (上方) -->
@@ -106,6 +167,18 @@ function onField(key, e) {
       <CollectionPanel />
       <HyperStatPanel />
     </div>
+
+    <!-- ARC 系統 + 寵物 (左右 5:5) -->
+    <div class="char-page__split">
+      <ArcanePanel />
+      <PetPanel />
+    </div>
+
+    <!-- 內潛 + V 矩陣 (左右 5:5,V 矩陣為佔位) -->
+    <div class="char-page__split">
+      <InnerPotentialPanel />
+      <VMatrixPanel />
+    </div>
   </section>
 </template>
 
@@ -126,12 +199,29 @@ function onField(key, e) {
 @media (max-width: 900px) {
   .char-page__split { grid-template-columns: 1fr; }
 }
+.char-page__reserved {
+  /* 右側保留區 — 供未來面板填入,目前維持空白 */
+  min-height: 1px;
+}
 .char-page__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
+.char-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.char-page__status {
+  color: #8fe09d;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+.char-page__file { display: none; }
 .char-page__head h1 {
   margin: 0;
   font-size: 1.3rem;

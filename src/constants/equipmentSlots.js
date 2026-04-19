@@ -19,6 +19,7 @@ export const EQUIP_SLOTS = [
   { key: 'pendant2',  row: 3, col: 2, accepts: ['pendant'] },
   { key: 'eye',       row: 3, col: 3, accepts: ['eye'] },
   { key: 'earring',   row: 3, col: 4, accepts: ['earring'] },
+  { key: 'medal',     row: 3, col: 5, accepts: ['medal'] },
   // Row 4
   { key: 'ring4',     row: 4, col: 1, accepts: ['ring'] },
   { key: 'weapon',    row: 4, col: 2, accepts: ['weapon'] },

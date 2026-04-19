@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "exportedAt": "2026-04-19T00:00:00.000Z",
+  "note": "以『導出』按鈕取得當前裝置資料後,覆蓋此檔案再 commit,就能在其他裝置按『載入測試資料』同步",
+  "data": {
+    "msucp.character.v1": {
+      "name": "",
+      "level": 160,
+      "branch": "magician",
+      "job": "archmageFP",
+      "world": "",
+      "legionLevel": 0,
+      "notes": ""
+    }
+  }
+}

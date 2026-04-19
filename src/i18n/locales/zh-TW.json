@@ -30,6 +30,18 @@
   "itemSet": {
     "boss_accessory": {
       "name": "首領套"
+    },
+    "root_abyss_magician": {
+      "name": "深淵 BOSS 套(法師)"
+    },
+    "seven_days": {
+      "name": "Seven Days Set"
+    },
+    "absolab_magician": {
+      "name": "AbsoLab Set (法師)"
+    },
+    "pitched_boss": {
+      "name": "Pitched Boss Set"
     }
   },
   "hyperStat": {
@@ -244,6 +256,16 @@
     "action": {
       "reset": "重設"
     },
+    "io": {
+      "export": "匯出資料",
+      "import": "匯入檔案",
+      "loadSeed": "載入測試資料",
+      "exported": "已匯出",
+      "confirmImport": "這會覆蓋目前所有資料(裝備 / 戰地 / 圖鑑 / Hyper Stat …),確定嗎?",
+      "confirmSeed": "這會以內建測試資料覆蓋目前所有資料,確定嗎?",
+      "importFailed": "匯入失敗:",
+      "seedFailed": "載入測試資料失敗:"
+    },
     "fields": {
       "name": "角色名稱",
       "level": "等級",
@@ -300,9 +322,142 @@
       "shade": "隱月"
     }
   },
+  "pet": {
+    "title": "寵物",
+    "reset": "重設",
+    "multiPet": "Multi Pet 隻數",
+    "equipment": "寵物裝備",
+    "each": "件",
+    "countBonus": "隻數加成",
+    "equipmentBonus": "裝備加成 ({n} 件)",
+    "on": "啟用",
+    "off": "關閉",
+    "equipmentSlot": "裝備 {n}"
+  },
+  "arcane": {
+    "title": "ARCANE EQUIPMENT",
+    "reset": "重設",
+    "totalArc": "ARC",
+    "toMin": "歸 0",
+    "toMax": "拉到滿",
+    "vanishing_journey": "消失的旅途",
+    "chu_chu_island": "啾啾島",
+    "lachelein": "拉契爾恩",
+    "arcana": "阿爾凱納",
+    "morass": "沼澤地帶",
+    "esfera": "艾斯佩拉"
+  },
+  "innerPotential": {
+    "title": "內潛",
+    "reset": "重設",
+    "line": "第 {n} 排",
+    "placeholder": "— 選擇屬性 —",
+    "noInput": "(特殊效果,不計入)",
+    "fieldKeys": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "allStat": "全屬性",
+      "hp": "HP",
+      "mp": "MP",
+      "hpPct": "HP%",
+      "mpPct": "MP%",
+      "atk": "物攻",
+      "matk": "魔攻",
+      "def": "防禦力",
+      "defPct": "防禦力%",
+      "jump": "跳躍",
+      "moveSpeed": "移速",
+      "atkPerLv10": "每 N 等物攻 +1",
+      "matkPerLv10": "每 N 等魔攻 +1",
+      "atkSpeed": "攻擊速度",
+      "critRate": "爆擊率",
+      "bossDmg": "BOSS 傷害",
+      "normalMobDmg": "一般怪物傷害",
+      "abnormalMobDmg": "異常怪物傷害",
+      "extraDefDmg": "追加防禦力%傷害",
+      "buffDuration": "增益持續",
+      "dropRate": "掉寶率",
+      "mesoRate": "楓幣獲得",
+      "passiveSkillLevel": "被動技能等級",
+      "attackTarget": "攻擊目標"
+    },
+    "opts": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "allStat": "全屬性",
+      "str_dex_int_luk": "STR · DEX · INT · LUK",
+      "str_dex": "STR · DEX",
+      "str_int": "STR · INT",
+      "str_luk": "STR · LUK",
+      "dex_str": "DEX · STR",
+      "dex_int": "DEX · INT",
+      "dex_luk": "DEX · LUK",
+      "int_str": "INT · STR",
+      "int_dex": "INT · DEX",
+      "int_luk": "INT · LUK",
+      "luk_str": "LUK · STR",
+      "luk_dex": "LUK · DEX",
+      "luk_int": "LUK · INT",
+      "maxHp": "最大 HP",
+      "maxMp": "最大 MP",
+      "maxHpMp": "最大 HP / MP",
+      "maxHpPct": "最大 HP %",
+      "maxMpPct": "最大 MP %",
+      "atk": "物理攻擊力",
+      "matk": "魔法攻擊力",
+      "atkMatk": "物攻 / 魔攻",
+      "def": "防禦力",
+      "jumpMoveSpeed": "跳躍力 / 移動速度",
+      "atkPerLv": "每一定等級物攻 +1",
+      "matkPerLv": "每一定等級魔攻 +1",
+      "defPct": "防禦力 %",
+      "critRate": "爆擊機率",
+      "atkSpeed": "攻擊速度",
+      "bossDmg": "攻擊 BOSS 怪物時傷害增加",
+      "normalMobDmg": "攻擊一般怪物時傷害增加",
+      "abnormalMobDmg": "攻擊異常狀態怪物時傷害增加",
+      "extraDefDmg": "追加防禦力 % 的傷害",
+      "buffDuration": "技能持續時間增加",
+      "dropRate": "道具掉落率",
+      "mesoRate": "楓幣獲得量",
+      "passiveSkillLevel": "被動技能等級 +1",
+      "attackTarget": "攻擊目標 +1",
+      "dexFromStrPct": "按照投入的 STR % 增加 DEX",
+      "strFromDexPct": "按照投入的 DEX % 增加 STR",
+      "lukFromIntPct": "按照投入的 INT % 增加 LUK",
+      "dexFromLukPct": "按照投入的 LUK % 增加 DEX",
+      "skillCooldownChance": "使用技能時一定機率不消耗冷卻時間"
+    }
+  },
+  "vmatrix": {
+    "title": "V 矩陣",
+    "reset": "重設",
+    "skills": {
+      "rope_lift": "Rope Lift",
+      "decent_mystic_door": "Decent Mystic Door",
+      "decent_sharp_eyes": "Decent Sharp Eyes",
+      "decent_hyper_body": "Decent Hyper Body",
+      "decent_combat_orders": "Decent Combat Orders",
+      "decent_advanced_blessing": "Decent Advanced Blessing",
+      "decent_speed_infusion": "Decent Speed Infusion",
+      "blink": "Blink",
+      "erda_nova": "Erda Nova",
+      "will_of_erda": "Will of Erda",
+      "decent_holy_symbol": "Decent Holy Symbol",
+      "unreliable_memory": "Unreliable Memory"
+    }
+  },
   "collection": {
     "title": "NFT 圖鑑效果",
     "reset": "重設",
+    "setTitle": "圖鑑套裝",
+    "setBonus": "加成",
+    "perSet": "每套",
+    "allStats": "全屬性",
     "tip": {
       "toMin": "歸 0",
       "toMax": "拉到滿"
@@ -547,7 +702,13 @@
       "legionPrefix": "聯盟:{name} 階 {tier}",
       "puzzlePrefix": "拼圖:{name} Lv.{lv}",
       "hyperPrefix": "極限屬性:{name} Lv.{lv}",
-      "setPrefix": "套裝:{name}({count} 件)",
+      "setPrefix": "套裝:{name}",
+      "arcanePrefix": "秘法:{name} Lv.{lv}",
+      "petCountPrefix": "寵物:{n} 隻",
+      "petEquipPrefix": "寵物裝備:{n} 件",
+      "abilityPrefix": "內潛 第 {n} 排:{name}",
+      "vmatrixPrefix": "V 矩陣:{name} Lv.{lv}",
+      "collectionSetPrefix": "圖鑑套裝:{n} 組",
       "titlePrefix": "稱號:{name}",
       "characterLv": "角色 Lv {lv}",
       "characterBase": "角色基礎",
@@ -556,6 +717,14 @@
       "potentialSuffix": "(潛能)",
       "bonusPotentialSuffix": "(附加潛能)"
     },
+    "compare": {
+      "title": "比較",
+      "save": "儲存",
+      "clear": "清空",
+      "remove": "移除",
+      "empty": "尚未儲存比較對象",
+      "confirmClear": "清空所有比較對象?"
+    },
     "attStats": {
       "desc": "顯示實際 Damage 的部分。顯示內容包含從技能與裝備上獲得的 Damage 與 Final Damage。裝備 Wand、Staff、Shining Rod 時會顯示 Magic ATT,裝備其他武器時會顯示 ATT。",
       "equippableWeapons": "[可裝備武器]",
@@ -563,7 +732,11 @@
       "mastery": "[武器熟練度]",
       "basic": "基本",
       "normalEnemy": "一般怪物",
-      "boss": "首領怪物"
+      "boss": "首領怪物",
+      "bossActual": "[實際傷害 (首領)]",
+      "bossMax": "最大值",
+      "bossAvg": "平均值",
+      "bossMin": "最小值"
     },
     "buffs": {
       "mapleWarriorLabel": "增益:{name} (Lv {lv},+{pct}% AP)"

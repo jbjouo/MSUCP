@@ -5,7 +5,7 @@ import { useEquipment } from '../composables/useEquipment.js'
 import { useCharacter } from '../composables/useCharacter.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
 import { findBonusPotentialOptionForLine } from '../constants/bonusPotentials.js'
-import { ITEM_SETS } from '../constants/itemSets.js'
+import { ITEM_SETS, countActiveSet } from '../constants/itemSets.js'
 import { BUFFS } from '../constants/buffs.js'
 import { SKILLS } from '../constants/skills.js'
 import { TITLES } from '../constants/titles.js'
@@ -15,16 +15,86 @@ import { useLegion } from '../composables/useLegion.js'
 import { LEGION_TIER_LABELS } from '../constants/legion.js'
 import { usePuzzle } from '../composables/usePuzzle.js'
 import { useHyperStat } from '../composables/useHyperStat.js'
+import { useArcane } from '../composables/useArcane.js'
+import { usePet } from '../composables/usePet.js'
+import { useInnerPotential } from '../composables/useInnerPotential.js'
+import { useVMatrix } from '../composables/useVMatrix.js'
 
 const { t } = useI18n()
 const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
-const { statContributions: collectionContribs } = useCollection()
+const {
+  statContributions: collectionContribs,
+  setBonusTotal: collectionSetBonus,
+  state: collectionState,
+} = useCollection()
 const { statContributions: legionContribs } = useLegion()
 const { statContributions: puzzleContribs } = usePuzzle()
 const { statContributions: hyperStatContribs } = useHyperStat()
+const { contributions: arcaneContribs } = useArcane()
+const { statContributions: abilityContribs } = useInnerPotential()
+const { statContributions: vmatrixContribs } = useVMatrix()
+const {
+  state: petState,
+  countBonus: petCountBonus,
+  equippedCount: petEquipCount,
+  equipmentBonus: petEquipBonus,
+} = usePet()
 
 const page = ref(1)
+const cpHelpOpen = ref(false)
+
+// ── 比較欄 (snapshots) ───────────────────────────────
+const COMPARE_KEY = 'msucp.cpCompare.v1'
+const compareSnaps = ref(loadCompareSnaps())
+function loadCompareSnaps() {
+  try {
+    const raw = localStorage.getItem(COMPARE_KEY)
+    if (!raw) return []
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr : []
+  } catch { return [] }
+}
+function saveCompareSnaps() {
+  try { localStorage.setItem(COMPARE_KEY, JSON.stringify(compareSnaps.value)) } catch { /* ignore */ }
+}
+function saveSnapshot() {
+  const info = attStatsInfo.value
+  compareSnaps.value.unshift({
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    bossMax: info.bossMax,
+    bossAvg: info.bossAvg,
+    bossMin: info.bossMin,
+  })
+  saveCompareSnaps()
+}
+function removeSnapshot(id) {
+  compareSnaps.value = compareSnaps.value.filter((s) => s.id !== id)
+  saveCompareSnaps()
+}
+function clearSnapshots() {
+  if (!compareSnaps.value.length) return
+  if (!confirm(t('cp.compare.confirmClear'))) return
+  compareSnaps.value = []
+  saveCompareSnaps()
+}
+// 與當前數值差異百分比 (current vs snap)
+function deltaPct(current, snap) {
+  if (!snap) return 0
+  return ((current - snap) / snap) * 100
+}
+function fmtDelta(d) {
+  const sign = d > 0 ? '+' : ''
+  return `${sign}${d.toFixed(2)}%`
+}
+
+function fmtSnapTime(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 // 啟用中的 buff id 集合 (localStorage 持久化)
 const BUFFS_KEY = 'msucp.cpBuffs.v1'
@@ -177,13 +247,61 @@ const totals = computed(() => {
   }
 })
 
-// CP 佔位公式 (待完整實作):主屬 * 4 + (ATT | MATK) * 50
-const combatPower = computed(() => {
-  const t = totals.value
-  const primary = t[primaryStat.value] || 0
-  const atk = Math.max(t.atk, t.matk)
-  return primary * 4 + atk * 50
+// 武器係數差值 — 同等級 / 同星等 / 同星火裝備之間的攻擊力差,Zone 2 差值法用到
+// (之後改為依武器類型動態計算;目前固定 69)
+const WEAPON_COEFFICIENT_DELTA = 69
+
+// CP 公式 — 共 6 個乘區,Zone 6 暫以 1 替代:
+//   Zone 1 : (4 × 主屬 + 副屬) / 100
+//   Zone 2 : ATT (僅 flat,不吃 % 加成)
+//   Zone 3 : 1 + 攻擊力 % / 100
+//   Zone 4 : (135 + 爆擊傷害%) / 100
+//   Zone 5 : (100 + Damage% + Boss Damage%) / 100
+//   Zone 6 : 終傷乘區 (目前終傷僅 skill 來源,已排除;裝備來源未實作)  → 1
+//
+// 武器係數差值 — 在 Zone 2 × Zone 3 完成後扣除:
+//   差值 = round(ATT × (1 + ATT%/100), 2dp) − floor((ATT − 69) × (1 + ATT%/100))
+//   Z2Z3 = Zone 2 × Zone 3 − 差值
+//   CP   = Zone 1 × Z2Z3 × Zone 4 × Zone 5 × Zone 6
+//
+// 來源排除規則:不計入 SKILL / BUFF / V Matrix / Link Skill 任何屬性
+//   例外 (仍計入):寵物、Blessing of the Fairy、Empress's Blessing
+const cpZones = computed(() => {
+  const primaryKey = primaryStat.value
+  const secondaryKey = SECONDARY_STAT[primaryKey] || 'dex'
+  const primary = statTotalForCp(primaryKey)
+  const secondary = statTotalForCp(secondaryKey)
+
+  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
+  const attKey = meta.usesMatk ? 'matk' : 'atk'
+
+  const flatAtt = flatTotalForCp(attKey)
+  const pctAtt = pctTotalForCp(attKey)
+  const critDmg = statTotalForCp('critDmg')
+  const dmgPct = statTotalForCp('dmgPct')
+  const bossDmg = statTotalForCp('bossDmg')
+
+  const attMul = 1 + pctAtt / 100
+  const z2A = Math.round(flatAtt * attMul * 100) / 100
+  const z2B = Math.floor((flatAtt - WEAPON_COEFFICIENT_DELTA) * attMul)
+  const z2Diff = z2A - z2B
+
+  const z1 = (4 * primary + secondary) / 100
+  const z2 = flatAtt
+  const z3 = attMul
+  const z4 = (135 + critDmg) / 100
+  const z5 = (100 + dmgPct + bossDmg) / 100
+  const z6 = 1
+  const z2z3 = z2 * z3 - z2Diff
+
+  return {
+    z1, z2, z3, z4, z5, z6, z2z3,
+    attKey,
+    inputs: { primary, secondary, flatAtt, pctAtt, critDmg, dmgPct, bossDmg, z2A, z2B, z2Diff },
+    total: z1 * z2z3 * z4 * z5 * z6,
+  }
 })
+const combatPower = computed(() => Math.floor(cpZones.value.total))
 
 function fmtNum(n) {
   return Number(n || 0).toLocaleString('en-US')
@@ -203,11 +321,22 @@ function fmtPct(n) {
 // flat  = 直接加在該 stat 上的絕對值
 // pct   = 直接加在該 stat 上的百分比;主屬性另外會吸收 allStatPct
 // ────────────────────────────────────────────────────────────────
+// Combat Power 不計入「skill 來源」: SKILL / BUFF / V Matrix / Link Skill。
+// 但下列 toggle 仍視為基礎 buff,計入 CP:
+const CP_SKILL_ALLOWLIST = new Set([
+  'blessing_of_the_fairy',
+  'empress_blessing',
+])
+
 const breakdowns = computed(() => {
   const out = {}
   const ensure = (k) => (out[k] ||= { flat: [], pct: [] })
-  const addFlat = (k, label, v, fixed = false) => { if (v) ensure(k).flat.push({ label, value: v, fixed }) }
-  const addPct = (k, label, v) => { if (v) ensure(k).pct.push({ label, value: v }) }
+  const addFlat = (k, label, v, fixed = false, cpExclude = false) => {
+    if (v) ensure(k).flat.push({ label, value: v, fixed, cpExclude })
+  }
+  const addPct = (k, label, v, cpExclude = false) => {
+    if (v) ensure(k).pct.push({ label, value: v, cpExclude })
+  }
 
   // 1) 角色 base
   const lv = charState.level
@@ -305,31 +434,33 @@ const breakdowns = computed(() => {
   for (const buff of BUFFS) {
     if (!activeBuffs.value.has(buff.id)) continue
     if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
+    const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
+    const buffLabel = t('cp.tip.buffPrefix', { name: buff.name })
     // 靜態 stats
     for (const [k, v] of Object.entries(buff.stats || {})) {
-      const addFn = PCT_KEYS.has(k) ? addPct : addFlat
-      addFn(k, t('cp.tip.buffPrefix', { name: buff.name }), v)
+      if (PCT_KEYS.has(k)) addPct(k, buffLabel, v, cpExc)
+      else addFlat(k, buffLabel, v, false, cpExc)
     }
     // 動態 contribute (依技能等級)
     if (typeof buff.contribute === 'function') {
       ctx.effectiveLevel = (buff.baseLevel || 0) + skillLevelBonus
       const contribs = buff.contribute(ctx) || []
       for (const c of contribs) {
-        const addFn = c.isPct ? addPct : addFlat
-        addFn(c.key, c.label, c.value)
+        if (c.isPct) addPct(c.key, c.label, c.value, cpExc)
+        else addFlat(c.key, c.label, c.value, false, cpExc)
       }
     }
   }
 
   // 3-set) 裝備套裝 — 同一套裝所有已觸發階層的屬性合計為「一條來源」,避免多階重複列
-  const equippedItemIds = new Set()
+  // countActiveSet 會處理「幸運道具」規則:持有 luckyItem 且本套裝已達 ≥3 件 → 再 +1
+  const equippedItems = []
   for (const uid of Object.values(equipState.equipped)) {
     const ent = resolveEntry(uid)
-    if (ent?.item?.id) equippedItemIds.add(ent.item.id)
+    if (ent?.item?.id) equippedItems.push(ent.item)
   }
   for (const set of ITEM_SETS) {
-    let count = 0
-    for (const id of set.itemIds) if (equippedItemIds.has(id)) count++
+    const count = countActiveSet(set, equippedItems)
     if (!count) continue
     // 累加該套裝所有已觸發 tier 的 stats
     const setBag = {}
@@ -340,7 +471,7 @@ const breakdowns = computed(() => {
       }
     }
     if (!Object.keys(setBag).length) continue
-    const label = t('cp.tip.setPrefix', { name: t(set.nameKey), count })
+    const label = t('cp.tip.setPrefix', { name: t(set.nameKey) })
     for (const [k, v] of Object.entries(setBag)) {
       if (PCT_KEYS.has(k)) addPct(k, label, v)
       else addFlat(k, label, v)
@@ -382,9 +513,11 @@ const breakdowns = computed(() => {
       bag = skill.stats
     }
     if (!bag) continue
+    const cpExc = !CP_SKILL_ALLOWLIST.has(skill.id)
+    const skillLabel = t('cp.tip.skillPrefix', { name: skill.name })
     for (const [k, v] of Object.entries(bag)) {
-      const addFn = PCT_KEYS.has(k) ? addPct : addFlat
-      addFn(k, t('cp.tip.skillPrefix', { name: skill.name }), v)
+      if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
+      else addFlat(k, skillLabel, v, false, cpExc)
     }
   }
 
@@ -393,6 +526,14 @@ const breakdowns = computed(() => {
     const addFn = PCT_KEYS.has(contrib.stat.key) ? addPct : addFlat
     const label = t('cp.tip.collectionPrefix', { name: t(contrib.stat.labelKey), lv: contrib.level })
     addFn(contrib.stat.key, label, contrib.value)
+  }
+  // 圖鑑套裝效果 — 每套 +5 全屬性 (flat,吃 % 加成)
+  if (collectionSetBonus.value) {
+    const label = t('cp.tip.collectionSetPrefix', { n: collectionState.setCount || 0 })
+    addFlat('str', label, collectionSetBonus.value)
+    addFlat('dex', label, collectionSetBonus.value)
+    addFlat('int', label, collectionSetBonus.value)
+    addFlat('luk', label, collectionSetBonus.value)
   }
 
   // 3d-) 聯盟拼圖屬性 (吃 % 加成,無 fixed)
@@ -412,6 +553,64 @@ const breakdowns = computed(() => {
     for (const [k, v] of Object.entries(hc.stats)) {
       if (PCT_KEYS.has(k)) addPct(k, label, v)
       else addFlat(k, label, v, !!hc.fixed)
+    }
+  }
+
+  // 3e-pet) 寵物 — Multi Pet 隻數加成 + 寵物裝備加成 (ATT / Magic ATT flat,吃 % 加成)
+  if (petCountBonus.value) {
+    const label = t('cp.tip.petCountPrefix', { n: petState.count })
+    addFlat('atk', label, petCountBonus.value)
+    addFlat('matk', label, petCountBonus.value)
+  }
+  if (petEquipBonus.value) {
+    const label = t('cp.tip.petEquipPrefix', { n: petEquipCount.value })
+    addFlat('atk', label, petEquipBonus.value)
+    addFlat('matk', label, petEquipBonus.value)
+  }
+
+  // 3e-arc) 秘法符文 — 主屬性為 fixed flat (不吃 % 加成),每個符文單獨列出一條來源
+  const primaryKey = currentJob.value?.primary || 'str'
+  for (const ac of arcaneContribs.value) {
+    if (!ac.level || !ac.mainStat) continue
+    const symbolName = t(ac.nameKey)
+    const label = t('cp.tip.arcanePrefix', { name: symbolName, lv: ac.level })
+    addFlat(primaryKey, label, ac.mainStat, true)
+  }
+
+  // 3e-ability) 內潛 — STR/DEX/INT/LUK/全屬性 為 fixed flat,其他依 PCT_KEYS 判斷
+  for (const ab of abilityContribs.value) {
+    const optName = t(ab.nameKey)
+    const label = t('cp.tip.abilityPrefix', { n: ab.line, name: optName })
+    for (const [k, v] of Object.entries(ab.stats)) {
+      if (k === 'allStat') {
+        // 全屬性 → 同時加到 STR/DEX/INT/LUK,固定來源
+        addFlat('str', label, v, true)
+        addFlat('dex', label, v, true)
+        addFlat('int', label, v, true)
+        addFlat('luk', label, v, true)
+      } else if (PCT_KEYS.has(k)) {
+        addPct(k, label, v)
+      } else {
+        addFlat(k, label, v, !!ab.fixed)
+      }
+    }
+  }
+
+  // 3e-vmatrix) V 矩陣被動 — 全屬 / ATT・MATK 皆吃 % 加成 (非 fixed),不計入 CP
+  for (const vm of vmatrixContribs.value) {
+    const skillName = t(vm.nameKey)
+    const label = t('cp.tip.vmatrixPrefix', { name: skillName, lv: vm.level })
+    for (const [k, v] of Object.entries(vm.stats)) {
+      if (k === 'allStat') {
+        addFlat('str', label, v, !!vm.fixed, true)
+        addFlat('dex', label, v, !!vm.fixed, true)
+        addFlat('int', label, v, !!vm.fixed, true)
+        addFlat('luk', label, v, !!vm.fixed, true)
+      } else if (PCT_KEYS.has(k)) {
+        addPct(k, label, v, true)
+      } else {
+        addFlat(k, label, v, !!vm.fixed, true)
+      }
     }
   }
 
@@ -440,8 +639,9 @@ const breakdowns = computed(() => {
     const skillName = contrib.skill.nameKey ? t(contrib.skill.nameKey) : contrib.skill.id
     const label = `Link: ${skillName} Lv.${contrib.level}`
     for (const [k, v] of Object.entries(contrib.stats)) {
-      const addFn = PCT_KEYS.has(k) ? addPct : addFlat
-      addFn(k, label, v)
+      // Link Skill 為 skill 來源,不計入 CP
+      if (PCT_KEYS.has(k)) addPct(k, label, v, true)
+      else addFlat(k, label, v, false, true)
     }
   }
   return out
@@ -537,10 +737,11 @@ function clampTipPosition() {
   const cx = tipX.value
   const cy = tipY.value
 
-  // 預設右下;右/下不夠就翻到對邊
+  // 預設右下;右/下不夠就翻到對邊;仍超出則緊貼邊緣
   let left = cx + TIP_MARGIN
   let top = cy + TIP_MARGIN
   if (left + w > vw - VIEWPORT_PAD) left = cx - TIP_MARGIN - w
+  if (left < VIEWPORT_PAD) left = Math.max(VIEWPORT_PAD, vw - VIEWPORT_PAD - w)
   if (left < VIEWPORT_PAD) left = VIEWPORT_PAD
   if (top + h > vh - VIEWPORT_PAD) top = cy - TIP_MARGIN - h
   if (top < VIEWPORT_PAD) top = VIEWPORT_PAD
@@ -554,6 +755,26 @@ function onEnter(key, label, e) {
   // 先藏起、下一個 tick 量測後定位
   tipStyle.value = { left: '0px', top: '0px', visibility: 'hidden' }
   nextTick(clampTipPosition)
+}
+
+// 每欄最多顯示的來源列數 — 超過會自動切成多欄
+// 基本數值 (flat) 容量較大 → 15 / 欄;Fixed / % Sources 用較小的 10 / 欄
+const SOURCES_PER_COLUMN_DEFAULT = 10
+const SOURCES_PER_COLUMN_FLAT = 15
+const SOURCES_MAX_COLUMNS = 4
+const SOURCES_COL_WIDTH = 240 // px
+const SOURCES_COL_GAP = 14    // px
+function sourcesStyle(count, perColumn = SOURCES_PER_COLUMN_DEFAULT) {
+  if (!count) return null
+  const cols = Math.min(
+    SOURCES_MAX_COLUMNS,
+    Math.max(1, Math.ceil(count / perColumn)),
+  )
+  const style = { columnCount: cols }
+  if (cols > 1) {
+    style.minWidth = `${cols * SOURCES_COL_WIDTH + (cols - 1) * SOURCES_COL_GAP}px`
+  }
+  return style
 }
 function onMove(e) {
   if (!hovered.value) return
@@ -569,6 +790,51 @@ const hoveredBreakdown = computed(() =>
 
 // 顯示用 final 值 (套用 % 後的總和)
 function statTotal(key) { return breakdownFor(key).final }
+
+// CP 專用:flat 合計 (排除 cpExclude)
+function flatTotalForCp(key) {
+  const b = breakdowns.value[key] || { flat: [], pct: [] }
+  return b.flat.filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+}
+
+// CP 專用:% 合計 (排除 cpExclude;atk/matk 會吸收 atkPct/matkPct 子池)
+function pctTotalForCp(key) {
+  const b = breakdowns.value[key] || { flat: [], pct: [] }
+  let pct = b.pct.filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+  if (key === 'atk') {
+    pct += (breakdowns.value.atkPct?.pct || [])
+      .filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+  }
+  if (key === 'matk') {
+    pct += (breakdowns.value.matkPct?.pct || [])
+      .filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+  }
+  return pct
+}
+
+// CP 專用:filter 掉 cpExclude 的來源,重新計算 final
+function statTotalForCp(key) {
+  const b = breakdowns.value[key] || { flat: [], pct: [] }
+  const flat = b.flat.filter((x) => !x.cpExclude)
+  const pct = b.pct.filter((x) => !x.cpExclude)
+  // 主屬性吸收 (str|dex|int|luk)Pct + allStatPct + allStat flat (與 breakdownFor 邏輯一致)
+  if (['str', 'dex', 'int', 'luk'].includes(key)) {
+    const extras = (breakdowns.value[`${key}Pct`]?.pct || []).filter((x) => !x.cpExclude)
+    const all = (breakdowns.value.allStatPct?.pct || []).filter((x) => !x.cpExclude)
+    pct.push(...extras, ...all)
+    const allFlat = (breakdowns.value.allStat?.flat || []).filter((x) => !x.cpExclude)
+    flat.push(...allFlat)
+  }
+  if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []).filter((x) => !x.cpExclude))
+  if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []).filter((x) => !x.cpExclude))
+
+  const flatTotal = flat.reduce((s, x) => s + x.value, 0)
+  const pctTotal = pct.reduce((s, x) => s + x.value, 0)
+  const fixedFlatTotal = flat.reduce((s, x) => s + (x.fixed ? x.value : 0), 0)
+  const normalFlatTotal = flatTotal - fixedFlatTotal
+  if (PCT_KEYS.has(key)) return pctTotal + flatTotal
+  return Math.floor(normalFlatTotal * (1 + pctTotal / 100)) + fixedFlatTotal
+}
 
 // ────────────────────────────────────────────────────────────────
 // ATT STATS 專用資訊 (職業 → 武器 / 武器常數 / 熟練度)
@@ -617,21 +883,45 @@ const attStatsInfo = computed(() => {
   const attVal = meta.usesMatk ? statTotal('matk') : statTotal('atk')
   const dmgPct = statTotal('dmgPct')
   const bossDmg = statTotal('bossDmg')
+  const normalMobDmg = statTotal('normalMobDmg')
+  const finalDmg = statTotal('finalDmg')
 
-  // 熟練度:基礎 + 啟用中 buff 的 mastery 加成
+  // 顯示用的熟練度 (僅供 tooltip,**不再進入傷害公式**)
   let mastery = meta.mastery
   for (const buff of BUFFS) {
     if (activeBuffs.value.has(buff.id)) mastery += buff.mastery || 0
   }
 
-  // 傷害公式 (近似):
-  //   basic = (主屬 × 4 + 副屬) × ATT/100 × 武器常數 × 熟練度 × (1 + Damage%)
-  //   首領  = basic × (1 + Boss Damage%)
+  // 傷害公式:
+  //   base   = (主屬 × 4 + 副屬) × ATT/100 × 武器常數
+  //   fm     = 1 + Final Damage% / 100        ← 獨立乘區
+  //   basic  = base × (1 + Damage% / 100)                                × fm
+  //   normal = base × (1 + (Damage% + Normal Mob Damage%) / 100)         × fm
+  //   boss   = base × (1 + (Damage% + Boss Damage%) / 100)               × fm
+  // (一般 / 首領 與 Damage% 為**相加**;Final Damage 為獨立乘區,**相乘**)
   const statFactor = primaryVal * 4 + secondaryVal
-  const raw = statFactor * (attVal / 100) * meta.weaponConst * (mastery / 100)
-  const basic = raw * (1 + dmgPct / 100)
-  const normal = basic
-  const boss = basic * (1 + bossDmg / 100)
+  const base = statFactor * (attVal / 100) * meta.weaponConst
+  const fm = 1 + finalDmg / 100
+  const basic = base * (1 + dmgPct / 100) * fm
+  const normal = base * (1 + (dmgPct + normalMobDmg) / 100) * fm
+  const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
+
+  // 實際傷害 (boss) — 套用爆擊傷害區間 + 熟練度 (僅 min) + 首領屬性耐性
+  //   crit_max = (1.50 + 爆擊傷害% / 100)
+  //   crit_min = (1.20 + 爆擊傷害% / 100) × 熟練度/100
+  //   屬性減傷係數 = 1 − 怪物屬性耐性% × (1 − 無視屬性耐性%/100) / 100
+  //                  首領預設屬性耐性 50%;火毒「Element Amplification」-10% 無視
+  //   max = boss × crit_max × 屬性減傷係數
+  //   min = boss × crit_min × 屬性減傷係數
+  //   avg = (max + min) / 2
+  const critDmg = statTotal('critDmg')
+  const BOSS_ELEM_RESIST = 50
+  const ELEM_IGNORE_BY_JOB = { archmageFP: 10 }
+  const elemIgnore = ELEM_IGNORE_BY_JOB[charState.job] || 0
+  const elemMul = 1 - (BOSS_ELEM_RESIST * (1 - elemIgnore / 100)) / 100
+  const bossMax = boss * (1.5 + critDmg / 100) * elemMul
+  const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100) * elemMul
+  const bossAvg = (bossMax + bossMin) / 2
 
   return {
     weapons: meta.weapons,
@@ -641,8 +931,13 @@ const attStatsInfo = computed(() => {
     basic: Math.round(basic),
     normal: Math.round(normal),
     boss: Math.round(boss),
+    bossMax: Math.round(bossMax),
+    bossMin: Math.round(bossMin),
+    bossAvg: Math.round(bossAvg),
+    critDmg,
   }
 })
+
 
 function fmtSourceValue(v, isPctRow) {
   if (isPctRow) return `+${Number(v).toFixed(2)}%`
@@ -666,6 +961,61 @@ function onPanelOut(e) {
 
 <template>
   <section class="cp-page">
+    <!-- 比較欄 (左側) — 儲存當前實際傷害快照,可累積多個 -->
+    <aside class="cp-compare">
+      <header class="cp-compare__head">
+        <span>{{ t('cp.compare.title') }}</span>
+        <button
+          v-if="compareSnaps.length"
+          class="cp-compare__clear"
+          type="button"
+          @click="clearSnapshots"
+        >{{ t('cp.compare.clear') }}</button>
+      </header>
+      <div v-if="!compareSnaps.length" class="cp-compare__empty">
+        {{ t('cp.compare.empty') }}
+      </div>
+      <ul v-else class="cp-compare__list">
+        <li v-for="snap in compareSnaps" :key="snap.id" class="cp-compare__row">
+          <div class="cp-compare__row-head">
+            <span class="cp-compare__time">{{ fmtSnapTime(snap.timestamp) }}</span>
+            <button
+              class="cp-compare__remove"
+              type="button"
+              :aria-label="t('cp.compare.remove')"
+              @click="removeSnapshot(snap.id)"
+            >×</button>
+          </div>
+          <div class="cp-compare__values">
+            <div class="cp-compare__line">
+              <span class="cp-compare__label">{{ t('cp.attStats.bossMax') }}</span>
+              <span class="cp-compare__val">{{ fmtNum(snap.bossMax) }}</span>
+              <span
+                class="cp-compare__delta"
+                :class="{ 'cp-compare__delta--up': deltaPct(attStatsInfo.bossMax, snap.bossMax) > 0, 'cp-compare__delta--down': deltaPct(attStatsInfo.bossMax, snap.bossMax) < 0 }"
+              >{{ fmtDelta(deltaPct(attStatsInfo.bossMax, snap.bossMax)) }}</span>
+            </div>
+            <div class="cp-compare__line">
+              <span class="cp-compare__label">{{ t('cp.attStats.bossAvg') }}</span>
+              <span class="cp-compare__val">{{ fmtNum(snap.bossAvg) }}</span>
+              <span
+                class="cp-compare__delta"
+                :class="{ 'cp-compare__delta--up': deltaPct(attStatsInfo.bossAvg, snap.bossAvg) > 0, 'cp-compare__delta--down': deltaPct(attStatsInfo.bossAvg, snap.bossAvg) < 0 }"
+              >{{ fmtDelta(deltaPct(attStatsInfo.bossAvg, snap.bossAvg)) }}</span>
+            </div>
+            <div class="cp-compare__line">
+              <span class="cp-compare__label">{{ t('cp.attStats.bossMin') }}</span>
+              <span class="cp-compare__val">{{ fmtNum(snap.bossMin) }}</span>
+              <span
+                class="cp-compare__delta"
+                :class="{ 'cp-compare__delta--up': deltaPct(attStatsInfo.bossMin, snap.bossMin) > 0, 'cp-compare__delta--down': deltaPct(attStatsInfo.bossMin, snap.bossMin) < 0 }"
+              >{{ fmtDelta(deltaPct(attStatsInfo.bossMin, snap.bossMin)) }}</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </aside>
+
     <div
       class="panel"
       @mouseover="onPanelOver"
@@ -681,7 +1031,66 @@ function onPanelOut(e) {
       <div class="cp-banner">
         <span class="cp-banner__label">COMBAT POWER</span>
         <span class="cp-banner__value">{{ fmtNum(combatPower) }}</span>
-        <button class="cp-banner__help" type="button" aria-label="help">?</button>
+        <button
+          class="cp-banner__save"
+          type="button"
+          :title="t('cp.compare.save')"
+          @click="saveSnapshot"
+        >{{ t('cp.compare.save') }}</button>
+        <button
+          class="cp-banner__help"
+          type="button"
+          aria-label="CP zone breakdown"
+          @click="cpHelpOpen = !cpHelpOpen"
+        >?</button>
+
+        <div v-if="cpHelpOpen" class="cp-zones" @click.stop>
+          <div class="cp-zones__head">
+            <span>CP Zone Breakdown</span>
+            <button class="cp-zones__close" type="button" @click="cpHelpOpen = false">×</button>
+          </div>
+          <ul class="cp-zones__list">
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 1</span>
+              <span class="cp-zones__formula">(4 × {{ fmtNum(cpZones.inputs.primary) }} + {{ fmtNum(cpZones.inputs.secondary) }}) / 100</span>
+              <span class="cp-zones__val">{{ cpZones.z1.toFixed(2) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 2</span>
+              <span class="cp-zones__formula">{{ cpZones.attKey.toUpperCase() }} {{ fmtNum(cpZones.inputs.flatAtt) }}</span>
+              <span class="cp-zones__val">{{ cpZones.z2.toFixed(2) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 3</span>
+              <span class="cp-zones__formula">1 + {{ cpZones.inputs.pctAtt.toFixed(2) }}% / 100</span>
+              <span class="cp-zones__val">{{ cpZones.z3.toFixed(4) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Z2×Z3</span>
+              <span class="cp-zones__formula">{{ (cpZones.z2 * cpZones.z3).toFixed(2) }} − {{ cpZones.inputs.z2Diff.toFixed(2) }} (差值)</span>
+              <span class="cp-zones__val">{{ cpZones.z2z3.toFixed(2) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 4</span>
+              <span class="cp-zones__formula">(135 + {{ cpZones.inputs.critDmg.toFixed(2) }}%) / 100</span>
+              <span class="cp-zones__val">{{ cpZones.z4.toFixed(4) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 5</span>
+              <span class="cp-zones__formula">(100 + {{ cpZones.inputs.dmgPct.toFixed(2) }}% + {{ cpZones.inputs.bossDmg.toFixed(2) }}%) / 100</span>
+              <span class="cp-zones__val">{{ cpZones.z5.toFixed(4) }}</span>
+            </li>
+            <li class="cp-zones__row">
+              <span class="cp-zones__label">Zone 6</span>
+              <span class="cp-zones__formula">終傷乘區 (待裝備來源)</span>
+              <span class="cp-zones__val">{{ cpZones.z6.toFixed(2) }}</span>
+            </li>
+          </ul>
+          <div class="cp-zones__total">
+            <span>Total</span>
+            <span>{{ fmtNum(combatPower) }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- 基礎屬性區 -->
@@ -963,6 +1372,22 @@ function onPanelOut(e) {
             <span class="stat-tip__val">{{ fmtNum(attStatsInfo.boss) }}</span>
           </div>
         </div>
+
+        <div class="stat-tip__section">{{ t('cp.attStats.bossActual') }}</div>
+        <div class="stat-tip__dmg">
+          <div class="stat-tip__row">
+            <span class="stat-tip__label">{{ t('cp.attStats.bossMax') }}</span>
+            <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossMax) }}</span>
+          </div>
+          <div class="stat-tip__row">
+            <span class="stat-tip__label">{{ t('cp.attStats.bossAvg') }}</span>
+            <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossAvg) }}</span>
+          </div>
+          <div class="stat-tip__row">
+            <span class="stat-tip__label">{{ t('cp.attStats.bossMin') }}</span>
+            <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossMin) }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- 一般 stat 明細 tooltip -->
@@ -996,37 +1421,43 @@ function onPanelOut(e) {
 
         <template v-if="hoveredBreakdown.flat.length">
           <div class="stat-tip__section">{{ t('cp.tip.baseSources') }}</div>
-          <div
-            v-for="(s, i) in hoveredBreakdown.flat"
-            :key="'f' + i"
-            class="stat-tip__row"
-          >
-            <span class="stat-tip__label">{{ s.label }}</span>
-            <span class="stat-tip__val">{{ fmtSourceValue(s.value, hoveredBreakdown.isPct) }}</span>
+          <div class="stat-tip__sources" :style="sourcesStyle(hoveredBreakdown.flat.length, 15)">
+            <div
+              v-for="(s, i) in hoveredBreakdown.flat"
+              :key="'f' + i"
+              class="stat-tip__row"
+            >
+              <span class="stat-tip__label">{{ s.label }}</span>
+              <span class="stat-tip__val">{{ fmtSourceValue(s.value, hoveredBreakdown.isPct) }}</span>
+            </div>
           </div>
         </template>
 
         <template v-if="hoveredBreakdown.fixedSources?.length">
           <div class="stat-tip__section">{{ t('cp.tip.fixedSources') }}</div>
-          <div
-            v-for="(s, i) in hoveredBreakdown.fixedSources"
-            :key="'x' + i"
-            class="stat-tip__row"
-          >
-            <span class="stat-tip__label">{{ s.label }}</span>
-            <span class="stat-tip__val">{{ fmtSourceValue(s.value, hoveredBreakdown.isPct) }}</span>
+          <div class="stat-tip__sources" :style="sourcesStyle(hoveredBreakdown.fixedSources.length)">
+            <div
+              v-for="(s, i) in hoveredBreakdown.fixedSources"
+              :key="'x' + i"
+              class="stat-tip__row"
+            >
+              <span class="stat-tip__label">{{ s.label }}</span>
+              <span class="stat-tip__val">{{ fmtSourceValue(s.value, hoveredBreakdown.isPct) }}</span>
+            </div>
           </div>
         </template>
 
         <template v-if="hoveredBreakdown.pct.length">
           <div class="stat-tip__section">{{ t('cp.tip.pctSources') }}</div>
-          <div
-            v-for="(s, i) in hoveredBreakdown.pct"
-            :key="'p' + i"
-            class="stat-tip__row"
-          >
-            <span class="stat-tip__label">{{ s.label }}</span>
-            <span class="stat-tip__val">{{ fmtSourceValue(s.value, true) }}</span>
+          <div class="stat-tip__sources" :style="sourcesStyle(hoveredBreakdown.pct.length)">
+            <div
+              v-for="(s, i) in hoveredBreakdown.pct"
+              :key="'p' + i"
+              class="stat-tip__row"
+            >
+              <span class="stat-tip__label">{{ s.label }}</span>
+              <span class="stat-tip__val">{{ fmtSourceValue(s.value, true) }}</span>
+            </div>
           </div>
         </template>
 
@@ -1136,6 +1567,226 @@ function onPanelOut(e) {
   font-weight: 700;
 }
 .cp-banner__help:hover { background: #577a8d; }
+.cp-banner__save {
+  position: absolute;
+  right: 44px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 26px;
+  padding: 0 0.6rem;
+  border-radius: 6px;
+  background: #4d6a7c;
+  border: 1px solid #2a3a44;
+  color: #ffc857;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.cp-banner__save:hover { background: #577a8d; border-color: #ffc857; }
+.cp-banner__value { padding-right: 110px !important; }
+
+.cp-compare {
+  width: 100%;
+  max-width: 280px;
+  background: linear-gradient(180deg, #2b3441 0%, #232b36 100%);
+  border: 1px solid #1a1f27;
+  border-radius: 10px;
+  padding: 8px 10px 10px;
+  color: #e8edf2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: flex-start;
+}
+.cp-compare__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 6px;
+  border-bottom: 1px solid #1a1f27;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #ffc857;
+  text-transform: uppercase;
+}
+.cp-compare__clear {
+  background: transparent;
+  border: 1px solid #2f3642;
+  border-radius: 4px;
+  color: #c9d2dd;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+.cp-compare__clear:hover { color: #ffc857; border-color: #ffc857; }
+.cp-compare__empty {
+  padding: 10px 6px;
+  font-size: 0.74rem;
+  color: #8ea6b8;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.cp-compare__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-compare__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #1a1f27;
+  border-radius: 6px;
+}
+.cp-compare__row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.cp-compare__time {
+  font-size: 0.7rem;
+  color: #5cd1ea;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.cp-compare__remove {
+  background: transparent;
+  border: none;
+  color: #8ea6b8;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+.cp-compare__remove:hover { color: #c2566c; }
+.cp-compare__values {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cp-compare__line {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 6px;
+}
+.cp-compare__label {
+  font-size: 0.7rem;
+  color: #c9d2dd;
+  letter-spacing: 0.04em;
+}
+.cp-compare__val {
+  font-size: 0.85rem;
+  color: #ffc857;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.cp-compare__delta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: #8ea6b8;
+  min-width: 56px;
+  text-align: right;
+}
+.cp-compare__delta--up { color: #8fe09d; }
+.cp-compare__delta--down { color: #c2566c; }
+
+.cp-zones {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 320px;
+  background: linear-gradient(180deg, #2b3441 0%, #232b36 100%);
+  border: 1px solid #1a1f27;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  padding: 8px 10px 10px;
+  color: #e8edf2;
+}
+.cp-zones__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid #1a1f27;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffc857;
+  text-transform: uppercase;
+}
+.cp-zones__close {
+  background: transparent;
+  border: none;
+  color: #c9d2dd;
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+.cp-zones__close:hover { color: #ffc857; }
+.cp-zones__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cp-zones__row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 4px;
+  font-size: 0.78rem;
+}
+.cp-zones__row:nth-child(odd) { background: rgba(255, 255, 255, 0.03); }
+.cp-zones__label {
+  color: #5cd1ea;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.cp-zones__formula {
+  color: #c9d2dd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cp-zones__val {
+  color: #ffc857;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+  min-width: 60px;
+}
+.cp-zones__total {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px 0;
+  margin-top: 4px;
+  border-top: 1px solid #1a1f27;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffc857;
+}
 
 .stat-block {
   background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
@@ -1315,8 +1966,9 @@ function onPanelOut(e) {
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  min-width: 220px;
-  max-width: 340px;
+  min-width: 260px;
+  /* 寬度可隨來源列數自動放大,最多到 96vw */
+  max-width: min(1100px, 96vw);
   padding: 8px 10px;
   background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
   border: 1px solid #0f1419;
@@ -1325,6 +1977,16 @@ function onPanelOut(e) {
   font-size: 0.78rem;
   line-height: 1.3;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+}
+/* 來源清單 — 超過 10 列時動態切成多欄 (columnCount 由 script 決定) */
+.stat-tip__sources {
+  column-gap: 14px;
+  column-fill: balance;
+}
+.stat-tip__sources > .stat-tip__row {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
 }
 .stat-tip__head {
   font-weight: 700;

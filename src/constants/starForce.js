@@ -157,6 +157,31 @@ const TABLE_100 = {
   ],
 }
 
+// ---- Lv130 表 ----
+// 使用者提供:
+//   1-5★   +2 主&副 (全職裝備 → 全屬)
+//   6-15★  +3 主&副 (全職裝備 → 全屬)
+//   16-20★ 每星 +7 屬性 (other / armor / glove 遵循 perStarFrom16 規則)
+//   16-20★ ATT/MATK 累加:16:+7, 17:+8, 18:+9, 19:+10, 20:+11
+const TABLE_130 = {
+  mainSubByStar: [
+    { from: 1, to:  5, delta: 2 },
+    { from: 6, to: 15, delta: 3 },
+  ],
+  perStarFrom16: {
+    weapon: { allStat: 7, rangeTo: 20 },
+    armor:  { mainSub: 7, rangeTo: 20 },
+    glove:  { mainSub: 7, rangeTo: 20 },
+    other:  { allStat: 7, rangeTo: 20 },
+  },
+  attByStar: {
+    weapon: { 16: 7, 17: 8, 18: 9, 19: 10, 20: 11 },
+    armor:  { 16: 7, 17: 8, 18: 9, 19: 10, 20: 11 },
+    glove:  { 16: 7, 17: 8, 18: 9, 19: 10, 20: 11 },
+    other:  { 16: 7, 17: 8, 18: 9, 19: 10, 20: 11 },
+  },
+}
+
 // ---- Lv140 表 ----
 // 使用者提供的對照表:
 //   1-5★   +2 主&副屬
@@ -187,6 +212,7 @@ const TABLE_140 = {
 
 const TABLES = {
   100: TABLE_100,
+  130: TABLE_130,
   140: TABLE_140,
   150: TABLE_150,
   160: TABLE_160,
@@ -241,6 +267,7 @@ export function computeStarStats(item, stars) {
 
   // 2) 16 星起每顆星加 (16-rangeTo 範圍內,每升一星累加)
   //    rangeTo 可以是 rule 頂層統一設定,也可以由每個 cat 單獨覆寫
+  //    全職裝備 (multiClass) 將把 mainSub 型規則改為 allStat (例:Chaos Vellum's Helm)
   if (stars >= 16) {
     const rule = table.perStarFrom16
     if (rule) {
@@ -253,8 +280,12 @@ export function computeStarStats(item, stars) {
           for (const k of ['str', 'dex', 'int', 'luk']) bonus[k] += def.allStat * n
         }
         if (def.mainSub) {
-          bonus[main] += def.mainSub * n
-          bonus[sub]  += def.mainSub * n
+          if (multiClass) {
+            for (const k of ['str', 'dex', 'int', 'luk']) bonus[k] += def.mainSub * n
+          } else {
+            bonus[main] += def.mainSub * n
+            bonus[sub]  += def.mainSub * n
+          }
         }
       }
     }

@@ -197,6 +197,28 @@
       "imageUrl": "https://api-static.msu.io/itemimages/icon/1132272.png"
     },
     {
+      "id": "top_eagle_eye_dunwitch_robe",
+      "name": "Eagle Eye Dunwitch Robe",
+      "nameEn": "Eagle Eye Dunwitch Robe",
+      "type": "top",
+      "level": 150,
+      "req": {
+        "int": 450
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 2,
+        "int": 30,
+        "luk": 30,
+        "def": 120,
+        "ignoreDef": 5
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1042388.png"
+    },
+    {
       "id": "pendant_mechanator",
       "name": "Mechanator Pendant",
       "nameEn": "Mechanator Pendant",
@@ -222,6 +244,367 @@
         "def": 100
       },
       "imageUrl": "https://api-static.msu.io/itemimages/icon/1122254.png"
+    },
+    {
+      "id": "hat_absolab_mage_crown",
+      "name": "AbsoLab Mage Crown",
+      "nameEn": "AbsoLab Mage Crown",
+      "type": "hat",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 3,
+        "def": 400,
+        "int": 45,
+        "luk": 45,
+        "ignoreDef": 10
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1004423.png"
+    },
+    {
+      "id": "eye_magic_eyepatch",
+      "name": "Magic Eyepatch",
+      "nameEn": "Magic Eyepatch",
+      "type": "eye",
+      "level": 160,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 3,
+        "matk": 3,
+        "def": 300,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1022278.png"
+    },
+    {
+      "id": "shoulder_absolab_mage_shoulder",
+      "name": "AbsoLab Mage Shoulder",
+      "nameEn": "AbsoLab Mage Shoulder",
+      "type": "shoulder",
+      "level": 160,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "def": 100,
+        "str": 14,
+        "dex": 14,
+        "int": 14,
+        "luk": 14
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1152176.png"
+    },
+    {
+      "id": "cape_absolab_mage_cape",
+      "name": "AbsoLab Mage Cape",
+      "nameEn": "AbsoLab Mage Cape",
+      "type": "cape",
+      "level": 160,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "def": 250,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1102794.png"
+    },
+    {
+      "id": "shoes_absolab_mage_shoes",
+      "name": "AbsoLab Mage Shoes",
+      "nameEn": "AbsoLab Mage Shoes",
+      "type": "shoes",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 5,
+        "def": 150,
+        "int": 20,
+        "luk": 20,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1073032.png"
+    },
+    {
+      "id": "glove_absolab_mage_gloves",
+      "name": "AbsoLab Mage Gloves",
+      "nameEn": "AbsoLab Mage Gloves",
+      "type": "glove",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 5,
+        "int": 20,
+        "luk": 20,
+        "def": 150
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1082637.png"
+    },
+    {
+      "id": "medal_seven_day_monster_parker",
+      "name": "Seven Day Monster Parker",
+      "nameEn": "Seven Day Monster Parker",
+      "type": "medal",
+      "level": 100,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "ignoreDef": 10
+      },
+      "description": "Awarded for surviving 11 rounds of Monster Park in 539+ visits. Cannot Star Force Enhance. Cannot Set/Reset Potential.",
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1142922.png"
+    },
+    {
+      "id": "badge_seven_days",
+      "name": "Seven Days Badge",
+      "nameEn": "Seven Days Badge",
+      "type": "badge",
+      "level": 100,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "ignoreDef": 10
+      },
+      "description": "Cannot Star Force Enhance. Cannot Set/Reset Potential. Cannot Set/Reset Bonus Stats.",
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1182200.png"
+    },
+    {
+      "id": "emblem_gold_maple_leaf",
+      "name": "Gold Maple Leaf Emblem",
+      "nameEn": "Gold Maple Leaf Emblem",
+      "type": "emblem",
+      "level": 100,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "description": "Can be worn by Explorer class only. Cannot Star Force Enhance. Cannot Set/Reset Bonus Stats.",
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1190301.png"
+    },
+    {
+      "id": "secondary_evolving_rusty_book_epode",
+      "name": "Evolving Rusty Book <Epode>",
+      "nameEn": "Evolving Rusty Book <Epode>",
+      "type": "secondary",
+      "subType": "magic_book",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 5,
+        "int": 10,
+        "luk": 10
+      },
+      "description": "Fire/Poison Arch Mage only. Cannot Star Force Enhance. Cannot Set/Reset Bonus Stats.",
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1352233.png"
+    },
+    {
+      "id": "earring_dea_sidus",
+      "name": "Dea Sidus Earring",
+      "nameEn": "Dea Sidus Earring",
+      "type": "earring",
+      "level": 130,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "def": 50,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1032241.png"
+    },
+    {
+      "id": "face_condensed_power_crystal",
+      "name": "Condensed Power Crystal",
+      "nameEn": "Condensed Power Crystal",
+      "type": "face",
+      "level": 110,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 10,
+      "stats": {
+        "atk": 5,
+        "matk": 5,
+        "def": 100,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1012478.png"
+    },
+    {
+      "id": "hat_chaos_vellums_helm",
+      "name": "Chaos Vellum's Helm",
+      "nameEn": "Chaos Vellum's Helm",
+      "type": "hat",
+      "level": 140,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "luckyItem": true,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "def": 350,
+        "str": 23,
+        "dex": 23,
+        "int": 23,
+        "luk": 23,
+        "moveSpeed": 5
+      },
+      "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1003722.png"
+    },
+    {
+      "id": "hat_royal_dunwitch",
+      "name": "Royal Dunwitch Hat",
+      "nameEn": "Royal Dunwitch Hat",
+      "type": "hat",
+      "level": 150,
+      "req": {
+        "int": 450
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 2,
+        "int": 40,
+        "luk": 40,
+        "def": 180,
+        "hp": 360,
+        "mp": 360,
+        "ignoreDef": 10
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1003798.png"
+    },
+    {
+      "id": "bottom_trixter_dunwitch_pants",
+      "name": "Trixter Dunwitch Pants",
+      "nameEn": "Trixter Dunwitch Pants",
+      "type": "bottom",
+      "level": 150,
+      "req": {
+        "int": 450
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 2,
+        "int": 30,
+        "luk": 30,
+        "def": 120,
+        "ignoreDef": 5
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1062166.png"
     },
     {
       "id": "pendant_dominator",

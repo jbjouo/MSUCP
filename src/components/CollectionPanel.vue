@@ -8,9 +8,14 @@ const {
   state,
   setLevel,
   increment,
+  setSetCount,
+  bumpSetCount,
   resetAll,
+  setBonusTotal,
   COLLECTION_STATS,
   MAX_COLLECTION_LEVEL,
+  COLLECTION_SET_BONUS,
+  COLLECTION_SET_MAX,
 } = useCollection()
 
 function fmtValue(stat, value) {
@@ -35,6 +40,39 @@ function fmtDelta(stat, level) {
       </button>
     </header>
 
+    <!-- 套裝數量 — 每個套裝 +5 全屬性 -->
+    <div class="coll-sets">
+      <div class="coll-sets__label">
+        {{ t('collection.setTitle') }}
+        <span class="coll-sets__hint">(+{{ COLLECTION_SET_BONUS }} {{ t('collection.perSet') }})</span>
+      </div>
+      <div class="coll-sets__controls">
+        <button
+          class="coll-btn"
+          type="button"
+          :disabled="(state.setCount || 0) <= 0"
+          @click="bumpSetCount(-1)"
+        >▼</button>
+        <input
+          type="number"
+          class="coll-input"
+          :min="0"
+          :max="COLLECTION_SET_MAX"
+          :value="state.setCount || 0"
+          @input="(e) => setSetCount(e.target.value)"
+        />
+        <button
+          class="coll-btn"
+          type="button"
+          @click="bumpSetCount(1)"
+        >▲</button>
+        <span class="coll-sets__total">
+          {{ t('collection.setBonus') }}: <strong>+{{ setBonusTotal }}</strong>
+          <small>{{ t('collection.allStats') }}</small>
+        </span>
+      </div>
+    </div>
+
     <div class="coll-panel__body">
       <div class="coll-row coll-row--head">
         <span class="coll-row__name">{{ t('collection.headers.stat') }}</span>
@@ -50,20 +88,20 @@ function fmtDelta(stat, level) {
       >
         <span class="coll-row__name">{{ t(stat.labelKey) }}</span>
         <span class="coll-row__value">
-          {{ fmtValue(stat, collectionValueAt(stat, state[stat.key] || 0)) }}
+          {{ fmtValue(stat, collectionValueAt(stat, state.levels[stat.key] || 0)) }}
         </span>
         <span class="coll-row__level">
           <button
             class="coll-btn coll-btn--edge"
             type="button"
-            :disabled="(state[stat.key] || 0) <= 0"
+            :disabled="(state.levels[stat.key] || 0) <= 0"
             :title="t('collection.tip.toMin')"
             @click="setLevel(stat.key, 0)"
           >⏬</button>
           <button
             class="coll-btn"
             type="button"
-            :disabled="(state[stat.key] || 0) <= 0"
+            :disabled="(state.levels[stat.key] || 0) <= 0"
             @click="increment(stat.key, -1)"
           >▼</button>
           <input
@@ -71,31 +109,79 @@ function fmtDelta(stat, level) {
             class="coll-input"
             :min="0"
             :max="MAX_COLLECTION_LEVEL"
-            :value="state[stat.key] || 0"
+            :value="state.levels[stat.key] || 0"
             @input="(e) => setLevel(stat.key, e.target.value)"
           />
           <span class="coll-cap">/ {{ MAX_COLLECTION_LEVEL }}</span>
           <button
             class="coll-btn"
             type="button"
-            :disabled="(state[stat.key] || 0) >= MAX_COLLECTION_LEVEL"
+            :disabled="(state.levels[stat.key] || 0) >= MAX_COLLECTION_LEVEL"
             @click="increment(stat.key, 1)"
           >▲</button>
           <button
             class="coll-btn coll-btn--edge"
             type="button"
-            :disabled="(state[stat.key] || 0) >= MAX_COLLECTION_LEVEL"
+            :disabled="(state.levels[stat.key] || 0) >= MAX_COLLECTION_LEVEL"
             :title="t('collection.tip.toMax')"
             @click="setLevel(stat.key, MAX_COLLECTION_LEVEL)"
           >⏫</button>
         </span>
-        <span class="coll-row__next">{{ fmtDelta(stat, state[stat.key] || 0) }}</span>
+        <span class="coll-row__next">{{ fmtDelta(stat, state.levels[stat.key] || 0) }}</span>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
+.coll-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
+  border: 1px solid #2f3642;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.coll-sets__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c9d2dd;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.coll-sets__hint {
+  font-size: 0.7rem;
+  color: #8ea6b8;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.coll-sets__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.coll-sets__total {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #c9d2dd;
+  letter-spacing: 0.02em;
+}
+.coll-sets__total strong {
+  color: #ffc857;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0.2rem;
+}
+.coll-sets__total small {
+  color: #8ea6b8;
+  margin-left: 0.2rem;
+}
+
 .coll-panel {
   width: 100%;
   background: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);

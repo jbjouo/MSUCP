@@ -16,7 +16,7 @@
 
 | path | page | 說明 |
 |---|---|---|
-| `/character` | `CharacterPage.vue` | 角色基礎 + Link Skill + 聯盟戰地(內含拼圖屬性)+ 圖鑑 + Hyper Stat |
+| `/character` | `CharacterPage.vue` | 角色基礎 + Link Skill + 聯盟戰地 + 圖鑑 + Hyper Stat + 秘法符文(ARC) + 寵物 + 內潛 + V 矩陣 |
 | `/equipment` | `EquipmentPage.vue` | 裝備 + 背包 |
 | `/cp` | `CpCalculatorPage.vue` | 戰鬥力計算(主要工作面板,統整所有來源) |
 | `/legion` | 重導至 `/character` | (舊路由保留相容) |
@@ -193,6 +193,50 @@ Legion 分兩區,在 `LegionPanel.vue`:
 - 非線性曲線:Critical Rate、Boss Damage、Normal Mob Dmg、Abnormal Resist、Bonus EXP
 - 儲存:`msucp.hyperStat.v1`
 
+### 秘法符文 ARC (`src/constants/arcaneSymbols.js` + `useArcane.js`)
+
+- 6 個符文(Vanishing Journey / Chu Chu Island / Lachelein / Arcana / Morass / Esfera),各 0-20 級
+- Lv1: ARC +30,主屬 +300;之後每級 +10 ARC、+100 主屬
+- 主屬加成為 **fixed flat**(不吃 % 加成),CP 計算機每符文單獨列一條來源
+- 儲存:`msucp.arcane.v1`
+
+### 寵物 (`src/constants/pets.js` + `usePet.js`)
+
+- Multi Pet 隻數加成(`PET_COUNT_BONUS`)+ 寵物裝備加成(每件 `PET_EQUIPMENT_BONUS` ATT/MATK)
+- ATT/MATK flat,**吃 % 加成**
+- 寵物獨立於 SKILL/BUFF,**計入 CP**
+- 儲存:`msucp.pet.v1`
+
+### 內潛 ABILITY (`src/constants/innerPotential.js` + `useInnerPotential.js`)
+
+- 3 排屬性(`INNER_POTENTIAL_LINES = 3`),每排 = 下拉 + 對應欄位輸入
+- 選項 schema:`{ id, nameKey, fields: [{ statKey, max, isPct? }], fixed?, specialEffect? }`
+- 約 47 個選項涵蓋:單屬 / 雙屬 12 排列 / 四屬合一 / HP·MP 系列 / ATT·MATK 系列 / 防禦力 flat & % / 跳躍·移速 / 每 N 等 +1 ATT·MATK / 爆擊 / 攻擊速度 / Boss·一般·異常怪物傷害 / 追加防禦傷害 / Buff 持續 / 掉寶·楓幣 / 被動技能 +1 / 攻擊目標 +1 / 4 個按 % 互轉 / 機率忽略冷卻
+- **雙屬 / 多屬**:每個 `field` 一個獨立輸入框
+- `specialEffect: true` → 不顯示輸入框、不貢獻 CP
+- `fixed: true`(主屬 / 全屬)→ 不吃 % 加成
+- **CP 串接**:全屬 → str/dex/int/luk 同時 fixed flat;其他依 PCT_KEYS 分流
+- 中文「內潛」/ 英文 **ABILITY**(`vmatrix.title` 等)
+- 儲存:`msucp.innerPotential.v1`
+
+### V 矩陣 (`src/constants/vmatrix.js` + `useVMatrix.js`)
+
+- 通用 V 技能 + 職業專屬;`VMATRIX_MAX_LEVEL = 30`
+- Schema:`{ id, nameKey, imageUrl, jobs?, branch?, passive? }`
+  - `passive.type`:`'allStat'` / `'attMatk'` / `'stat'`(+`statKey`)
+  - `passive.per`:每 N 等 +1(`per=1` 即每等 +1)
+  - **`passiveValueAt(skill, lv) = ceil(lv / per)`** — Lv1 就有 1 點;Lv6 (per=5) 變 2
+  - 沒 `passive` → 面板隱藏(技能名仍存於資料,可填等級但無效果)
+- `jobs?` / `branch?`:限定職業可見+貢獻(例 Unreliable Memory 僅 archmageFP/IL/bishop)
+- **CP 串接**:全屬 / ATT·MATK / 單一屬性都走 flat,**吃 % 加成**(非 fixed)
+- 已實作技能(11 通用 + 1 法系專屬):
+  - 通用:Rope Lift(全屬 per=1)、Decent Mystic Door / Sharp Eyes / Hyper Body / Advanced Blessing / Speed Infusion(全屬 per=5)、Blink(ATT/MATK per=1)
+  - 無被動隱藏:Decent Combat Orders / Erda Nova / Will of Erda / Decent Holy Symbol
+  - 冒險家法師(`archmageFP/IL/bishop`):Unreliable Memory(INT per=1)
+- 圖示來源:`https://media.maplestorywiki.net/yetidb/Skill_<Name>.png`(部分 Decent 共用原技能圖)
+- 中文技能名稱保留英文(不翻譯)
+- 儲存:`msucp.vmatrix.v1`
+
 ### CP 計算機 (`src/pages/CpCalculatorPage.vue`)
 
 **breakdown 管線**(依順序把所有來源收斂到每個 stat key 的 `{ flat: [], pct: [] }`):
@@ -210,7 +254,13 @@ Legion 分兩區,在 `LegionPanel.vue`:
 8. 聯盟拼圖 `puzzleContribs`
 9. Hyper Stat `hyperStatContribs`(STR/DEX/INT/LUK 為 `fixed: true`)
 10. 聯盟成員 `legionContribs`(主屬為 `fixed: true`)
-11. Link Skill `activeSkillContributions`(僅非 specialEffect)
+11. 秘法符文 `arcaneContribs`(主屬 fixed flat,每符文一條來源)
+12. 內潛 `abilityContribs`(全屬 → str/dex/int/luk fixed flat;單屬亦 fixed;其餘依 PCT_KEYS 分流)
+13. V 矩陣 `vmatrixContribs`(全屬 / ATT·MATK / 單屬 都走 flat,**吃 % 加成**)
+14. Link Skill `activeSkillContributions`(僅非 specialEffect)
+15. 寵物 `petCountBonus / petEquipBonus`(ATT/MATK flat)
+
+每筆 entry 內含 `cpExclude` 旗標(`addFlat / addPct` 第 4/3 參數)— SKILL / BUFF / V Matrix / Link Skill 預設 `true`,**不計入 COMBAT POWER**。例外允許名單 `CP_SKILL_ALLOWLIST` = { `blessing_of_the_fairy`, `empress_blessing` };寵物天然在獨立 block,不受影響。
 
 **PCT_KEYS**:`bossDmg / ignoreDef / allStatPct / dmgPct / atkPct / matkPct / hpPct / mpPct / strPct / dexPct / intPct / lukPct / critRate / critDmg / finalDmg / buffDuration / damageTaken / elementalResist / summonDuration / cooldownReduction / normalMobDmg / bonusExp`
 
@@ -227,12 +277,68 @@ Legion 分兩區,在 `LegionPanel.vue`:
 ### ATT STATS(`CpCalculatorPage.vue`)
 
 `JOB_ATT_META[jobKey]` 含 `weapons / weaponConst / mastery / usesMatk`;傷害公式:
+
 ```
-basic = (主屬 × 4 + 副屬) × ATT/100 × 武器常數 × 熟練度 × (1 + Damage%)
-首領 = basic × (1 + Boss Damage%)
+base   = (4 × 主屬 + 副屬) × ATT/100 × 武器常數
+fm     = 1 + Final Damage% / 100              ← 獨立乘區
+
+basic  = base × (1 + Damage%/100)                          × fm
+normal = base × (1 + (Damage% + Normal Mob Dmg%)/100)      × fm
+boss   = base × (1 + (Damage% + Boss Dmg%)/100)            × fm
 ```
-- 基礎熟練度 95%;Combat Orders 開 → 96%
-- Hover ATT STATS cell 顯示武器常數、熟練度、基本/一般/首領傷害
+
+- 一般 / 首領 與 Damage% **相加**(同一個括號內);Final Damage 為**獨立乘區、相乘**
+- **熟練度移除**自 basic / normal / boss(僅 tooltip 顯示),改為僅影響「實際傷害 min」
+- 法系自動切 MATK(`usesMatk`)
+- 顯示 `Math.round` 為整數
+- Hover ATT STATS cell tooltip 內容:武器列表 → 武器常數 → 熟練度 → 基本/一般/首領 → **實際傷害 (boss) Min/Avg/Max**
+
+#### 實際傷害 (boss) — 套用爆擊與屬性耐性
+
+```
+crit_max  = 1.50 + 爆擊傷害%/100
+crit_min  = (1.20 + 爆擊傷害%/100) × 熟練度/100
+elemMul   = 1 − BOSS_ELEM_RESIST × (1 − elemIgnore/100) / 100
+
+bossMax   = boss × crit_max × elemMul
+bossMin   = boss × crit_min × elemMul
+bossAvg   = (bossMax + bossMin) / 2
+```
+
+- `BOSS_ELEM_RESIST = 50` — 首領屬性耐性 50%
+- `ELEM_IGNORE_BY_JOB = { archmageFP: 10 }` — 火毒「Element Amplification」-10%;其他職業 0%
+- 火毒 elemMul = 0.55;其他 0.50
+
+### COMBAT POWER 公式
+
+頂部金色 banner 顯示 CP 整數值;`?` 按鈕展開 Zone Breakdown 下拉。
+
+**6 個乘區**(`cpZones` computed):
+
+```
+Zone 1 = (4 × 主屬 + 副屬) / 100
+Zone 2 = ATT (僅 flat,不吃 % 加成)            ← 法系自動換 MATK
+Zone 3 = 1 + ATT% / 100
+Zone 4 = (135 + 爆擊傷害%) / 100
+Zone 5 = (100 + Damage% + Boss Damage%) / 100
+Zone 6 = 終傷乘區 (目前裝備來源未實作)         → 1
+
+差值  = round(ATT × Zone3, 2dp) − floor((ATT − 69) × Zone3)
+Z2Z3  = Zone2 × Zone3 − 差值                  ← 在 Zone2 × Zone3 後扣
+
+CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
+```
+
+- `WEAPON_COEFFICIENT_DELTA = 69`(同等級/同星等/同星火裝備之間的攻擊力差,暫固定)
+- 所有取值用 `statTotalForCp(key)` / `flatTotalForCp(key)` / `pctTotalForCp(key)` — 過濾 `cpExclude` 來源
+- 主屬吸收 `<stat>Pct` + `allStatPct` + `allStat` flat 的 cpExclude 過濾版
+
+### CP 比較欄(`cp-compare`,左側 aside)
+
+- COMBAT POWER banner「儲存」按鈕 → 把當下 `bossMax / bossAvg / bossMin` 加入快照(最新在最上)
+- 每筆 row:時間(`YYYY-MM-DD HH:MM`)+ 三列數值 + 與當前差異 `Δ%`(2 位小數;綠↑/紅↓/灰持平)
+- `×` 移除單筆;頂端「清空」按鈕清全部(有資料才出現,需 confirm)
+- 持久化於 `msucp.cpCompare.v1`,已加入 `DATA_KEYS`(會被 export/import)
 
 ## UI 慣例
 
@@ -316,7 +422,14 @@ basic = (主屬 × 4 + 副屬) × ATT/100 × 武器常數 × 熟練度 × (1 + D
 | `msucp.legion.v1` | 戰地成員 tier |
 | `msucp.puzzle.v1` | 拼圖屬性等級 |
 | `msucp.hyperStat.v1` | Hyper Stat 配點 |
+| `msucp.arcane.v1` | 秘法符文等級 |
+| `msucp.pet.v1` | 寵物隻數 + 寵物裝備 toggle |
+| `msucp.innerPotential.v1` | 內潛 3 排 (id + values[]) |
+| `msucp.vmatrix.v1` | V 矩陣技能等級 |
 | `msucp.linkSkills.applied.v3` | 已連結的 link skill |
 | `msucp.cpBuffs.v1` | Buff 開關狀態 |
 | `msucp.cpSkills.v1` | Skill 開關狀態 |
 | `msucp.cpTitles.v1` | Title 開關狀態 |
+| `msucp.cpCompare.v1` | CP 比較欄快照陣列 |
+
+> 資料匯出 / 匯入:`src/composables/useDataIO.js` 的 `DATA_KEYS` 陣列定義要走 export 的 keys。新增子系統時請同步維護該陣列 + 上表。

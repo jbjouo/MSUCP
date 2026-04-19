@@ -39,6 +39,16 @@ export const BUFFS = [
     skillLevelBonus: 1,
   },
   {
+    id: 'heros_echo',
+    name: "Hero's Echo",
+    icon: '/skills/heros_echo.png',
+    // 通用 buff:ATT +4%、Magic ATT +4%
+    stats: {
+      atkPct: 4,
+      matkPct: 4,
+    },
+  },
+  {
     id: 'maple_warrior',
     name: 'Maple Warrior',
     icon: '/skills/maple_warrior.png',

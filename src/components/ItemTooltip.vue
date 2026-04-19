@@ -2,7 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StarBar from './StarBar.vue'
-import { setsForItem } from '../constants/itemSets.js'
+import { setsForItem, countActiveSet } from '../constants/itemSets.js'
 import { ITEMS_BY_ID, useEquipment } from '../composables/useEquipment.js'
 
 const { state: equipState, resolveEntry } = useEquipment()
@@ -15,10 +15,17 @@ const equippedIds = computed(() => {
   }
   return s
 })
+// 已穿上的 item 物件 (供 countActiveSet 判斷幸運道具)
+const equippedItems = computed(() => {
+  const arr = []
+  for (const uid of Object.values(equipState.equipped)) {
+    const e = resolveEntry(uid)
+    if (e?.item?.id) arr.push(e.item)
+  }
+  return arr
+})
 function activeSetCount(set) {
-  let n = 0
-  for (const id of set.itemIds) if (equippedIds.value.has(id)) n++
-  return n
+  return countActiveSet(set, equippedItems.value)
 }
 
 const props = defineProps({

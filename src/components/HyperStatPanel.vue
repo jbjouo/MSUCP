@@ -149,6 +149,8 @@ function currentValueText(stat) {
   flex-direction: column;
   gap: 2px;
   overflow-x: hidden;
+  /* 撐滿剩餘高度,與左側圖鑑面板(含新套裝欄)高度對齊 */
+  flex: 1 1 auto;
 }
 
 .hs-row {

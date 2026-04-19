@@ -6,6 +6,14 @@
 
 export const MAX_COLLECTION_LEVEL = 25
 
+// 圖鑑套裝 — 每存到一個套裝給 +5 全屬性
+export const COLLECTION_SET_BONUS = 5
+export const COLLECTION_SET_MAX = 999
+export function collectionSetBonus(count) {
+  const n = Math.max(0, Math.min(COLLECTION_SET_MAX, Math.floor(Number(count) || 0)))
+  return n * COLLECTION_SET_BONUS
+}
+
 // 不規則成長型 (DEF Ignored / Critical Rate) — 使用者提供的對照表:
 //   Collection tier → 對應圖鑑等級 → 每級 %
 //   1  (lv 1-2)   +1% per lv

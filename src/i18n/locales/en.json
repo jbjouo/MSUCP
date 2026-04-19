@@ -30,6 +30,18 @@
   "itemSet": {
     "boss_accessory": {
       "name": "Boss Accessory Set"
+    },
+    "root_abyss_magician": {
+      "name": "Root Abyss Set (Magician)"
+    },
+    "seven_days": {
+      "name": "Seven Days Set"
+    },
+    "absolab_magician": {
+      "name": "AbsoLab Set (Magician)"
+    },
+    "pitched_boss": {
+      "name": "Pitched Boss Set"
     }
   },
   "hyperStat": {
@@ -244,6 +256,16 @@
     "action": {
       "reset": "Reset"
     },
+    "io": {
+      "export": "Export",
+      "import": "Import",
+      "loadSeed": "Load Test Data",
+      "exported": "Exported",
+      "confirmImport": "This will REPLACE all current data (equipment / legion / collection / hyper stat / etc.). Continue?",
+      "confirmSeed": "This will REPLACE all current data with bundled test data. Continue?",
+      "importFailed": "Import failed:",
+      "seedFailed": "Load test data failed:"
+    },
     "fields": {
       "name": "Character name",
       "level": "Level",
@@ -300,9 +322,142 @@
       "shade": "Shade"
     }
   },
+  "pet": {
+    "title": "PET",
+    "reset": "Reset",
+    "multiPet": "Multi Pet Count",
+    "equipment": "Pet Equipment",
+    "each": "each",
+    "countBonus": "Count bonus",
+    "equipmentBonus": "Gear bonus ({n})",
+    "on": "ON",
+    "off": "OFF",
+    "equipmentSlot": "Gear {n}"
+  },
+  "arcane": {
+    "title": "ARCANE EQUIPMENT",
+    "reset": "Reset",
+    "totalArc": "ARC",
+    "toMin": "Set to 0",
+    "toMax": "Set to MAX",
+    "vanishing_journey": "Vanishing Journey",
+    "chu_chu_island": "Chu Chu Island",
+    "lachelein": "Lachelein",
+    "arcana": "Arcana",
+    "morass": "Morass",
+    "esfera": "Esfera"
+  },
+  "innerPotential": {
+    "title": "ABILITY",
+    "reset": "Reset",
+    "line": "Line {n}",
+    "placeholder": "— Select ability —",
+    "noInput": "(Special effect, not counted)",
+    "fieldKeys": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "allStat": "All Stats",
+      "hp": "HP",
+      "mp": "MP",
+      "hpPct": "HP%",
+      "mpPct": "MP%",
+      "atk": "ATT",
+      "matk": "MATK",
+      "def": "DEF",
+      "defPct": "DEF%",
+      "jump": "Jump",
+      "moveSpeed": "Speed",
+      "atkPerLv10": "ATT / N Lv",
+      "matkPerLv10": "MATK / N Lv",
+      "atkSpeed": "Atk Speed",
+      "critRate": "Crit Rate",
+      "bossDmg": "Boss Dmg",
+      "normalMobDmg": "Normal Mob Dmg",
+      "abnormalMobDmg": "Abnormal Mob Dmg",
+      "extraDefDmg": "Extra DEF% Dmg",
+      "buffDuration": "Buff Duration",
+      "dropRate": "Drop Rate",
+      "mesoRate": "Meso Rate",
+      "passiveSkillLevel": "Passive Skill Lv",
+      "attackTarget": "Attack Target"
+    },
+    "opts": {
+      "str": "STR",
+      "dex": "DEX",
+      "int": "INT",
+      "luk": "LUK",
+      "allStat": "All Stats",
+      "str_dex_int_luk": "STR · DEX · INT · LUK",
+      "str_dex": "STR · DEX",
+      "str_int": "STR · INT",
+      "str_luk": "STR · LUK",
+      "dex_str": "DEX · STR",
+      "dex_int": "DEX · INT",
+      "dex_luk": "DEX · LUK",
+      "int_str": "INT · STR",
+      "int_dex": "INT · DEX",
+      "int_luk": "INT · LUK",
+      "luk_str": "LUK · STR",
+      "luk_dex": "LUK · DEX",
+      "luk_int": "LUK · INT",
+      "maxHp": "Max HP",
+      "maxMp": "Max MP",
+      "maxHpMp": "Max HP / MP",
+      "maxHpPct": "Max HP %",
+      "maxMpPct": "Max MP %",
+      "atk": "ATT",
+      "matk": "Magic ATT",
+      "atkMatk": "ATT / Magic ATT",
+      "def": "Defense",
+      "jumpMoveSpeed": "Jump / Movement Speed",
+      "atkPerLv": "+1 ATT per N levels",
+      "matkPerLv": "+1 Magic ATT per N levels",
+      "defPct": "Defense %",
+      "critRate": "Critical Rate",
+      "atkSpeed": "Attack Speed",
+      "bossDmg": "Boss Damage",
+      "normalMobDmg": "Normal Mob Damage",
+      "abnormalMobDmg": "Damage to Abnormal-Status Mobs",
+      "extraDefDmg": "Extra Damage from Defense %",
+      "buffDuration": "Buff / Skill Duration",
+      "dropRate": "Item Drop Rate",
+      "mesoRate": "Meso Obtain Rate",
+      "passiveSkillLevel": "Passive Skill Level +1",
+      "attackTarget": "Attack Target +1",
+      "dexFromStrPct": "+DEX from invested STR %",
+      "strFromDexPct": "+STR from invested DEX %",
+      "lukFromIntPct": "+LUK from invested INT %",
+      "dexFromLukPct": "+DEX from invested LUK %",
+      "skillCooldownChance": "Chance to skip skill cooldown"
+    }
+  },
+  "vmatrix": {
+    "title": "V MATRIX",
+    "reset": "Reset",
+    "skills": {
+      "rope_lift": "Rope Lift",
+      "decent_mystic_door": "Decent Mystic Door",
+      "decent_sharp_eyes": "Decent Sharp Eyes",
+      "decent_hyper_body": "Decent Hyper Body",
+      "decent_combat_orders": "Decent Combat Orders",
+      "decent_advanced_blessing": "Decent Advanced Blessing",
+      "decent_speed_infusion": "Decent Speed Infusion",
+      "blink": "Blink",
+      "erda_nova": "Erda Nova",
+      "will_of_erda": "Will of Erda",
+      "decent_holy_symbol": "Decent Holy Symbol",
+      "unreliable_memory": "Unreliable Memory"
+    }
+  },
   "collection": {
     "title": "NFT COLLECTION EFFECT",
     "reset": "Reset",
+    "setTitle": "Collection Sets",
+    "setBonus": "Bonus",
+    "perSet": "per set",
+    "allStats": "All Stats",
     "tip": {
       "toMin": "Set to 0",
       "toMax": "Set to max"
@@ -547,7 +702,13 @@
       "legionPrefix": "Legion: {name} Tier {tier}",
       "puzzlePrefix": "Puzzle: {name} Lv.{lv}",
       "hyperPrefix": "Hyper: {name} Lv.{lv}",
-      "setPrefix": "Set: {name} ({count} pcs)",
+      "setPrefix": "Set: {name}",
+      "arcanePrefix": "Arcane: {name} Lv.{lv}",
+      "petCountPrefix": "Pet: {n}",
+      "petEquipPrefix": "Pet Equipment: {n}",
+      "abilityPrefix": "Ability Line {n}: {name}",
+      "vmatrixPrefix": "V Matrix: {name} Lv.{lv}",
+      "collectionSetPrefix": "Collection Sets: {n}",
       "titlePrefix": "Title: {name}",
       "characterLv": "Character Lv {lv}",
       "characterBase": "Character base",
@@ -556,6 +717,14 @@
       "potentialSuffix": "(Potential)",
       "bonusPotentialSuffix": "(Bonus Potential)"
     },
+    "compare": {
+      "title": "Compare",
+      "save": "Save",
+      "clear": "Clear",
+      "remove": "Remove",
+      "empty": "No saved snapshots yet",
+      "confirmClear": "Clear all comparison snapshots?"
+    },
     "attStats": {
       "desc": "Displays the actual Damage dealt. Includes Damage and Final Damage from skills and equipment. Shows Magic ATT when wielding a Wand, Staff, or Shining Rod; shows ATT otherwise.",
       "equippableWeapons": "[Equippable Weapons]",
@@ -563,7 +732,11 @@
       "mastery": "[Weapon Mastery]",
       "basic": "Basic",
       "normalEnemy": "Normal Enemy",
-      "boss": "Boss"
+      "boss": "Boss",
+      "bossActual": "[Actual Damage (Boss)]",
+      "bossMax": "Max",
+      "bossAvg": "Average",
+      "bossMin": "Min"
     },
     "buffs": {
       "mapleWarriorLabel": "Buff: {name} (Lv {lv}, +{pct}% AP)"
