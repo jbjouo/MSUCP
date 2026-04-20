@@ -431,33 +431,49 @@ Flame Sweep (0, 600ms)                   → 2220ms (filler)
 
 ### 傷害公式(useBattleSim)
 
-### 傷害公式(useBattleSim)
-
 **主擊**
 ```
 bossMin ≤ bossBase ≤ bossMax   ← 先以 buff Damage%(法師傳授)併入 CP Damage% 後重算
-hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult × defMult × variance
+hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult × defMult × explosionMult × variance
 ```
 
-**DoT**(不吃爆擊 / 不吃 BossDmg / 無視防禦 / 固定值)
+**DoT**(獨立管線,與主擊完全切割)
 ```
-basic = baseRaw × (1 + (CP Damage% + buff Damage%)/100) × fm
-dot   = basic × (DoT%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult
+dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult
 ```
+
+- `baseRaw` — `att.baseRaw` = 武器係數 × (4×主屬+副屬) × ATK(計算 % 後)/100,直接取自 CP 面板
+- `skillFinalMult` — 技能專屬 V 矩陣終傷(`1 + vm.finalDmgPct/100`)
+- `dotSpecialMult` — **DoT 專用特殊終傷**,目前唯一來源 = 火毒 Fervent Drain 疊層(每層 +5%,max 5 層,同技能層相加後轉乘區),由 `useBattleBuffs.dotSpecialFinalMult()` 提供
+- `dotEnemyMult`(`dotEnemyMult(enemy)`):
+  - 一般怪物 → `1.00`
+  - Boss + `elementalDmg='full'`(未減半)→ `1.86`
+  - Boss + `elementalDmg='half'`(減半)→ `1.41`
+  - Boss + `elementalDmg='none'`(免疫)→ `0`
+
+**DoT 一律不吃**:面板終傷 (fm) / CP Damage% / Buff Damage% / 超技能 `burnDamagePct` / Boss Damage% / 屬性減傷 (`elemMult`) / ARC 終傷 (`arcMult`) / 其他 buff 最終傷害(Infinity 等 activeToggle)/ 怪物 DEF / 爆擊 / 熟練度 / variance
+
+**DoT 傷害快照(sticky)**:`emitCast` 建立新 DoT 時以當下面板計算 `dotDmg` 並存入 `burnState[id].dmg`;只要這段 DoT 還沒過期,即使中途:
+- Fervent Drain 層數改變 / VM 等級改變 / 技能等級改變 / 面板 Damage% 變動
+- 重新施放同一個技能接續時間(refresh `expireAt`)
+
+**傷害都不會重算**。只有 DoT 自然結束後被刪除,下次再觸發才會以當下面板重新快照。`processBurnTicks` 讀取 `bs.dmg`(保留 fallback 以避免舊狀態遺漏)。
 
 ### 各乘區來源
 
-| 乘區 | 來源 | 型態 | 備註 |
-|---|---|---|---|
-| `elemMult` | skill.element × enemy.elementalDmg × 職業無視屬性 | 單一 | `ENEMY_ELEM_RESIST_PCT × ELEM_IGNORE_BY_JOB` |
-| `arcMult` | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %` |
-| `skillFinalMult` | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep Lv N × 2% 終傷 |
-| `explosionMult` | Mist Eruption 爆炸終傷 | 單一 | `finalDmgByExplosions[DoT 層數]` 查表 → 單次乘區(僅主擊吃) |
-| `buffFinalDmgMult` | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Fervent Drain 1 DoT → ×1.05;Infinity time-ramp |
-| `buffDmgMult`(合入 Damage%) | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:Arcane Aim 5 層 → +40% Damage |
-| `hyperDmgPct`(合入 Damage%) | 超技能 `damagePct` / `burnDamagePct` | 與 CP Damage% 相加 | 主擊用 `damagePct`、DoT 用 `burnDamagePct`;**不乘進技能 %** |
-| `defMult` | 怪物 DEF × 有效無視 | 相乘疊加 | CP × VM × buff × hyper × 技能自帶 `ignoreDef`,**五項獨立相乘**(不加總) |
-| `fm` | CP Final Damage% | 已併入 basic / boss | 不重複套用 |
+| 乘區 | 套用於 | 來源 | 型態 | 備註 |
+|---|---|---|---|---|
+| `elemMult` | 主擊 | skill.element × enemy.elementalDmg × 職業無視屬性 | 單一 | `ENEMY_ELEM_RESIST_PCT × ELEM_IGNORE_BY_JOB`;DoT **不吃**(已被 `dotEnemyMult` 取代) |
+| `arcMult` | 主擊 | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %`;DoT **不吃** |
+| `skillFinalMult` | 主擊 & DoT | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep Lv N × 2% 終傷 |
+| `explosionMult` | 主擊 | Mist Eruption 爆炸終傷 | 單一 | `finalDmgByExplosions[DoT 層數]` 查表;DoT **不吃** |
+| `buffFinalDmgMult` | 主擊 | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Infinity time-ramp;DoT **不吃** |
+| `dotSpecialMult` | DoT | DoT 專用特殊終傷 | 單一 | 目前唯一:Fervent Drain 疊層 ×(1 + n×5/100);其他 buff 不貢獻 |
+| `dotEnemyMult` | DoT | 怪物類型 | 單一 | normal=1.00 · boss-full=1.86 · boss-half=1.41 · boss-none=0 |
+| `buffDmgMult`(合入 Damage%) | 主擊 | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:Arcane Aim 5 層 → +40% Damage;DoT **不吃** |
+| `hyperDmgPct`(合入 Damage%) | 主擊 | 超技能 `damagePct` | 與 CP Damage% 相加 | **不乘進技能 %**;`burnDamagePct` 目前無作用(DoT 不吃) |
+| `defMult` | 主擊 | 怪物 DEF × 有效無視 | 相乘疊加 | CP × VM × buff × hyper × 技能自帶 `ignoreDef`;DoT **無視防禦** |
+| `fm` | 主擊 | CP Final Damage% | 已併入 basic / boss | DoT **不吃** |
 
 ### Buff 系統 (`useBattleBuffs` / `constants/battleBuffs.js`)
 
@@ -601,20 +617,20 @@ Step 3: 3.5 < 5 → 帽子不生效
 
 ## 超技能 Damage% 歸屬
 
-超技能的 `damagePct` / `burnDamagePct` **加算到 Damage% 桶**,不乘進技能 % 本身:
+超技能的 `damagePct` **加算到主擊 Damage% 桶**,不乘進技能 % 本身:
 
 ```
 extraDmgPct (main) = Buff Damage% + Hyper damagePct
 basic/boss = baseRaw × (1 + (CP Damage% + extraDmgPct)/100) × fm
 hit        = bossBase × (skill.hit%/100) × ...  ← 技能 % 保持原值
-
-extraDmgPct (DoT)  = Buff Damage% + Hyper burnDamagePct
-basic      = baseRaw × (1 + (CP Damage% + extraDmgPct)/100) × fm
-dot        = basic × (skill.burn%/100) × ...
 ```
 
+**DoT 不吃 Damage% 任何來源**(新公式僅乘 V 矩陣終傷 × Fervent Drain × 怪物類型):
+- `burnDamagePct`(超技能)、CP Damage%、Buff Damage% 都**不作用於 DoT**
+- `burnDamagePct` 目前等於無效欄位(保留以免資料檔破壞;未來若加回 DoT Damage% 桶再啟用)
+
 **影響**:
-- Flame Sweep Lv30(220% 主、240% DoT)+ Reinforce (+10%) → 以前 220% × 1.10 = 242%(錯);現在 220% 不動,Damage% +10% 進 basic/boss
+- Flame Sweep Lv30(220% 主、240% DoT)+ Reinforce (+10%) → 主擊:Damage% +10% 進 basic/boss(不改技能 %);DoT:+10% 完全不生效
 - 命中數 / DoT 時長 / 無視防禦 / 冷卻 走各自的管線,不與 Damage% 合併
 
 ## 工作慣例

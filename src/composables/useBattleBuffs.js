@@ -205,6 +205,27 @@ export function useBattleBuffs() {
     return total
   }
 
+  // DoT 專用「特殊終傷」乘區 — 僅少數 buff 會作用於 DoT,其餘(面板終傷 / Infinity
+  // 等 activeToggle / Arcane Aim 的 Damage 疊層)DoT 都不吃。
+  //   目前唯一來源:Fervent Drain (passive/dotCount, perStackFinalDmgPct)
+  //   回傳:{ mult, stacks, perStack } 供 sim 與測試面板使用
+  function dotSpecialFinalMult(jobKey, nowMs, { dotCountOverride } = {}) {
+    syncExpire(nowMs)
+    let mult = 1
+    let stacks = 0
+    let perStack = 0
+    for (const buff of BATTLE_BUFFS) {
+      if (!applicableForJob(buff, jobKey)) continue
+      if (buff.id !== 'fervent_drain') continue
+      const s = stacksOf(buff, dotCountOverride)
+      const p = buff.perStackFinalDmgPct || 0
+      stacks = s
+      perStack = p
+      if (s > 0 && p > 0) mult *= 1 + (s * p) / 100
+    }
+    return { mult, stacks, perStack }
+  }
+
   function buffInfo(buff, jobKey, nowMs, { dotCountOverride } = {}) {
     syncExpire(nowMs)
     if (buff.source === 'activeToggle') {
@@ -247,6 +268,7 @@ export function useBattleBuffs() {
     rollTriggers,
     autoTick,
     currentBonuses,
+    dotSpecialFinalMult,
     buffInfo,
   }
 }

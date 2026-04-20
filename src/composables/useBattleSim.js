@@ -106,6 +106,21 @@ function elemMultFor(skill, enemy) {
   return Math.max(0, 1 - (resist * (1 - ignore / 100)) / 100)
 }
 
+// DoT 專用的怪物類型乘區(一般怪物 未減半基準 = 1;Boss 另外放大)
+//   normal     → 1.00   (一般怪物 未減半)
+//   boss full  → 1.86   (首領對屬性全額,無減半)
+//   boss half  → 1.41   (首領屬性減半)
+//   boss none  → 0      (首領完全不吃屬性,DoT 為屬性傷害 → 0)
+function dotEnemyMult(enemy) {
+  if (enemy?.type !== 'boss') return 1
+  switch (enemy?.elementalDmg) {
+    case 'full': return 1.86
+    case 'half': return 1.41
+    case 'none': return 0
+    default:     return 1.86
+  }
+}
+
 
 // 取得技能當前等級的原始倍率 (不含超技能 — 超技能的 damagePct / burnDamagePct
 // 改「加算到 Damage%」在 rebuildAtt 時一起算,不乘進技能 % 本身)
@@ -196,18 +211,23 @@ function mainHitDmg(skill, elemMult, enemy, att) {
              skillFinalMult, buffBonuses.finalDmgMult, defMult, explosionMult)
 }
 
-// 單次 DoT tick(固定值,不吃爆擊 / 不吃 B 傷 / 無視防禦)
-//   Damage% 桶 = CP Damage% + Buff Damage% + 超技能 burnDamagePct
-function dotTickDmg(skill, elemMult, att) {
+// 單次 DoT tick — 新公式(與主擊完全獨立):
+//   DoT = baseRaw × (DoT 技能倍率/100) × V矩陣終傷 × 特殊終傷 × 怪物類型乘區
+//
+//   baseRaw = 武器係數 × (4×主屬+副屬) × ATK(%後)/100  (att.baseRaw,已包含 ATK% 加成)
+//   V矩陣終傷 = 1 + skill.vmatrix 每等累計 finalDmgPct/100
+//   特殊終傷 = 目前僅火毒 Fervent Drain 疊層 (每層 +5%,同層相加後轉乘區)
+//   怪物類型乘區 = dotEnemyMult(enemy) — 普通怪物 1,Boss 未減半 1.86,Boss 減半 1.41
+//
+//   ★ 不吃:面板終傷 (fm) / CP Damage% / Buff Damage% / 超技能 Damage%
+//          / Boss Damage% / 屬性減傷 / ARC 終傷 / 怪物 DEF / 爆擊 / 熟練度 / variance
+function dotTickDmg(skill, enemy, att) {
   const vm = skillVmatrixBonus(skill, vmatrixLevelOf(skill.id))
   const skillFinalMult = clean(1 + vm.finalDmgPct / 100)
-  const buffBonuses = useBattleBuffs().currentBonuses(currentJobKey, state.elapsedMs)
-  const hs = hyperBagFor(skill.id)
-  const extraDmgPct = add(buffBonuses.dmgPct || 0, hs.burnDamagePct || 0)
-  const { basicRaw } = rebuildAtt(att, extraDmgPct)
+  const { mult: specialMult } = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs)
   const pct = skillPctOf(skill).burn
-  return mul(basicRaw, pct / 100, elemMult, currentArcMult,
-             skillFinalMult, buffBonuses.finalDmgMult)
+  const enemyMult = dotEnemyMult(enemy)
+  return mul(att?.baseRaw || 0, pct / 100, skillFinalMult, specialMult, enemyMult)
 }
 
 // 統一累加單次擊中 — 主擊與 DoT tick 都會流經此函式,
@@ -264,12 +284,18 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     const ivMs = skill.burn.tickIntervalSec * 1000
     const cur = burnState[skill.id]
     if (cur) {
+      // 續接(DoT 尚未結束前再次施放):只延長 expireAt,傷害快照不動
       cur.expireAt = tCast + burnMs
     } else {
+      // 新 DoT 開始 — 以「當下」面板快照傷害,後續 tick 一律沿用此值
+      //   即使 Fervent Drain 層數 / VM 等級 / buff 變動,也不會影響這段 DoT 的傷害
+      //   結束後若再觸發,新的一段 DoT 才會重新以當下面板計算
+      const snapshotDmg = dotTickDmg(skill, enemy, att)
       burnState[skill.id] = {
         nextTickAt: tCast + ivMs,
         expireAt: tCast + burnMs,
         intervalMs: ivMs,
+        dmg: snapshotDmg,
       }
     }
   }
@@ -283,7 +309,9 @@ function processBurnTicks(elapsed, enemy, att) {
     if (!bs) continue
     const capped = Math.min(elapsed, bs.expireAt)
     const stats = state.result.perSkill[skill.id]
-    const dotDmg = dotTickDmg(skill, elemMultFor(skill, enemy), att)
+    // 傷害快照 — 建立 DoT 時即寫入 bs.dmg;續接 / 面板變動一律沿用
+    // (舊狀態理論上都會有 dmg,這裡 fallback 以當下面板計算,避免極端情況回 NaN)
+    const dotDmg = bs.dmg != null ? bs.dmg : dotTickDmg(skill, enemy, att)
     while (bs.nextTickAt <= capped) {
       // DoT:不爆擊、固定值,不加 variance;同樣流經 emitHit 累加 total / attackCount / maxHit / minHit
       // 時間軸不再顯示 DoT tick(噪音太多),只在 stats 中累積
@@ -542,6 +570,12 @@ export function useBattleSim() {
     const buffDmgPct = buffBonuses.dmgPct || 0
     const buffIgnoreDefPct = buffBonuses.ignoreDefPct || 0
     const buffFinalDmgMult = buffBonuses.finalDmgMult || 1
+    // DoT 專用的「特殊終傷」— 現階段僅火毒 Fervent Drain (每層 +5%)
+    const dotSpecial = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount })
+    const ferventStacks = dotSpecial.stacks
+    const ferventPerStack = dotSpecial.perStack
+    const dotSpecialMult = dotSpecial.mult
+    const dotEnemyMultVal = dotEnemyMult(enemy)
     // 超技能 bag — 主擊 / DoT / 命中數 / 時長 / 無視防禦 / 冷卻 都會用到
     const hs = hyperBagFor(skill.id)
     const lv = state.skillLevels[skill.id] || skill.baseLevel
@@ -586,11 +620,14 @@ export function useBattleSim() {
       mainHits.push(Math.max(1, floor(value)))
     }
 
-    // DoT — 固定值,不吃爆擊 / 不吃 BossDmg / 無視防禦;時長 + 超技能 burnDurationBonusSec
+    // DoT — 新公式:baseRaw × 技能DoT% × V矩陣終傷 × 特殊終傷(Fervent Drain) × 怪物類型乘區
+    //   不吃:面板終傷 / CP&Buff&Hyper Damage% / Boss Damage% / 屬性減傷 / ARC / DEF
+    //   時長 + 超技能 burnDurationBonusSec
     const burnDurationSec = add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
     const dotTickCount = floor(burnDurationSec / (skill.burn?.tickIntervalSec || 1)) || 0
-    const dotValue = mul(basicRaw, pcts.burn / 100, elemMult, arcMult, skillFinalMult, buffFinalDmgMult)
-    const dotHit = Math.max(1, floor(dotValue))
+    const dotBaseRaw = att.baseRaw || 0
+    const dotValue = mul(dotBaseRaw, pcts.burn / 100, skillFinalMult, dotSpecialMult, dotEnemyMultVal)
+    const dotHit = skill.burn ? Math.max(dotValue > 0 ? 1 : 0, floor(dotValue)) : 0
     const dotTicks = []
     for (let i = 0; i < dotTickCount; i++) {
       dotTicks.push({ time: (i + 1) * (skill.burn.tickIntervalSec * 1000), dmg: dotHit })
@@ -671,6 +708,12 @@ export function useBattleSim() {
         vmMaxLevel: vm.maxLevel,
         vmFinalDmgPct: vm.finalDmgPct,
         skillFinalMult,
+        // DoT 專用輸出(供測試面板顯示)
+        dotBaseRaw,
+        dotSpecialMult,
+        ferventStacks,
+        ferventPerStack,
+        dotEnemyMult: dotEnemyMultVal,
       },
       mainHits,
       dotTicks,
@@ -693,7 +736,7 @@ export function useBattleSim() {
         rebuild:
           `重算 (主擊) :basic 不用,此路徑改走 boss — ` +
           `boss = baseRaw × (1 + (CP ${(att.dmgPct || 0).toFixed(2)}% + Buff ${buffDmgPct}% + Hyper ${hs.damagePct || 0}% + BossDmg ${(att.bossDmg || 0).toFixed(2)}%)/100) × fm(${fmtMul(att.fm || 1)}) ⇒ bossMin=${bossMinRaw.toFixed(0)} / bossMax=${bossMaxRaw.toFixed(0)}\n` +
-          `重算 (DoT)  :basic = baseRaw × (1 + (CP ${(att.dmgPct || 0).toFixed(2)}% + Buff ${buffDmgPct}% + Hyper ${hs.burnDamagePct || 0}%)/100) × fm = ${basicRaw.toFixed(0)}`,
+          `重算 (DoT)  :DoT 改走新公式,不吃 Damage% / fm / BossDmg,直接用 baseRaw = ${Math.round(att.baseRaw || 0)}`,
         main:
           `主擊 = bossMin~bossMax 隨機 × (${pcts.hit}% ÷ 100) × 屬性(${fmtMul(elemMult)}) × ARC終傷(${fmtMul(arcMult)}) × VM終傷(${fmtMul(skillFinalMult)}) × Buff終傷(${fmtMul(buffFinalDmgMult)}) × 防禦(${fmtMul(defMult)}) × 爆炸終傷(${fmtMul(explosionMult)}) × variance(±${pct(skill.variance * 100)}) · 共 ${totalHits} 下`,
         explosion: skill.explosions
@@ -703,8 +746,9 @@ export function useBattleSim() {
           `無視防禦合併 = 1 − (1 − CP${cpIgnoreDefPct.toFixed(2)}%/100)(1 − VM${vm.ignoreDefPct}%/100)(1 − Buff${buffIgnoreDefPct}%/100)(1 − Hyper${hs.ignoreDefPct || 0}%/100)(1 − 技能${skillIgDef}%/100) = ${totalIgnoreDefPct.toFixed(2)}%\n` +
           `有效防禦 = 怪物DEF(${enemyDef}) × (1 − 合併無視/100) = ${effectiveDef.toFixed(2)}  ⇒  defMult = max(0, 1 − 有效防禦/100) = ${fmtMul(defMult)}`,
         dot:
-          `DoT = basic(${basicRaw.toLocaleString?.('en-US') ?? 0}) × (${pcts.burn}% ÷ 100) × 屬性(${fmtMul(elemMult)}) × ARC終傷(${fmtMul(arcMult)}) × VM終傷(${fmtMul(skillFinalMult)}) × Buff終傷(${fmtMul(buffFinalDmgMult)})` +
-          `  ← 不吃爆擊、不吃 BossDmg、無視防禦`,
+          `DoT = baseRaw(${Math.round(dotBaseRaw).toLocaleString?.('en-US') ?? 0}) × (${pcts.burn}% ÷ 100) × VM終傷(${fmtMul(skillFinalMult)}) × 特殊終傷(${fmtMul(dotSpecialMult)}; Fervent Drain ${ferventStacks}層×${ferventPerStack}%) × 怪物乘區(×${dotEnemyMultVal.toFixed(2)}; ${enemy?.type === 'boss' ? `Boss-${enemy?.elementalDmg}` : '一般怪物'})\n` +
+          `  baseRaw = 武器係數 × (4×主屬+副屬) × ATK(計算%後)/100 · 公式為一般怪物 未減半;Boss 未減半 ×1.86、Boss 減半 ×1.41\n` +
+          `  ← 不吃面板終傷 / CP&Buff&Hyper Damage% / Boss Damage% / ARC / 防禦 / 爆擊 / 熟練度 / 屬性減傷`,
       },
     }
   }
