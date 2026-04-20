@@ -1,8 +1,10 @@
 import { reactive, computed, watch } from 'vue'
-import { VMATRIX_SKILLS, VMATRIX_MAX_LEVEL, passiveValueAt, skillAvailableForJob } from '../constants/vmatrix.js'
+import { VMATRIX_SKILLS, VMATRIX_MAX_LEVEL, passiveValueAt, skillAvailableForJob, maxLevelOf } from '../constants/vmatrix.js'
 import { useCharacter } from './useCharacter.js'
 
 const STORAGE_KEY = 'msucp.vmatrix.v1'
+
+const SKILL_BY_ID = Object.fromEntries(VMATRIX_SKILLS.map((s) => [s.id, s]))
 
 function defaultLevels() {
   const map = {}
@@ -10,8 +12,9 @@ function defaultLevels() {
   return map
 }
 
-function clamp(n) {
-  return Math.max(0, Math.min(VMATRIX_MAX_LEVEL, Math.floor(Number(n) || 0)))
+function clampForSkill(id, n) {
+  const cap = maxLevelOf(SKILL_BY_ID[id])
+  return Math.max(0, Math.min(cap, Math.floor(Number(n) || 0)))
 }
 
 function loadState() {
@@ -21,7 +24,7 @@ function loadState() {
       const parsed = JSON.parse(raw)
       const levels = defaultLevels()
       for (const s of VMATRIX_SKILLS) {
-        levels[s.id] = clamp(parsed?.levels?.[s.id])
+        levels[s.id] = clampForSkill(s.id, parsed?.levels?.[s.id])
       }
       return { levels }
     }
@@ -40,7 +43,7 @@ export function useVMatrix() {
 
   function setLevel(id, lv) {
     if (!(id in state.levels)) return
-    state.levels[id] = clamp(lv)
+    state.levels[id] = clampForSkill(id, lv)
   }
   function reset() {
     for (const s of VMATRIX_SKILLS) state.levels[s.id] = 0
@@ -53,13 +56,13 @@ export function useVMatrix() {
     return VMATRIX_SKILLS.filter((s) => skillAvailableForJob(s, jobKey, branchKey))
   })
 
-  // CP 計算機用 — 僅 passive 技能會貢獻 + 必須通過職業限制
+  // CP 計算機用 — 僅 passive 技能會貢獻 + 必須通過職業限制 + 排除 skillSpecific
   const statContributions = computed(() => {
     const jobKey = charState.job
     const branchKey = currentJob.value?.branch || charState.branch
     const out = []
     for (const s of VMATRIX_SKILLS) {
-      if (!s.passive) continue
+      if (!s.passive || s.skillSpecific) continue
       if (!skillAvailableForJob(s, jobKey, branchKey)) continue
       const lv = state.levels[s.id] || 0
       if (lv <= 0) continue

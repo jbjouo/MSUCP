@@ -19,8 +19,20 @@ import { useArcane } from '../composables/useArcane.js'
 import { usePet } from '../composables/usePet.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
+import { useCpToggles } from '../composables/useCpToggles.js'
 
 const { t } = useI18n()
+const {
+  activeBuffs,
+  activeSkillIds,
+  activeTitleIds,
+  toggleBuff,
+  toggleSkill,
+  toggleTitle,
+  isBuffActive,
+  isSkillActive,
+  isTitleActive,
+} = useCpToggles()
 const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
 const {
@@ -96,83 +108,6 @@ function fmtSnapTime(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-// 啟用中的 buff id 集合 (localStorage 持久化)
-const BUFFS_KEY = 'msucp.cpBuffs.v1'
-const activeBuffs = ref(new Set(loadBuffs()))
-function loadBuffs() {
-  try {
-    const raw = localStorage.getItem(BUFFS_KEY)
-    if (!raw) return []
-    const arr = JSON.parse(raw)
-    return Array.isArray(arr) ? arr : []
-  } catch { return [] }
-}
-function persistBuffs() {
-  try { localStorage.setItem(BUFFS_KEY, JSON.stringify([...activeBuffs.value])) } catch {}
-}
-function toggleBuff(id) {
-  const s = new Set(activeBuffs.value)
-  if (s.has(id)) s.delete(id); else s.add(id)
-  activeBuffs.value = s
-  persistBuffs()
-}
-function isBuffActive(id) { return activeBuffs.value.has(id) }
-
-// 啟用中的被動技能 id 集合 (localStorage 持久化)
-const SKILLS_KEY = 'msucp.cpSkills.v1'
-const activeSkillIds = ref(new Set(loadSkills()))
-function loadSkills() {
-  try {
-    const raw = localStorage.getItem(SKILLS_KEY)
-    if (!raw) return []
-    const arr = JSON.parse(raw)
-    return Array.isArray(arr) ? arr : []
-  } catch { return [] }
-}
-function persistSkills() {
-  try { localStorage.setItem(SKILLS_KEY, JSON.stringify([...activeSkillIds.value])) } catch {}
-}
-function toggleSkill(id) {
-  const s = new Set(activeSkillIds.value)
-  if (s.has(id)) {
-    s.delete(id)
-  } else {
-    // 互斥群組:同 group 內其他已啟用者會被關閉
-    const target = SKILLS.find((x) => x.id === id)
-    if (target?.group) {
-      for (const other of SKILLS) {
-        if (other.id === id) continue
-        if (other.group === target.group) s.delete(other.id)
-      }
-    }
-    s.add(id)
-  }
-  activeSkillIds.value = s
-  persistSkills()
-}
-function isSkillActive(id) { return activeSkillIds.value.has(id) }
-
-// 啟用中的 title 稱號 id 集合
-const TITLES_KEY = 'msucp.cpTitles.v1'
-const activeTitleIds = ref(new Set(loadTitles()))
-function loadTitles() {
-  try {
-    const raw = localStorage.getItem(TITLES_KEY)
-    if (!raw) return []
-    const arr = JSON.parse(raw)
-    return Array.isArray(arr) ? arr : []
-  } catch { return [] }
-}
-function persistTitles() {
-  try { localStorage.setItem(TITLES_KEY, JSON.stringify([...activeTitleIds.value])) } catch {}
-}
-function toggleTitle(id) {
-  // 稱號只能同時啟用一個:點擊新稱號會自動關閉舊的
-  const isOn = activeTitleIds.value.has(id)
-  activeTitleIds.value = isOn ? new Set() : new Set([id])
-  persistTitles()
-}
-function isTitleActive(id) { return activeTitleIds.value.has(id) }
 const visibleTitles = computed(() => {
   const jobKey = currentJob.value?.key || null
   return TITLES.filter((t) => !t.jobs || t.jobs.includes(jobKey))
@@ -309,6 +244,11 @@ function fmtNum(n) {
 function fmtStat(totalVal, base, added) {
   if (added <= 0) return fmtNum(totalVal)
   return `${fmtNum(totalVal)} (${fmtNum(base)}+${fmtNum(added)})`
+}
+function fmtCooldownReduction() {
+  const sec = Math.abs(statTotal('cooldownReductionSec') || 0)
+  const pct = Math.abs(statTotal('cooldownReduction') || 0)
+  return `${sec}s / ${pct.toFixed(0)}%`
 }
 function fmtPct(n) {
   return `${Number(n || 0).toFixed(2)}%`
@@ -906,21 +846,16 @@ const attStatsInfo = computed(() => {
   const normal = base * (1 + (dmgPct + normalMobDmg) / 100) * fm
   const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
 
-  // 實際傷害 (boss) — 套用爆擊傷害區間 + 熟練度 (僅 min) + 首領屬性耐性
+  // 實際傷害 (boss) — 套用爆擊傷害區間 + 熟練度 (僅 min)
   //   crit_max = (1.50 + 爆擊傷害% / 100)
   //   crit_min = (1.20 + 爆擊傷害% / 100) × 熟練度/100
-  //   屬性減傷係數 = 1 − 怪物屬性耐性% × (1 − 無視屬性耐性%/100) / 100
-  //                  首領預設屬性耐性 50%;火毒「Element Amplification」-10% 無視
-  //   max = boss × crit_max × 屬性減傷係數
-  //   min = boss × crit_min × 屬性減傷係數
+  //   max = boss × crit_max
+  //   min = boss × crit_min
   //   avg = (max + min) / 2
+  // 首領屬性耐性不在此處套用,改由戰鬥模擬器依怪物屬性耐性設定計算
   const critDmg = statTotal('critDmg')
-  const BOSS_ELEM_RESIST = 50
-  const ELEM_IGNORE_BY_JOB = { archmageFP: 10 }
-  const elemIgnore = ELEM_IGNORE_BY_JOB[charState.job] || 0
-  const elemMul = 1 - (BOSS_ELEM_RESIST * (1 - elemIgnore / 100)) / 100
-  const bossMax = boss * (1.5 + critDmg / 100) * elemMul
-  const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100) * elemMul
+  const bossMax = boss * (1.5 + critDmg / 100)
+  const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100)
   const bossAvg = (bossMax + bossMin) / 2
 
   return {
@@ -1180,9 +1115,9 @@ function onPanelOut(e) {
           </div>
         </div>
         <div class="stat-row">
-          <div class="stat-cell">
+          <div class="stat-cell" data-stat="cooldownReductionSec" data-label="Cooldown Reduction">
             <span class="k">Cooldown Reduction</span>
-            <span class="v">0s / 0%</span>
+            <span class="v">{{ fmtCooldownReduction() }}</span>
           </div>
           <div class="stat-cell" data-stat="buffDuration" data-label="Buff Duration">
             <span class="k">Buff Duration</span>

@@ -2,12 +2,15 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVMatrix } from '../composables/useVMatrix.js'
+import { maxLevelOf } from '../constants/vmatrix.js'
 
 const { t } = useI18n()
 const { state, setLevel, reset, visibleSkills: jobSkills, MAX_LEVEL } = useVMatrix()
 
-// 暫時隱藏無被動效果的技能 (在職業可見範圍內再過濾)
-const visibleSkills = computed(() => jobSkills.value.filter((s) => s.passive))
+// 隱藏「無被動且非技能專屬」的技能 (例如 Erda Nova / Decent Combat Orders)
+const visibleSkills = computed(() =>
+  jobSkills.value.filter((s) => s.passive || s.skillSpecific),
+)
 </script>
 
 <template>
@@ -24,26 +27,30 @@ const visibleSkills = computed(() => jobSkills.value.filter((s) => s.passive))
         v-for="skill in visibleSkills"
         :key="skill.id"
         class="vm-cell"
-        :class="{ 'vm-cell--max': (state.levels[skill.id] || 0) >= MAX_LEVEL }"
+        :class="{
+          'vm-cell--max': (state.levels[skill.id] || 0) >= maxLevelOf(skill),
+          'vm-cell--specific': skill.skillSpecific,
+        }"
+        :title="skill.descriptionKey ? t(skill.descriptionKey) : ''"
       >
         <img
           class="vm-cell__icon"
           :src="skill.imageUrl"
           :alt="t(skill.nameKey)"
-          :title="t(skill.nameKey)"
           loading="lazy"
         />
         <div class="vm-cell__name">{{ t(skill.nameKey) }}</div>
+        <div v-if="skill.skillSpecific" class="vm-cell__badge">{{ t('vmatrix.skillSpecificBadge') }}</div>
         <div class="vm-cell__input-wrap">
           <input
             type="number"
             class="vm-cell__input"
             min="0"
-            :max="MAX_LEVEL"
+            :max="maxLevelOf(skill)"
             :value="state.levels[skill.id] || 0"
             @input="(e) => setLevel(skill.id, e.target.value)"
           />
-          <span class="vm-cell__cap">/ {{ MAX_LEVEL }}</span>
+          <span class="vm-cell__cap">/ {{ maxLevelOf(skill) }}</span>
         </div>
       </div>
     </div>
@@ -116,6 +123,25 @@ const visibleSkills = computed(() => jobSkills.value.filter((s) => s.passive))
 .vm-cell--max {
   border-color: #ffc857;
   box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.35);
+}
+.vm-cell--specific {
+  border-color: #c29bff;
+  box-shadow: 0 0 0 1px rgba(194, 155, 255, 0.25);
+}
+.vm-cell--specific.vm-cell--max {
+  border-color: #ffc857;
+  box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.45);
+}
+.vm-cell__badge {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #c29bff;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border: 1px solid rgba(194, 155, 255, 0.5);
+  border-radius: 4px;
+  line-height: 1;
 }
 .vm-cell__icon {
   width: 36px;

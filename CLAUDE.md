@@ -19,6 +19,7 @@
 | `/character` | `CharacterPage.vue` | 角色基礎 + Link Skill + 聯盟戰地 + 圖鑑 + Hyper Stat + 秘法符文(ARC) + 寵物 + 內潛 + V 矩陣 |
 | `/equipment` | `EquipmentPage.vue` | 裝備 + 背包 |
 | `/cp` | `CpCalculatorPage.vue` | 戰鬥力計算(主要工作面板,統整所有來源) |
+| `/battle` | `BattlePage.vue` | 戰鬥模擬(實時逐擊模擬 + ENEMY SETTINGS + Buff 面板 + 單次施放測試) |
 | `/legion` | 重導至 `/character` | (舊路由保留相容) |
 
 `/` 重導到 `/character`。
@@ -293,21 +294,20 @@ boss   = base × (1 + (Damage% + Boss Dmg%)/100)            × fm
 - 顯示 `Math.round` 為整數
 - Hover ATT STATS cell tooltip 內容:武器列表 → 武器常數 → 熟練度 → 基本/一般/首領 → **實際傷害 (boss) Min/Avg/Max**
 
-#### 實際傷害 (boss) — 套用爆擊與屬性耐性
+#### 實際傷害 (boss) — 僅套用爆擊與熟練度
 
 ```
 crit_max  = 1.50 + 爆擊傷害%/100
 crit_min  = (1.20 + 爆擊傷害%/100) × 熟練度/100
-elemMul   = 1 − BOSS_ELEM_RESIST × (1 − elemIgnore/100) / 100
 
-bossMax   = boss × crit_max × elemMul
-bossMin   = boss × crit_min × elemMul
+bossMax   = boss × crit_max
+bossMin   = boss × crit_min
 bossAvg   = (bossMax + bossMin) / 2
 ```
 
-- `BOSS_ELEM_RESIST = 50` — 首領屬性耐性 50%
-- `ELEM_IGNORE_BY_JOB = { archmageFP: 10 }` — 火毒「Element Amplification」-10%;其他職業 0%
-- 火毒 elemMul = 0.55;其他 0.50
+- **首領屬性耐性不在 CP 頁套用**;已改由 **戰鬥模擬器**依「怪物屬性耐性設定 × 職業無視屬性」計算
+- 對火毒 Flame Sweep(元素:fire)打「減半」首領 + 10% 無視屬性:`elemMult = 1 − 50×0.9/100 = 0.55`
+- 非屬性技能(`skill.element` 為空)→ `elemMult = 1`
 
 ### COMBAT POWER 公式
 
@@ -339,6 +339,116 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 - 每筆 row:時間(`YYYY-MM-DD HH:MM`)+ 三列數值 + 與當前差異 `Δ%`(2 位小數;綠↑/紅↓/灰持平)
 - `×` 移除單筆;頂端「清空」按鈕清全部(有資料才出現,需 confirm)
 - 持久化於 `msucp.cpCompare.v1`,已加入 `DATA_KEYS`(會被 export/import)
+
+## 戰鬥模擬 (`/battle`, `BattlePage.vue`)
+
+以實時 `requestAnimationFrame` 逐秒推進,所有傷害從 CP 計算頁的 `attStatsInfo`(透過共用 `useCpDamage` composable)取得。
+
+### 共用 composable
+- `useCpDamage` — 從 CpCalculatorPage 抽出的 breakdowns / statTotal / attStatsInfo / cpZones,由 CP 頁與戰鬥模擬兩邊共享
+- `useCpToggles` — Buff / Skill / Title 啟用 Set(兩頁共用,localStorage 同步)
+- `useBattleBuffs` — 實戰 buff 層數狀態(session-only,不持久)
+- `useDotTracker` — 場上生效 DoT 數(`burnState` 長度寫入)
+- `useEnemySettings` — ENEMY SETTINGS (type / level / defense / elementalDmg / bossArc),持久化於 `msucp.enemy.v1`
+- `useBattleSim` — 模擬主控(state、tick、start/stop、simulateSingleCast)
+
+### 技能資料模型 (`src/constants/skills/archmageFP.js`)
+```js
+{
+  id: 'flame_sweep',
+  nameKey, imageUrl, color, jobs: ['archmageFP'],
+  element: 'fire',               // 空值 = 無屬性
+  baseLevel: 30,
+  hitsPerCast: 7,
+  maxEnemies: 8,
+  damage: { base: 220, perLevel: 3 },            // 主擊 %(每級 +3)
+  burn: { base: 240, perLevel: 4, durationSec: 5, tickIntervalSec: 1 },  // DoT
+  castDelayBySpeed: { 7: 660, 8: 600 },
+  variance: 0.15,
+  // V 矩陣專屬 (不進 CP 面板,僅此技能吃)
+  vmatrix: { maxLevel: 60, finalDmgPerLevel: 2, ignoreDefBonus: { threshold: 40, value: 20 } },
+  // 冷卻欄位 (選填;Flame Sweep 無 cooldown)
+  cooldown: 10,
+  cooldownPriorityRedSec: 2,      // Step 1
+  cooldownOwnPctRed: 50,           // Step 2a
+  cooldownExternalPctUsesBaseAsFlat: true,   // Mist Eruption 特例
+}
+```
+
+### 傷害公式(useBattleSim)
+
+**主擊**
+```
+bossMin ≤ bossBase ≤ bossMax   ← 先以 buff Damage%(法師傳授)併入 CP Damage% 後重算
+hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult × defMult × variance
+```
+
+**DoT**(不吃爆擊 / 不吃 BossDmg / 無視防禦 / 固定值)
+```
+basic = baseRaw × (1 + (CP Damage% + buff Damage%)/100) × fm
+dot   = basic × (DoT%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult
+```
+
+### 各乘區來源
+
+| 乘區 | 來源 | 型態 | 備註 |
+|---|---|---|---|
+| `elemMult` | skill.element × enemy.elementalDmg × 職業無視屬性 | 單一 | `ENEMY_ELEM_RESIST_PCT × ELEM_IGNORE_BY_JOB` |
+| `arcMult` | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %` |
+| `skillFinalMult` | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep Lv N × 2% 終傷 |
+| `buffFinalDmgMult` | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Fervent Drain 1 DoT → ×1.05 |
+| `buffDmgMult`(合入 Damage%) | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:法師傳授 3 層 → +9% Damage |
+| `defMult` | 怪物 DEF × 有效無視 | 相乘疊加 | CP ignore × VM × buff,三者相乘 |
+| `fm` | CP Final Damage% | 已併入 basic / boss | 不重複套用 |
+
+### Buff 系統 (`useBattleBuffs` / `constants/battleBuffs.js`)
+
+每筆 buff 有 `source`:
+- `linkSkill` → 動態查 `combinedLevelFor + bestLevelDataFor` 取得當前等級的 stats (procRate / maxStacks / duration / damagePerStack / ignoreDefPerStack)
+- `passive` + `passiveType: 'dotCount'` → 層數 = `min(maxStacks, activeDotCount)`
+
+**目前已實作**
+- `empirical_knowledge`(法師傳授 / Adventurer Mage link skill)— 用 link skill 現有 i18n 與圖示;Lv1–6 依連結結果
+- `fervent_drain`(火毒被動 / Elemental Drain icon)— 每層 +5% 最終傷害,max 5 層
+
+**Buff 面板**(`BattlePage` 的 `.bp-buffs`,在 Enemy Settings 與統計列之間)
+- 只顯示技能圖示(置右);0 層 → 灰階;≥1 層 → 亮色;≥2 層 → 右下角金字黑描邊層數
+- 新疊層時 420ms 金光 pulse 動畫(watch `state.stacks[id].count` 上升)
+
+**最終傷害合成規則**:不同 buff 互乘,同 buff 層線性相加後轉為單一乘區
+```
+buffFinalDmgMult = Π over each buff [ 1 + (stacks × perStack) / 100 ]
+例:A 3 層 × 3% + B 5 層 × 5% → (1 + 9/100) × (1 + 25/100) = 1.36
+```
+
+### 冷卻公式 (`computeEffectiveCooldown` in `useCpDamage.js`)
+
+Step 順序嚴格:
+1. 技能優先扣秒 (`skill.cooldownPriorityRedSec`,例:Mist Eruption 爆炸 ≥5 次 -2s)
+2. 百分比減免(乘法疊加):`skill.cooldownOwnPctRed`(超技能 -50%)× `externalPctRed`(聯盟 Mercedes)
+   - 特例 `cooldownExternalPctUsesBaseAsFlat: true` → 外部 % 以 base CD 為基準換算為 flat 秒扣除
+3. 帽子 flat (`hatFlatRedSec`):
+   - 若前兩步後 **CD < 5s**:帽子完全不生效(保持當前值)
+   - 若 **CD > 10s**:直接扣秒
+   - 若 **5s ≤ CD ≤ 10s**:每 1s flat 轉 5% 減免
+   - 最終 **≥ 5s 硬下限**
+
+**Mist Eruption 特例範例**(baseCd 10、-2s 優先、-50% 超技能、5% Mercedes、-4s 帽)
+```
+Step 1: 10 - 2 = 8
+Step 2a: 8 × 0.5 = 4
+Step 2b (特例): 4 - 10×0.05 = 3.5
+Step 3: 3.5 < 5 → 帽子不生效
+最終: 3.5s
+```
+
+### ENEMY SETTINGS (`useEnemySettings`)
+- Type(BOSS / 一般)、Level、Defense、Elemental DMG Taken(full/half/none)、Boss ARC
+- ARC 比值查表(`ARC_RATIO_TABLE`)→ 終傷 / 被擊傷害;`finalDmg` 透過 `arcRatioLookup(playerArc, bossArc)` 得出 `%`
+
+### 單次施放測試(`simulateSingleCast`)
+- 按下「測試一下」→ 以當前 CP 數值 + buff 層數 + 1 個 DoT 模擬一次 Flame Sweep
+- 輸出 mainHits (7 筆)/ dotTicks (5 筆)/ 每個乘區數值 / 完整公式文字(VM / Buff / 重算 basic 與 boss / main / defense / DoT)
 
 ## UI 慣例
 
@@ -425,11 +535,19 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 | `msucp.arcane.v1` | 秘法符文等級 |
 | `msucp.pet.v1` | 寵物隻數 + 寵物裝備 toggle |
 | `msucp.innerPotential.v1` | 內潛 3 排 (id + values[]) |
-| `msucp.vmatrix.v1` | V 矩陣技能等級 |
-| `msucp.linkSkills.applied.v3` | 已連結的 link skill |
+| `msucp.vmatrix.v1` | V 矩陣技能等級(含技能專屬 V 矩陣,如 flame_sweep Lv 0-60) |
+| `msucp.linkSkills.applied.v3` | 已連結的 link skill(含法師傳授 empirical_knowledge) |
 | `msucp.cpBuffs.v1` | Buff 開關狀態 |
 | `msucp.cpSkills.v1` | Skill 開關狀態 |
 | `msucp.cpTitles.v1` | Title 開關狀態 |
 | `msucp.cpCompare.v1` | CP 比較欄快照陣列 |
+| `msucp.enemy.v1` | 戰鬥模擬 ENEMY SETTINGS(type/level/defense/elementalDmg/bossArc) |
 
-> 資料匯出 / 匯入:`src/composables/useDataIO.js` 的 `DATA_KEYS` 陣列定義要走 export 的 keys。新增子系統時請同步維護該陣列 + 上表。
+**未持久化(session only)**
+- `useBattleSim`(durationSec / attackSpeed / skillLevels)
+- `useBattleBuffs`(stacks / expireAt)
+- `useDotTracker`(activeDotCount)
+
+> 資料匯出 / 匯入:`src/composables/useDataIO.js` 的 `DATA_KEYS` 陣列定義要走 export 的 keys。
+> `EXPORT_VERSION = 2`(v1→v2 無 schema 遷移,只是新增 `msucp.enemy.v1` 與 V 矩陣內的 flame_sweep key;舊檔匯入會走 sanitize 預設)。
+> 新增子系統時請同步維護該陣列 + 上表 + `EXPORT_VERSION`(若欄位有相容性問題)。

@@ -6,7 +6,99 @@
   "nav": {
     "character": "Character",
     "equipment": "Equipment",
-    "cp": "CP Calculator"
+    "cp": "CP Calculator",
+    "battle": "Battle Sim"
+  },
+  "battle": {
+    "title": "BATTLE STATISTICS",
+    "controls": {
+      "duration": "Duration",
+      "sec": "sec",
+      "start": "Start",
+      "stop": "Stop",
+      "reset": "Reset"
+    },
+    "summary": {
+      "time": "Battle Time",
+      "totalDmg": "Total Damage",
+      "avgDmg": "Avg Damage",
+      "perSec": "(per sec)",
+      "kills": "Kills",
+      "exp": "EXP Gained",
+      "expAvg": "Avg EXP"
+    },
+    "skills": {
+      "title": "Skill Details",
+      "total": "Total Damage",
+      "share": "Damage Share",
+      "avgPerSec": "Avg DMG (per sec)",
+      "useCount": "Use Count",
+      "avgPerCast": "Avg DMG (per cast)",
+      "attackCount": "Hit Count",
+      "maxHit": "Max Hit",
+      "minHit": "Min Hit",
+      "times": "x"
+    },
+    "timeline": {
+      "title": "Skill Timeline",
+      "events": "events",
+      "more": "more",
+      "empty": "Not started — set duration then press Start"
+    },
+    "test": {
+      "title": "Single Cast Test",
+      "run": "Test once",
+      "clear": "Clear",
+      "empty": "Pressing \"Test once\" runs one Flame Sweep using the current CP calculator actual damage, listing every main hit and DoT tick.",
+      "inputsFromCp": "Inputs (from CP calculator)",
+      "multipliers": "Multipliers",
+      "formula": "Formula",
+      "mainHits": "Main Hits",
+      "dotTicks": "DoT Ticks",
+      "total": "Total damage for this cast",
+      "vmLevel": "V Matrix Lv",
+      "vmHint": "(configure in Character → V Matrix)",
+      "buffReserved": "Reserved slot (not wired)"
+    },
+    "enemy": {
+      "title": "ENEMY SETTINGS",
+      "type": "Type",
+      "level": "Level",
+      "defense": "Defense",
+      "elementalDmg": "Elemental DMG Taken",
+      "bossArc": "Enemy ARC",
+      "playerArc": "Player ARC",
+      "arcRatio": "ARC Ratio",
+      "finalDmg": "Final DMG",
+      "damageTaken": "Damage Taken",
+      "types": {
+        "boss": "BOSS",
+        "normal": "Normal"
+      },
+      "elementalOptions": {
+        "full": "Full",
+        "half": "Half",
+        "none": "None"
+      }
+    }
+  },
+  "skills": {
+    "archmageFP": {
+      "flame_sweep": {
+        "name": "Flame Sweep",
+        "description": "A fire-attribute attack. Sweeps the area in front of you with a powerful flame. Enemies struck by the flame are burned and take continuous damage."
+      }
+    }
+  },
+  "battleBuffs": {
+    "mages_teaching": {
+      "name": "Magician's Teaching",
+      "description": "25% chance to trigger on skill use; each stack grants +3% Damage and +3% Ignore Defense, up to 3 stacks (+9% / +9% at max)."
+    },
+    "fervent_drain": {
+      "name": "Fervent Drain",
+      "description": "Passive: +5% Final Damage per DoT active on the target (up to 5 stacks / +25%; different FD sources multiply)."
+    }
   },
   "language": {
     "label": "Language",
@@ -436,6 +528,7 @@
   "vmatrix": {
     "title": "V MATRIX",
     "reset": "Reset",
+    "skillSpecificBadge": "Skill-only",
     "skills": {
       "rope_lift": "Rope Lift",
       "decent_mystic_door": "Decent Mystic Door",
@@ -448,7 +541,10 @@
       "erda_nova": "Erda Nova",
       "will_of_erda": "Will of Erda",
       "decent_holy_symbol": "Decent Holy Symbol",
-      "unreliable_memory": "Unreliable Memory"
+      "unreliable_memory": "Unreliable Memory",
+      "flame_sweep_core": {
+        "description": "Skill-specific V Matrix — affects Flame Sweep only: +2% final damage per level; at Lv40+, +20% ignore defense (not shown in character panel)."
+      }
     }
   },
   "collection": {

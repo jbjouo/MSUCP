@@ -6,7 +6,99 @@
   "nav": {
     "character": "角色",
     "equipment": "裝備",
-    "cp": "戰鬥力計算"
+    "cp": "戰鬥力計算",
+    "battle": "戰鬥模擬"
+  },
+  "battle": {
+    "title": "戰鬥分析系統",
+    "controls": {
+      "duration": "戰鬥時間",
+      "sec": "秒",
+      "start": "開始測量",
+      "stop": "停止",
+      "reset": "重設"
+    },
+    "summary": {
+      "time": "戰鬥時間",
+      "totalDmg": "總傷害",
+      "avgDmg": "平均傷害",
+      "perSec": "(每 1 秒)",
+      "kills": "擊殺怪物",
+      "exp": "獲得經驗值",
+      "expAvg": "平均經驗值"
+    },
+    "skills": {
+      "title": "技能詳情",
+      "total": "累積傷害",
+      "share": "傷害占比",
+      "avgPerSec": "平均傷害 (每秒)",
+      "useCount": "使用次數",
+      "avgPerCast": "平均傷害 (每次)",
+      "attackCount": "攻擊次數",
+      "maxHit": "最高傷害 (每次打擊)",
+      "minHit": "最低傷害 (每次打擊)",
+      "times": "次"
+    },
+    "timeline": {
+      "title": "技能時間軸",
+      "events": "事件",
+      "more": "更多",
+      "empty": "尚未開始 — 設定時間後按「開始測量」"
+    },
+    "test": {
+      "title": "單次施放測試",
+      "run": "測試一下",
+      "clear": "清除",
+      "empty": "按下「測試一下」會用當前戰鬥力計算頁的實際傷害,跑一次 Flame Sweep 的全部主擊與 DoT。",
+      "inputsFromCp": "輸入 (來自戰鬥力計算)",
+      "multipliers": "乘區",
+      "formula": "公式",
+      "mainHits": "主擊",
+      "dotTicks": "DoT tick",
+      "total": "這次施放總傷害",
+      "vmLevel": "V 矩陣 Lv",
+      "vmHint": "(請到角色頁 V 矩陣面板設定)",
+      "buffReserved": "尚未接入(預留位)"
+    },
+    "enemy": {
+      "title": "ENEMY SETTINGS",
+      "type": "Type",
+      "level": "Level",
+      "defense": "Defense",
+      "elementalDmg": "屬性傷害",
+      "bossArc": "怪物 ARC",
+      "playerArc": "玩家 ARC",
+      "arcRatio": "ARC 比值",
+      "finalDmg": "終傷加成",
+      "damageTaken": "被擊傷害",
+      "types": {
+        "boss": "BOSS",
+        "normal": "一般"
+      },
+      "elementalOptions": {
+        "full": "全額",
+        "half": "減半",
+        "none": "無效"
+      }
+    }
+  },
+  "skills": {
+    "archmageFP": {
+      "flame_sweep": {
+        "name": "Flame Sweep",
+        "description": "火屬性攻擊。向前方揮出強力火焰,被擊中的敵人會被點燃並持續受到傷害。"
+      }
+    }
+  },
+  "battleBuffs": {
+    "mages_teaching": {
+      "name": "法師傳授",
+      "description": "使用技能時 25% 機率觸發,每層 +3% Damage、+3% 無視防禦,最多 3 層(+9% / +9%)"
+    },
+    "fervent_drain": {
+      "name": "Fervent Drain",
+      "description": "被動:依目標身上生效中的 DoT 數,每層 +5% 最終傷害(最多 5 層 / +25%;不同來源最終傷害互乘)"
+    }
   },
   "language": {
     "label": "語言",
@@ -436,6 +528,7 @@
   "vmatrix": {
     "title": "V 矩陣",
     "reset": "重設",
+    "skillSpecificBadge": "技能專屬",
     "skills": {
       "rope_lift": "Rope Lift",
       "decent_mystic_door": "Decent Mystic Door",
@@ -448,7 +541,10 @@
       "erda_nova": "Erda Nova",
       "will_of_erda": "Will of Erda",
       "decent_holy_symbol": "Decent Holy Symbol",
-      "unreliable_memory": "Unreliable Memory"
+      "unreliable_memory": "Unreliable Memory",
+      "flame_sweep_core": {
+        "description": "技能專屬 V 矩陣 — 僅作用於 Flame Sweep:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(不顯示於角色面板)。"
+      }
     }
   },
   "collection": {

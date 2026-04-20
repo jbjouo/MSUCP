@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import EquipmentPage from '../pages/EquipmentPage.vue'
 import CpCalculatorPage from '../pages/CpCalculatorPage.vue'
 import CharacterPage from '../pages/CharacterPage.vue'
+import BattlePage from '../pages/BattlePage.vue'
 
 export const routes = [
   {
@@ -25,6 +26,12 @@ export const routes = [
     name: 'cp',
     component: CpCalculatorPage,
     meta: { navKey: 'cp' },
+  },
+  {
+    path: '/battle',
+    name: 'battle',
+    component: BattlePage,
+    meta: { navKey: 'battle' },
   },
   // /legion 已併入 /character,相容舊連結
   {

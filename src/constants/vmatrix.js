@@ -6,8 +6,12 @@
 //   - type: 'allStat'  → 同時加 STR/DEX/INT/LUK,吃 % 加成 (非 fixed)
 //   - type: 'attMatk'  → 加 ATT 與 MATK (吃 % 加成)
 //   - type: 'stat'     → 加單一屬性 (吃 % 加成),由 statKey 指定
-//   - 沒有 passive → 該技能目前無被動效果,面板隱藏
+//   - 沒有 passive 且沒有 skillSpecific → 該技能目前無效果,面板隱藏
 //
+// skillSpecific?: 技能專屬 V 矩陣 (例如 Flame Sweep 的加成僅作用於該技能本身,
+//   不進 CP 面板;由戰鬥模擬器 (useBattleSim) 讀取 useVMatrix.state.levels[id] 套用)
+//
+// maxLevel?: 覆寫此技能的等級上限 (預設 VMATRIX_MAX_LEVEL = 30)
 // jobs?  : 限定可見/可貢獻的職業 key 陣列 (與 jobs.js 對齊)
 // branch?: 限定可見/可貢獻的職業群 key (warrior / magician / bowman / thief / pirate / ...)
 
@@ -40,7 +44,21 @@ export const VMATRIX_SKILLS = [
   { id: 'unreliable_memory', nameKey: 'vmatrix.skills.unreliable_memory', imageUrl: ICON('Unreliable_Memory'),
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
     passive: { type: 'stat', statKey: 'int', per: 1 } },
+
+  // ── 技能專屬 (不進 CP 面板,由戰鬥模擬器讀取) ──
+  // Flame Sweep:每等 +2% 終傷,Lv40+ 額外無視防禦 +20% (僅此技能)
+  { id: 'flame_sweep',
+    nameKey: 'skills.archmageFP.flame_sweep.name',
+    descriptionKey: 'vmatrix.skills.flame_sweep_core.description',
+    imageUrl: ICON('Flame_Sweep'),
+    jobs: ['archmageFP'],
+    maxLevel: 60,
+    skillSpecific: true },
 ]
+
+export function maxLevelOf(skill) {
+  return Math.max(0, Math.floor(Number(skill?.maxLevel ?? VMATRIX_MAX_LEVEL)))
+}
 
 export function skillAvailableForJob(skill, jobKey, branchKey) {
   if (!skill) return false

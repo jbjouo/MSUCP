@@ -630,7 +630,7 @@ const HAT_120_LEGENDARY = [
   { label: 'INT per 10 Character Levels: +2',    weight: 3.703704, stats: { intPerLv10: 2 } },
   { label: 'LUK per 10 Character Levels: +2',    weight: 3.703704, stats: { lukPerLv10: 2 } },
   { label: 'HP Recovery Items and Skills: +30%', weight: 5.555556 },
-  { label: 'Skill Cooldown: -1 sec (-5% for under 10 sec, minimum cooldown of 5 sec)', weight: 5.555556 },
+  { label: 'Skill Cooldown: -1 sec (-5% for under 10 sec, minimum cooldown of 5 sec)', weight: 5.555556, stats: { cooldownReductionSec: -1 } },
 ]
 
 // 手套 (Glove) Lv120+ Legendary (Bonus Potential)

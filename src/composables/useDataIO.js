@@ -1,4 +1,11 @@
 // 全站資料 (localStorage) 匯出 / 匯入 — 供跨裝置開發或重置使用
+//
+// 新增 localStorage 持久化的 composable / 頁面時,請同步把 key 加入這份清單,
+// 並在 CLAUDE.md 的 localStorage 表更新。
+//
+// 不匯出的項目:
+//   - msucp.locale (UI 語言偏好,裝置獨立)
+//   - useBattleSim / useBattleBuffs / useDotTracker — 戰鬥中暫時狀態 (不跨 session)
 
 // 所有會被匯出 / 匯入的 localStorage key
 export const DATA_KEYS = [
@@ -11,15 +18,18 @@ export const DATA_KEYS = [
   'msucp.arcane.v1',               // 秘法符文 ARC
   'msucp.pet.v1',                  // 寵物系統
   'msucp.innerPotential.v1',       // 內潛 (3 排)
-  'msucp.vmatrix.v1',              // V 矩陣 (通用 V 技能等級)
-  'msucp.linkSkills.applied.v3',   // 已連結的 link skill
+  'msucp.vmatrix.v1',              // V 矩陣 (含技能專屬 V 矩陣如 Flame Sweep Lv 0-60)
+  'msucp.linkSkills.applied.v3',   // 已連結的 link skill (含法師傳授 empirical_knowledge)
   'msucp.cpBuffs.v1',              // Buff 開關
   'msucp.cpSkills.v1',             // Skill 開關
   'msucp.cpTitles.v1',             // Title 開關
   'msucp.cpCompare.v1',            // CP 比較欄快照
+  'msucp.enemy.v1',                // 戰鬥模擬 — 目標對象設定 (type/level/defense/elementalDmg/bossArc)
 ]
 
-export const EXPORT_VERSION = 1
+// v1 → v2:導入戰鬥模擬 (msucp.enemy.v1) 、技能專屬 V 矩陣 (flame_sweep 併入 msucp.vmatrix.v1)。
+//          兩者皆為既有 key 內的新值,無需資料遷移 — 用戶舊檔匯入後自動 sanitize 預設。
+export const EXPORT_VERSION = 2
 
 // 收集 localStorage 的所有資料 → JSON 字串
 export function exportData() {

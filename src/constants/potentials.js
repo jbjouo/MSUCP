@@ -654,8 +654,8 @@ const HAT_120_LEGENDARY = [
   { label: 'All Stats: +9%',                                    weight:  7.317073, stats: { allStatPct: 9 } },
   { label: '10% chance to ignore 20% damage when attacked.',    weight:  7.317073 },
   { label: '10% chance to ignore 40% damage when attacked.',    weight:  7.317073 },
-  { label: 'Skill Cooldown: -1 sec (-5% for under 10 sec, minimum cooldown of 5 sec)', weight: 7.317073 },
-  { label: 'Skill Cooldown: -2 sec. (-10% for under 10 sec., minimum cooldown of 5 sec.)', weight: 4.878048 },
+  { label: 'Skill Cooldown: -1 sec (-5% for under 10 sec, minimum cooldown of 5 sec)', weight: 7.317073, stats: { cooldownReductionSec: -1 } },
+  { label: 'Skill Cooldown: -2 sec. (-10% for under 10 sec., minimum cooldown of 5 sec.)', weight: 4.878048, stats: { cooldownReductionSec: -2 } },
   { label: 'Enables the <Decent Advanced Blessing> skill',      weight:  7.317073 },
 ]
 
