@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBattleSim } from '../composables/useBattleSim.js'
-import { fmtClock, SIM_SKILLS } from '../constants/battleSim.js'
+import { fmtClock, fmtTimelineClock, SIM_SKILLS } from '../constants/battleSim.js'
 import { useEnemySettings } from '../composables/useEnemySettings.js'
 import { ENEMY_TYPES, ELEMENTAL_DMG_OPTIONS } from '../constants/enemySettings.js'
 
@@ -11,6 +11,7 @@ import { useVMatrix } from '../composables/useVMatrix.js'
 import { maxLevelOf as vmMaxLevelOf } from '../constants/vmatrix.js'
 import { useBattleBuffs } from '../composables/useBattleBuffs.js'
 import { visibleBuffsForJob, BATTLE_BUFFS } from '../constants/battleBuffs.js'
+const BUFFS_BY_ID = Object.fromEntries(BATTLE_BUFFS.map((b) => [b.id, b]))
 import { useCharacter } from '../composables/useCharacter.js'
 
 const {
@@ -49,12 +50,21 @@ watch(
 )
 function isBuffFlashing(id) { return !!flashingBuffs.value[id] }
 
-// 只保留 (1) 對當前職業可見 (2) 該 link skill 等級 > 0 的 buff
+// 只保留 (1) 對當前職業可見 (2) 該 buff 有有效狀態的:
+//   linkSkill / passive → 需 level > 0 且 stats 存在
+//   activeToggle        → 一律顯示(等級從 baseLevel 推算)
 const visibleBuffs = computed(() =>
   visibleBuffsForJob(charStateBattle.job)
     .map((b) => ({ buff: b, info: buffInfo(b, charStateBattle.job, state.elapsedMs) }))
-    .filter((x) => x.info.level > 0 && x.info.stats),
+    .filter((x) => x.info.source === 'activeToggle' || (x.info.level > 0 && x.info.stats)),
 )
+
+function fmtBuffRemaining(ms) {
+  if (!ms || ms <= 0) return ''
+  const s = Math.ceil(ms / 1000)
+  if (s < 60) return `${s}s`
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
 
 
 const singleCastResult = ref(null)
@@ -110,21 +120,35 @@ const battleClock = computed(() => {
   return fmtClock(state.durationSec * 1000)
 })
 
-// 時間軸事件 — 將 ms 對應到 % 寬度,用顏色標出技能
+// 時間軸事件 — 只顯示主動施放 (cast) 與 buff 啟動 (buff);DoT tick 不顯示
+const timelineEvents = computed(() => {
+  if (!result.value) return []
+  return result.value.events.filter((e) => e.type !== 'dot')
+})
 const timelineRows = computed(() => {
   if (!result.value) return []
   const totalMs = result.value.durationSec * 1000
-  // 取每個事件 (時間排序後),在「使用紀錄」面板中顯示
-  return result.value.events.slice(0, 200).map((e, i) => {
+  return timelineEvents.value.slice(0, 200).map((e, i) => {
+    if (e.type === 'buff') {
+      const buff = BUFFS_BY_ID[e.skillId]
+      return {
+        i,
+        time: fmtTimelineClock(e.time),
+        skillId: e.skillId,
+        isBuff: true,
+        skillName: (buff?.nameKey ? t(buff.nameKey) : e.skillId)
+          + (e.level ? ` Lv.${e.level}` : '') + ' · Buff',
+        color: '#ffd77a',
+        pct: totalMs > 0 ? (e.time / totalMs) * 100 : 0,
+      }
+    }
     const skill = SIM_SKILLS.find((s) => s.id === e.skillId)
-    const isDot = e.type === 'dot'
     return {
       i,
-      time: fmtClock(e.time),
+      time: fmtTimelineClock(e.time),
       skillId: e.skillId,
-      isDot,
-      skillName: (skill?.nameKey ? t(skill.nameKey) : (skill?.name || e.skillId))
-        + (isDot ? ' · DoT' : ''),
+      isBuff: false,
+      skillName: skill?.nameKey ? t(skill.nameKey) : (skill?.name || e.skillId),
       color: skill?.color || '#5cd1ea',
       pct: totalMs > 0 ? (e.time / totalMs) * 100 : 0,
     }
@@ -225,7 +249,8 @@ const timelineRows = computed(() => {
         </div>
       </div>
 
-      <!-- 實戰觸發 Buff — 僅圖示;未觸發 → 灰階;≥2 層 → 右下角黃字黑框層數 -->
+      <!-- 實戰觸發 Buff — 僅圖示;未觸發 → 灰階;≥2 層 → 右下角黃字黑框層數;
+           activeToggle (Infinity) 進行中 → 左下角青字黑框剩餘秒數 -->
       <div v-if="visibleBuffs.length" class="bp-buffs">
         <div
           v-for="{ buff, info } in visibleBuffs"
@@ -244,6 +269,10 @@ const timelineRows = computed(() => {
             loading="lazy"
           />
           <span v-if="info.count >= 2" class="bp-buffs__badge">{{ info.count }}</span>
+          <span
+            v-if="info.source === 'activeToggle' && info.active"
+            class="bp-buffs__timer"
+          >{{ fmtBuffRemaining(info.remainingMs) }}</span>
         </div>
       </div>
 
@@ -493,6 +522,8 @@ const timelineRows = computed(() => {
           <div class="bp-test__formula">
             <div class="bp-test__inputs-title">{{ t('battle.test.formula') }}</div>
             <code class="bp-test__code bp-test__code--vm">{{ singleCastResult.formulas.vmatrix }}</code>
+            <code v-if="singleCastResult.formulas.explosion" class="bp-test__code bp-test__code--hyper">{{ singleCastResult.formulas.explosion }}</code>
+            <code v-if="singleCastResult.formulas.hyper" class="bp-test__code bp-test__code--hyper">{{ singleCastResult.formulas.hyper }}</code>
             <code class="bp-test__code bp-test__code--buff">{{ singleCastResult.formulas.buff }}</code>
             <code class="bp-test__code bp-test__code--rebuild">{{ singleCastResult.formulas.rebuild }}</code>
             <code class="bp-test__code">{{ singleCastResult.formulas.main }}</code>
@@ -542,7 +573,7 @@ const timelineRows = computed(() => {
       <header class="bp-timeline__head">
         <span>{{ t('battle.timeline.title') }}</span>
         <span class="bp-timeline__count" v-if="result">
-          {{ result.events.length }} {{ t('battle.timeline.events') }}
+          {{ timelineEvents.length }} {{ t('battle.timeline.events') }}
         </span>
       </header>
       <div v-if="!result" class="bp-timeline__empty">
@@ -553,19 +584,19 @@ const timelineRows = computed(() => {
           v-for="row in timelineRows"
           :key="row.i"
           class="bp-timeline__row"
-          :class="{ 'bp-timeline__row--dot': row.isDot }"
+          :class="{ 'bp-timeline__row--buff': row.isBuff }"
         >
           <span class="bp-timeline__t">{{ row.time }}</span>
           <span
             class="bp-timeline__dot"
-            :class="{ 'bp-timeline__dot--tick': row.isDot }"
+            :class="{ 'bp-timeline__dot--buff': row.isBuff }"
             :style="{ background: row.color }"
           />
           <span class="bp-timeline__skill">{{ row.skillName }}</span>
         </li>
       </ol>
-      <div v-if="result && result.events.length > 200" class="bp-timeline__more">
-        … +{{ result.events.length - 200 }} {{ t('battle.timeline.more') }}
+      <div v-if="result && timelineEvents.length > 200" class="bp-timeline__more">
+        … +{{ timelineEvents.length - 200 }} {{ t('battle.timeline.more') }}
       </div>
     </aside>
   </section>
@@ -717,6 +748,7 @@ const timelineRows = computed(() => {
 .bp-test__code--dot { color: #ffa477; }
 .bp-test__code--def { color: #8fe09d; }
 .bp-test__code--vm { color: #c29bff; }
+.bp-test__code--hyper { color: #ffd77a; }
 .bp-test__vm-display {
   display: inline-flex;
   align-items: center;
@@ -877,16 +909,13 @@ const timelineRows = computed(() => {
   border-radius: 999px;
   border: 1px solid #1a1f27;
 }
-.bp-timeline__dot--tick {
-  width: 6px;
-  height: 6px;
-  opacity: 0.65;
-  margin-left: 2px;
+.bp-timeline__dot--buff {
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(255, 215, 122, 0.6);
 }
-.bp-timeline__row--dot .bp-timeline__t,
-.bp-timeline__row--dot .bp-timeline__skill {
-  opacity: 0.6;
-  font-style: italic;
+.bp-timeline__row--buff .bp-timeline__t,
+.bp-timeline__row--buff .bp-timeline__skill {
+  color: #ffd77a;
 }
 .bp-timeline__skill {
   color: #e8edf2;
@@ -993,6 +1022,24 @@ const timelineRows = computed(() => {
   pointer-events: none;
   letter-spacing: 0;
   /* 黑色外匡 (多方向 text-shadow 模擬描邊) */
+  text-shadow:
+    -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000,
+    -1px  0   0 #000,               1px  0   0 #000,
+    -1px  1px 0 #000, 0  1px 0 #000, 1px  1px 0 #000,
+    -2px  0   0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000;
+}
+.bp-buffs__timer {
+  position: absolute;
+  left: -2px;
+  bottom: -4px;
+  color: #5cd1ea;
+  font-size: 0.78rem;
+  font-weight: 900;
+  font-family: inherit;
+  line-height: 1;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
   text-shadow:
     -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000,
     -1px  0   0 #000,               1px  0   0 #000,

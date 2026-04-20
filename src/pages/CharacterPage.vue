@@ -10,6 +10,7 @@ import ArcanePanel from '../components/ArcanePanel.vue'
 import PetPanel from '../components/PetPanel.vue'
 import InnerPotentialPanel from '../components/InnerPotentialPanel.vue'
 import VMatrixPanel from '../components/VMatrixPanel.vue'
+import HyperSkillPanel from '../components/HyperSkillPanel.vue'
 import {
   exportData,
   importData,
@@ -179,6 +180,9 @@ async function onLoadSeed() {
       <InnerPotentialPanel />
       <VMatrixPanel />
     </div>
+
+    <!-- 超技能 (5 點配點) -->
+    <HyperSkillPanel />
   </section>
 </template>
 

@@ -1,12 +1,25 @@
 import { reactive } from 'vue'
-import { BATTLE_BUFFS } from '../constants/battleBuffs.js'
+import { BATTLE_BUFFS, resolveActiveToggleStats } from '../constants/battleBuffs.js'
 import { combinedLevelFor, bestLevelDataFor } from './useLinkSkills.js'
 import { getLinkSkill } from '../data/linkSkills.js'
 import { useDotTracker } from './useDotTracker.js'
 
 function defaultStacks() {
   const out = {}
-  for (const b of BATTLE_BUFFS) out[b.id] = { count: 0, expireAt: 0 }
+  for (const b of BATTLE_BUFFS) {
+    out[b.id] = {
+      count: 0,
+      expireAt: 0,
+      // activeToggle 專屬欄位(其他 source 類型忽略)
+      activatedAt: 0,
+      cooldownUntil: 0,
+      baseFinalDmgPct: 0,
+      tickIntervalMs: 0,
+      tickIncreasePct: 0,
+      durationMs: 0,
+      level: 0,
+    }
+  }
   return out
 }
 
@@ -33,10 +46,14 @@ function currentLevelStats(buff, jobKey) {
     return {
       level: 1,
       stats: {
+        // procOnHit 型會用到 procRate / duration(每次施放時 rollTriggers 抽層)
+        procRate: buff.procRate || 0,
         maxStacks: buff.maxStacks || 0,
-        duration: 0,
-        damagePerStack: 0,
-        ignoreDefPerStack: 0,
+        duration: buff.durationSec || 0,
+        // Damage%(與 CP Damage% 相加後併入 basic/boss):每層 perStackDamagePct
+        damagePerStack: buff.perStackDamagePct || 0,
+        ignoreDefPerStack: buff.perStackIgnoreDefPct || 0,
+        // Final Damage 獨立乘區(此技能不用,Arcane Aim 提升的是 Damage,非 Final):每層 perStackFinalDmgPct
         finalDmgPerStack: buff.perStackFinalDmgPct || 0,
       },
     }
@@ -63,25 +80,84 @@ function syncExpire(nowMs) {
     const s = state.stacks[id]
     if (s.count > 0 && nowMs >= s.expireAt) {
       s.count = 0
-      s.expireAt = 0
+      // activeToggle:保留 activatedAt / cooldownUntil(用於 CD 判斷與下次自動施放)
+      const buff = BATTLE_BUFFS.find((b) => b.id === id)
+      if (buff?.source !== 'activeToggle') s.expireAt = 0
     }
   }
+}
+
+// activeToggle 在指定 ctx 下當前的最終傷害 %(elapsed 內的層級 3% 相加)
+function activeToggleFinalDmgPct(buff, nowMs) {
+  const s = state.stacks[buff.id]
+  if (!s || !s.count || nowMs >= s.expireAt) return 0
+  const iv = s.tickIntervalMs || 1
+  const ticks = Math.max(0, Math.floor((nowMs - s.activatedAt) / iv))
+  return (s.baseFinalDmgPct || 0) + ticks * (s.tickIncreasePct || 0)
 }
 
 export function useBattleBuffs() {
   function reset() {
     for (const id of Object.keys(state.stacks)) {
-      state.stacks[id].count = 0
-      state.stacks[id].expireAt = 0
+      const s = state.stacks[id]
+      s.count = 0
+      s.expireAt = 0
+      s.activatedAt = 0
+      s.cooldownUntil = 0
+      s.baseFinalDmgPct = 0
+      s.tickIntervalMs = 0
+      s.tickIncreasePct = 0
+      s.durationMs = 0
+      s.level = 0
     }
   }
 
-  // 每次施放時呼叫 — 僅對 trigger-based (linkSkill 含 procRate) 生效
+  // 戰鬥模擬 tick 呼叫 — 依 sim elapsed 自動觸發 activeToggle buff
+  //   首次:等 initialDelayMs 後啟動
+  //   之後:expire 後等 cooldown 滿了再啟動
+  // 回傳:本次 tick 內新啟動的 buff 陣列,讓 sim 可加入 timeline
+  function autoTick(nowMs, jobKey, ctx = {}) {
+    syncExpire(nowMs)
+    const { attackSpeed = 8, combatOrdersActive = false, buffDurationPct = 0 } = ctx
+    const activated = []
+    for (const buff of BATTLE_BUFFS) {
+      if (buff.source !== 'activeToggle') continue
+      if (!applicableForJob(buff, jobKey)) continue
+      const s = state.stacks[buff.id]
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      if (isActive) continue
+
+      const initialDelayMs = buff.initialDelayBySpeed?.[attackSpeed] ?? 450
+      const threshold = s.activatedAt === 0 ? initialDelayMs : s.cooldownUntil
+      if (nowMs < threshold) continue
+
+      const level = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
+      const cfg = resolveActiveToggleStats(buff, level)
+      const durationMs = cfg.durationSec * 1000 * (1 + (buffDurationPct || 0) / 100)
+      s.count = 1
+      s.activatedAt = nowMs
+      s.expireAt = nowMs + durationMs
+      s.cooldownUntil = nowMs + cfg.cooldownSec * 1000
+      s.baseFinalDmgPct = cfg.baseFinalDmgPct
+      s.tickIntervalMs = cfg.tickIntervalSec * 1000
+      s.tickIncreasePct = cfg.tickIncreasePct
+      s.durationMs = durationMs
+      s.level = cfg.level
+      activated.push({ id: buff.id, at: nowMs, buff, level: cfg.level })
+    }
+    return activated
+  }
+
+  // 每次施放時呼叫 — 對 trigger-based buff 抽層
+  //   linkSkill        → 依 link skill stats procRate 抽(例:法師傳授 25%)
+  //   passive/procOnHit → 依 buff 自帶 procRate 抽(例:Arcane Aim Lv30 100%)
   function rollTriggers(rng, jobKey, nowMs) {
     syncExpire(nowMs)
     for (const buff of BATTLE_BUFFS) {
       if (!applicableForJob(buff, jobKey)) continue
-      if (buff.source !== 'linkSkill') continue
+      const isLinkSkill = buff.source === 'linkSkill'
+      const isProcOnHit = buff.source === 'passive' && buff.passiveType === 'procOnHit'
+      if (!isLinkSkill && !isProcOnHit) continue
       const info = currentLevelStats(buff, jobKey)
       if (!info?.stats) continue
       const { procRate = 0, maxStacks = 0, duration = 0 } = info.stats
@@ -107,6 +183,12 @@ export function useBattleBuffs() {
     const total = { dmgPct: 0, ignoreDefPct: 0, finalDmgMult: 1 }
     for (const buff of BATTLE_BUFFS) {
       if (!applicableForJob(buff, jobKey)) continue
+      // activeToggle:時間階梯式終傷 → 組成單一乘區後與其他 buff 互乘
+      if (buff.source === 'activeToggle') {
+        const fdPct = activeToggleFinalDmgPct(buff, nowMs)
+        if (fdPct > 0) total.finalDmgMult *= 1 + fdPct / 100
+        continue
+      }
       const info = currentLevelStats(buff, jobKey)
       if (!info?.stats) continue
       const stacks = stacksOf(buff, dotCountOverride)
@@ -124,8 +206,29 @@ export function useBattleBuffs() {
   }
 
   function buffInfo(buff, jobKey, nowMs, { dotCountOverride } = {}) {
-    const info = currentLevelStats(buff, jobKey)
     syncExpire(nowMs)
+    if (buff.source === 'activeToggle') {
+      const s = state.stacks[buff.id] || {}
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
+      const currentFdPct = isActive ? activeToggleFinalDmgPct(buff, nowMs) : 0
+      const onCooldown = !isActive && s.activatedAt > 0 && s.cooldownUntil > nowMs
+      return {
+        level: s.level || buff.baseLevel || 0,
+        stats: null,
+        count: isActive ? 1 : 0,
+        expireAt: s.expireAt || 0,
+        active: isActive,
+        // activeToggle 專屬
+        source: 'activeToggle',
+        remainingMs,
+        currentFdPct,
+        onCooldown,
+        cooldownRemainingMs: onCooldown ? s.cooldownUntil - nowMs : 0,
+        durationMs: s.durationMs || 0,
+      }
+    }
+    const info = currentLevelStats(buff, jobKey)
     const count = stacksOf(buff, dotCountOverride)
     const s = state.stacks[buff.id] || { count: 0, expireAt: 0 }
     return {
@@ -134,6 +237,7 @@ export function useBattleBuffs() {
       count,
       expireAt: s.expireAt,
       active: !!info?.stats,
+      source: buff.source,
     }
   }
 
@@ -141,6 +245,7 @@ export function useBattleBuffs() {
     state,
     reset,
     rollTriggers,
+    autoTick,
     currentBonuses,
     buffInfo,
   }

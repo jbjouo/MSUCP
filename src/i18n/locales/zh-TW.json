@@ -87,6 +87,80 @@
       "flame_sweep": {
         "name": "Flame Sweep",
         "description": "火屬性攻擊。向前方揮出強力火焰,被擊中的敵人會被點燃並持續受到傷害。"
+      },
+      "flame_haze": {
+        "name": "Flame Haze",
+        "description": "以燃燒毒霧纏繞敵人。單體 15 連擊並施加 10 秒持續傷害。命中處會形成 Poison Mist 霧;若無敵人則於自身位置。"
+      },
+      "mist_eruption": {
+        "name": "Mist Eruption",
+        "description": "引爆目標周圍的 Poison Mist / 持續傷害,給予致命毒屬傷害。10 連擊、最多命中 12 名敵人。終傷依目標身上的 DoT 層數遞增(2 → +20%、3 → +45%、4 → +80%、5+ → +125%)。命中 ≥5 層 DoT 時自身冷卻 -2 秒(優先於其他冷卻減免)。命中時重置 Flame Haze 冷卻。"
+      },
+      "inferno_aura": {
+        "name": "Inferno Aura",
+        "description": "開關型氣場(預設開啟)。每 3 秒對周圍敵人造成 400% × 2 擊主傷,並施加 500%/秒 × 30 秒的持續傷害(每次觸發刷新)。戰鬥開始後首次觸發時間於 0-3 秒間隨機。"
+      },
+      "poison_mist": {
+        "name": "Poison Mist",
+        "description": "Lv20:直接命中 270% + 240%/秒 × 6 秒持續傷害;場地霧氣存在 15 秒。本 sim 設為衍生技能 — Flame Haze 命中時自動衍生,不主動施放。Mist Eruption 需場上有 Poison Mist 才能施放。"
+      },
+      "ifrit": {
+        "name": "Ifrit",
+        "description": "召喚獸,sim 視為常駐 aura(不追蹤召喚持續時間)。每 3 秒觸發:Lv30 150% × 3 擊 + 140%/秒 × 2 秒 DoT。首次觸發於戰鬥開始 0-3 秒內隨機。被動 Mastery +70%(Lv30)目前尚未接入 CP 計算。"
+      },
+      "teleport_mastery": {
+        "name": "Teleport Mastery",
+        "description": "開關技能(sim 預設開啟)。Lv10:單擊 272% + 98%/2秒 × 20 秒 DoT;每 15 秒重施一次刷新 DoT。開場在 Flame Haze / Mist Eruption 優先序之後排程。暈眩 / 擊退抗性未模擬。"
+      }
+    }
+  },
+  "hyperSkill": {
+    "title": "HYPER SKILLS",
+    "reset": "重置",
+    "points": "超技能點數",
+    "remaining": "剩餘 {n}",
+    "picked": "已點",
+    "groups": {
+      "poison_mist": "Poison Mist",
+      "flame_sweep": "Flame Sweep",
+      "mist_eruption": "Mist Eruption"
+    },
+    "skills": {
+      "poison_mist_reinforce": {
+        "name": "Poison Mist - Reinforce",
+        "desc": "Poison Mist 傷害 +20%"
+      },
+      "poison_mist_aftermath": {
+        "name": "Poison Mist - Aftermath",
+        "desc": "Poison Mist 持續傷害時間 +6 秒"
+      },
+      "poison_mist_cripple": {
+        "name": "Poison Mist - Cripple",
+        "desc": "Poison Mist 持續傷害 +20%"
+      },
+      "flame_sweep_reinforce": {
+        "name": "Flame Sweep - Reinforce",
+        "desc": "Flame Sweep 傷害 +10%(HEXA Flame Sweep 的餘燼爆炸不計)"
+      },
+      "flame_sweep_cripple": {
+        "name": "Flame Sweep - Cripple",
+        "desc": "Flame Sweep 持續傷害 +20%(HEXA Flame Sweep 的餘燼爆炸不計)"
+      },
+      "flame_sweep_extra_strike": {
+        "name": "Flame Sweep - Extra Strike",
+        "desc": "Flame Sweep 攻擊次數 +1(HEXA Flame Sweep 的餘燼爆炸不計)"
+      },
+      "mist_eruption_reinforce": {
+        "name": "Mist Eruption - Reinforce",
+        "desc": "Mist Eruption 傷害 +10%"
+      },
+      "mist_eruption_guardbreaker": {
+        "name": "Mist Eruption - Guardbreaker",
+        "desc": "Mist Eruption 無視防禦 +20%"
+      },
+      "mist_eruption_cooldown_cutter": {
+        "name": "Mist Eruption - Cooldown Cutter",
+        "desc": "Mist Eruption 冷卻 -50%"
       }
     }
   },
@@ -98,6 +172,14 @@
     "fervent_drain": {
       "name": "Fervent Drain",
       "description": "被動:依目標身上生效中的 DoT 數,每層 +5% 最終傷害(最多 5 層 / +25%;不同來源最終傷害互乘)"
+    },
+    "arcane_aim": {
+      "name": "Arcane Aim",
+      "description": "被動:攻擊時 100% 疊 1 層(最多 5 層,每層 5 秒刷新)。每層 +8% Damage(最多 +40%,與 CP Damage% 相加後併入 basic/boss 重算)。20% 無視防禦已在 CP 面板計入"
+    },
+    "infinity": {
+      "name": "Infinity",
+      "description": "戰鬥開始 450ms 後自動施放。起始 Final Damage +70%(Lv30)/ +71%(Lv31),每 5 秒再相加 +3% 直到 buff 結束。持續 40 秒(每級 +1s),受 Buff Duration% 放大。冷卻 180 秒(不受冷卻重置影響)"
     }
   },
   "language": {
@@ -543,7 +625,13 @@
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
       "flame_sweep_core": {
-        "description": "技能專屬 V 矩陣 — 僅作用於 Flame Sweep:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(不顯示於角色面板)。"
+        "description": "技能專屬 V 矩陣 — 僅作用於 Flame Sweep:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
+      },
+      "flame_haze_core": {
+        "description": "技能專屬 V 矩陣 — 僅作用於 Flame Haze:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
+      },
+      "mist_eruption_core": {
+        "description": "技能專屬 V 矩陣 — 僅作用於 Mist Eruption:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
       }
     }
   },

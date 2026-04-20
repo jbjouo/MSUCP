@@ -46,11 +46,25 @@ export const VMATRIX_SKILLS = [
     passive: { type: 'stat', statKey: 'int', per: 1 } },
 
   // ── 技能專屬 (不進 CP 面板,由戰鬥模擬器讀取) ──
-  // Flame Sweep:每等 +2% 終傷,Lv40+ 額外無視防禦 +20% (僅此技能)
+  // 三支皆:每等 +2% 終傷 (僅此技能)、Lv40+ 額外無視防禦 +20% (僅此技能,與 Hyper 無視不相加,為獨立一排)
   { id: 'flame_sweep',
     nameKey: 'skills.archmageFP.flame_sweep.name',
     descriptionKey: 'vmatrix.skills.flame_sweep_core.description',
     imageUrl: ICON('Flame_Sweep'),
+    jobs: ['archmageFP'],
+    maxLevel: 60,
+    skillSpecific: true },
+  { id: 'flame_haze',
+    nameKey: 'skills.archmageFP.flame_haze.name',
+    descriptionKey: 'vmatrix.skills.flame_haze_core.description',
+    imageUrl: ICON('Flame_Haze'),
+    jobs: ['archmageFP'],
+    maxLevel: 60,
+    skillSpecific: true },
+  { id: 'mist_eruption',
+    nameKey: 'skills.archmageFP.mist_eruption.name',
+    descriptionKey: 'vmatrix.skills.mist_eruption_core.description',
+    imageUrl: ICON('Mist_Eruption'),
     jobs: ['archmageFP'],
     maxLevel: 60,
     skillSpecific: true },

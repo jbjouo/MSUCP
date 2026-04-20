@@ -23,6 +23,7 @@ import { ITEM_SETS, countActiveSet } from '../constants/itemSets.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
 import { findBonusPotentialOptionForLine } from '../constants/bonusPotentials.js'
 import { LEGION_TIER_LABELS } from '../constants/legion.js'
+import { clean, add, sub, mul, applyPct, combineIgnorePct, floor, sumBy } from '../utils/numerics.js'
 
 // ─── 冷卻公式 ─────────────────────────────────────────────────────────────
 // 套用順序嚴格:
@@ -44,32 +45,31 @@ export function computeEffectiveCooldown(baseCd, {
   hatFlatRedSec = 0,
   externalPctUsesBaseAsFlat = false, // Mist Eruption 特例:外部 % 以 baseCd 為基準
 } = {}) {
-  const base = Math.max(0, Number(baseCd) || 0)
+  const base = Math.max(0, clean(Number(baseCd) || 0))
   if (base <= 0) return 0
 
   // Step 1
-  let cd = Math.max(0, base - Math.max(0, Number(skillPriorityRedSec) || 0))
+  let cd = Math.max(0, sub(base, Math.max(0, Number(skillPriorityRedSec) || 0)))
 
   // Step 2a — 技能自身 %
   const own = Math.max(0, Math.min(100, Number(skillOwnPctRed) || 0))
-  cd = cd * (1 - own / 100)
+  cd = mul(cd, clean(1 - own / 100))
 
   // Step 2b — 外部 %
   const ext = Math.max(0, Math.min(100, Number(externalPctRed) || 0))
   if (externalPctUsesBaseAsFlat) {
-    // 特例:外部 % 以 baseCd 為基準轉為 flat 秒扣除
-    cd = Math.max(0, cd - base * (ext / 100))
+    cd = Math.max(0, sub(cd, mul(base, ext / 100)))
   } else {
-    cd = cd * (1 - ext / 100)
+    cd = mul(cd, clean(1 - ext / 100))
   }
 
   // Step 3 — 帽子 flat
   const flat = Math.max(0, Number(hatFlatRedSec) || 0)
   if (flat > 0 && cd >= 5) {
-    if (cd > 10) cd = cd - flat
+    if (cd > 10) cd = sub(cd, flat)
     else {
       const extraPct = Math.min(100, flat * 5)
-      cd = cd * (1 - extraPct / 100)
+      cd = mul(cd, clean(1 - extraPct / 100))
     }
     cd = Math.max(5, cd)
   }
@@ -508,23 +508,25 @@ export function useCpDamage() {
     if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []))
     if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []))
 
-    const flatTotal = flat.reduce((s, x) => s + x.value, 0)
-    const pctTotal = pct.reduce((s, x) => s + x.value, 0)
-    const fixedFlatTotal = flat.reduce((s, x) => s + (x.fixed ? x.value : 0), 0)
-    const normalFlatTotal = flatTotal - fixedFlatTotal
+    const flatTotal = sumBy(flat, (x) => x.value)
+    const pctTotal = sumBy(pct, (x) => x.value)
+    const fixedFlatTotal = sumBy(flat, (x) => (x.fixed ? x.value : 0))
+    const normalFlatTotal = sub(flatTotal, fixedFlatTotal)
 
     let final
     const isMultiplicative = MULTIPLICATIVE_KEYS.has(key)
     if (isMultiplicative) {
-      let survival = 1
-      for (const s of pct) survival *= (1 - Math.abs(s.value) / 100)
-      for (const s of flat) survival *= (1 - Math.abs(s.value) / 100)
-      const base = (1 - survival) * 100
+      // 相乘疊加 (無視/減傷):1 − Π(1 − xᵢ/100)
+      const all = [
+        ...pct.map((s) => Math.abs(s.value)),
+        ...flat.map((s) => Math.abs(s.value)),
+      ]
+      const base = combineIgnorePct(...all)
       final = key === 'damageTaken' ? -base : base
     } else if (PCT_KEYS.has(key)) {
-      final = pctTotal + flatTotal
+      final = add(pctTotal, flatTotal)
     } else {
-      final = Math.floor(normalFlatTotal * (1 + pctTotal / 100)) + fixedFlatTotal
+      final = add(floor(applyPct(normalFlatTotal, pctTotal)), fixedFlatTotal)
     }
 
     const fixedSources = flat.filter((x) => x.fixed)
@@ -546,18 +548,16 @@ export function useCpDamage() {
 
   function flatTotalForCp(key) {
     const b = breakdowns.value[key] || { flat: [], pct: [] }
-    return b.flat.filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+    return sumBy(b.flat.filter((x) => !x.cpExclude), (x) => x.value)
   }
   function pctTotalForCp(key) {
     const b = breakdowns.value[key] || { flat: [], pct: [] }
-    let pct = b.pct.filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+    let pct = sumBy(b.pct.filter((x) => !x.cpExclude), (x) => x.value)
     if (key === 'atk') {
-      pct += (breakdowns.value.atkPct?.pct || [])
-        .filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+      pct = add(pct, sumBy((breakdowns.value.atkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
     }
     if (key === 'matk') {
-      pct += (breakdowns.value.matkPct?.pct || [])
-        .filter((x) => !x.cpExclude).reduce((s, x) => s + x.value, 0)
+      pct = add(pct, sumBy((breakdowns.value.matkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
     }
     return pct
   }
@@ -574,12 +574,12 @@ export function useCpDamage() {
     }
     if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []).filter((x) => !x.cpExclude))
     if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []).filter((x) => !x.cpExclude))
-    const flatTotal = flat.reduce((s, x) => s + x.value, 0)
-    const pctTotal = pct.reduce((s, x) => s + x.value, 0)
-    const fixedFlatTotal = flat.reduce((s, x) => s + (x.fixed ? x.value : 0), 0)
-    const normalFlatTotal = flatTotal - fixedFlatTotal
-    if (PCT_KEYS.has(key)) return pctTotal + flatTotal
-    return Math.floor(normalFlatTotal * (1 + pctTotal / 100)) + fixedFlatTotal
+    const flatTotal = sumBy(flat, (x) => x.value)
+    const pctTotal = sumBy(pct, (x) => x.value)
+    const fixedFlatTotal = sumBy(flat, (x) => (x.fixed ? x.value : 0))
+    const normalFlatTotal = sub(flatTotal, fixedFlatTotal)
+    if (PCT_KEYS.has(key)) return add(pctTotal, flatTotal)
+    return add(floor(applyPct(normalFlatTotal, pctTotal)), fixedFlatTotal)
   }
 
   // ─── ATT STATS (含實際傷害 bossMax/Min/Avg) ────────────────────────────
@@ -600,18 +600,18 @@ export function useCpDamage() {
     const cooldownReductionPct = Math.abs(statTotal('cooldownReduction') || 0)
     let mastery = meta.mastery
     for (const buff of BUFFS) {
-      if (activeBuffs.value.has(buff.id)) mastery += buff.mastery || 0
+      if (activeBuffs.value.has(buff.id)) mastery = add(mastery, buff.mastery || 0)
     }
-    const statFactor = primaryVal * 4 + secondaryVal
-    const base = statFactor * (attVal / 100) * meta.weaponConst
-    const fm = 1 + finalDmg / 100
-    const basic = base * (1 + dmgPct / 100) * fm
-    const normal = base * (1 + (dmgPct + normalMobDmg) / 100) * fm
-    const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
+    const statFactor = add(mul(primaryVal, 4), secondaryVal)
+    const base = mul(statFactor, attVal / 100, meta.weaponConst)
+    const fm = clean(1 + finalDmg / 100)
+    const basic = mul(applyPct(base, dmgPct), fm)
+    const normal = mul(applyPct(base, add(dmgPct, normalMobDmg)), fm)
+    const boss = mul(applyPct(base, add(dmgPct, bossDmg)), fm)
     const critDmg = statTotal('critDmg')
-    const bossMax = boss * (1.5 + critDmg / 100)
-    const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100)
-    const bossAvg = (bossMax + bossMin) / 2
+    const bossMax = mul(boss, clean(1.5 + critDmg / 100))
+    const bossMin = mul(boss, clean(1.2 + critDmg / 100), mastery / 100)
+    const bossAvg = clean((bossMax + bossMin) / 2)
     return {
       weapons: meta.weapons,
       weaponConst: meta.weaponConst,
@@ -659,25 +659,25 @@ export function useCpDamage() {
     const critDmg = statTotalForCp('critDmg')
     const dmgPct = statTotalForCp('dmgPct')
     const bossDmg = statTotalForCp('bossDmg')
-    const attMul = 1 + pctAtt / 100
-    const z2A = Math.round(flatAtt * attMul * 100) / 100
-    const z2B = Math.floor((flatAtt - WEAPON_COEFFICIENT_DELTA) * attMul)
-    const z2Diff = z2A - z2B
-    const z1 = (4 * primary + secondary) / 100
+    const attMul = clean(1 + pctAtt / 100)
+    const z2A = clean(Math.round(mul(flatAtt, attMul) * 100) / 100)
+    const z2B = floor(mul(sub(flatAtt, WEAPON_COEFFICIENT_DELTA), attMul))
+    const z2Diff = sub(z2A, z2B)
+    const z1 = clean((4 * primary + secondary) / 100)
     const z2 = flatAtt
     const z3 = attMul
-    const z4 = (135 + critDmg) / 100
-    const z5 = (100 + dmgPct + bossDmg) / 100
+    const z4 = clean((135 + critDmg) / 100)
+    const z5 = clean((100 + dmgPct + bossDmg) / 100)
     const z6 = 1
-    const z2z3 = z2 * z3 - z2Diff
+    const z2z3 = sub(mul(z2, z3), z2Diff)
     return {
       z1, z2, z3, z4, z5, z6, z2z3,
       attKey,
       inputs: { primary, secondary, flatAtt, pctAtt, critDmg, dmgPct, bossDmg, z2A, z2B, z2Diff },
-      total: z1 * z2z3 * z4 * z5 * z6,
+      total: mul(z1, z2z3, z4, z5, z6),
     }
   })
-  const combatPower = computed(() => Math.floor(cpZones.value.total))
+  const combatPower = computed(() => floor(cpZones.value.total))
 
   return {
     // 常數 / 資訊

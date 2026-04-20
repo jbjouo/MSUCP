@@ -186,6 +186,17 @@ Legion 分兩區,在 `LegionPanel.vue`:
 - **右:拼圖屬性** — 16 條目(str/dex/int/luk/hp/mp/atk/matk 各 15 等;critRate/critDmg/ignoreDef/bossDmg/normalMobDmg/bonusExp/buffDuration/abnormalResist 各 40 等),直接輸入數字框即可
 - 儲存:`msucp.legion.v1` / `msucp.puzzle.v1`
 
+### 超技能 (`src/constants/hyperSkills.js` + `useHyperSkills.js` + `HyperSkillPanel.vue`)
+
+- 5 點配點;9 選項 × 每項 1 點上限;`levelReq` 檢查角色等級
+- 面板在角色頁最下方(`CharacterPage.vue` 尾端),3 欄分別對應 Poison Mist / Flame Sweep / Mist Eruption
+- 點擊卡片 toggle;卡片樣態:未達等級 → `hyskill-card--locked`(半透明)、已點 → 金邊 `--picked`、超點或未解鎖 → `disabled`
+- `effectsForSkill(skillId)` 聚合所有啟用中超技能的效果 bag,bag 欄位:
+  - `damagePct`(主傷 %)、`burnDamagePct`(DoT %)、`burnDurationBonusSec`、`hitsPerCastBonus`、`ignoreDefPct`、`cooldownOwnPctRed`
+- 目前 `useBattleSim` 已串接 → 僅 `flame_sweep` 立即生效(Poison Mist / Mist Eruption 之資料還未加入 `SIM_SKILLS`,選擇會存但暫不生效)
+- 火毒已實作 9 支;其他職業 `jobs: []` 過濾即可擴充
+- 儲存:`msucp.hyperSkills.v1`
+
 ### Hyper Stat (`src/constants/hyperStat.js` + `useHyperStat.js`)
 
 - 解鎖 Lv140;`hyperPointsAtLevel(lv) = Σ floor((k-140)/10)+3`
@@ -352,28 +363,73 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 - `useEnemySettings` — ENEMY SETTINGS (type / level / defense / elementalDmg / bossArc),持久化於 `msucp.enemy.v1`
 - `useBattleSim` — 模擬主控(state、tick、start/stop、simulateSingleCast)
 
+### 已實作技能(archmageFP)
+| id | type | 簡述 | 備註 |
+|---|---|---|---|
+| `flame_sweep` | attack | 7 擊 + 5s DoT (1s tick),Lv30 220%/240% | 專屬 VM;無 cooldown、priority 0(filler)|
+| `flame_haze` | attack | 15 擊 + 10s DoT,Lv30 202%/200%,CD 10s | 專屬 VM;priority 100;`onHitSpawn: ['poison_mist']` |
+| `mist_eruption` | attack | 2 爆炸 × 10 擊 + 0 DoT,Lv30 125%,CD 10s | 專屬 VM;priority 80;`requiresField: 'poison_mist'`;`onHitResetCooldown: ['flame_haze']`;爆炸終傷表 + 條件式 CD -2s |
+| `teleport_mastery` | attack | 單擊 + 20s DoT (2s tick),Lv10 272%/98%,CD 15s | 0 動畫(不鎖其他主動技能);priority 60 |
+| `inferno_aura` | aura | 每 3s 觸發 2 擊 + 30s DoT,Lv1 400%/500% | 開場 0-3s 內隨機;不進 priority cascade |
+| `ifrit` | aura | 每 3s 觸發 3 擊 + 2s DoT,Lv30 150%/140% | 開場 0-3s 內隨機;被動 Mastery +70% 尚未接入 CP |
+| `poison_mist` | derived | 直擊 + 6s DoT,Lv20 270%/240% | 不自排程,由 Flame Haze `onHitSpawn` 衍生;`fieldDurationSec: 15` 供 Mist Eruption 檢查 |
+
 ### 技能資料模型 (`src/constants/skills/archmageFP.js`)
 ```js
 {
-  id: 'flame_sweep',
-  nameKey, imageUrl, color, jobs: ['archmageFP'],
-  element: 'fire',               // 空值 = 無屬性
-  baseLevel: 30,
-  hitsPerCast: 7,
-  maxEnemies: 8,
-  damage: { base: 220, perLevel: 3 },            // 主擊 %(每級 +3)
-  burn: { base: 240, perLevel: 4, durationSec: 5, tickIntervalSec: 1 },  // DoT
-  castDelayBySpeed: { 7: 660, 8: 600 },
-  variance: 0.15,
-  // V 矩陣專屬 (不進 CP 面板,僅此技能吃)
-  vmatrix: { maxLevel: 60, finalDmgPerLevel: 2, ignoreDefBonus: { threshold: 40, value: 20 } },
-  // 冷卻欄位 (選填;Flame Sweep 無 cooldown)
-  cooldown: 10,
-  cooldownPriorityRedSec: 2,      // Step 1
-  cooldownOwnPctRed: 50,           // Step 2a
-  cooldownExternalPctUsesBaseAsFlat: true,   // Mist Eruption 特例
+  id, name, nameKey, descriptionKey, imageUrl, color, jobs: ['archmageFP'],
+  element: 'fire',               // fire / poison / ...;空值 = 無屬性
+  type: 'attack',                // attack(一般可施放) / aura(固定間隔自動) / derived(不自排程)
+  baseLevel: 30,                 // sim 預設等級
+  hitsPerCast, maxEnemies,
+  damage: { base, perLevel },    // 主擊 % 線性成長
+  burn: { base, perLevel, durationSec, tickIntervalSec },  // DoT;所有有 burn 的技能都登記進 burnState → 算入 activeDotCount
+  castDelayBySpeed: { 7, 8 },    // 對應攻速階級的動畫延遲 (ms);0 = 不鎖其他主動技能
+  variance: 0.15,                // 傷害 ±15% 隨機
+  cooldown,                      // 秒;選填。無 cooldown → 只受 animDelay 間隔
+  priority,                      // 開場 cascade 排序:高→先 (Flame Haze 100 / Mist Eruption 80 / Teleport Mastery 60 / 其他 0)
+
+  // ── 進階欄位 ──
+  vmatrix: { maxLevel, finalDmgPerLevel, ignoreDefBonus: { threshold, value } }, // 專屬 V 矩陣(需同時加入 constants/vmatrix.js 的 skillSpecific 項)
+  cooldownPriorityRedSec,                // Step 1 絕對秒扣除
+  cooldownPriorityThreshold,             // 搭配上面 — 僅當 activeDotCount ≥ threshold 才套用
+  cooldownOwnPctRed,                     // Step 2a 自身百分比減免
+  cooldownExternalPctUsesBaseAsFlat,     // Mist Eruption 特例:外部 % 以 baseCd 換 flat 秒
+
+  // Aura 型(type: 'aura')
+  aura: { intervalSec, firstHitWindowSec: [min, max], defaultEnabled },
+  // Derived 型(type: 'derived')
+  fieldDurationSec,                      // 登記到 fieldState[id].expireAt,供 requiresField 檢查
+
+  // 命中副作用
+  onHitSpawn: ['skillId', ...],          // 命中時同 tCast 一併 emitCast 衍生技能 (例 Flame Haze → Poison Mist)
+  onHitResetCooldown: ['skillId', ...],  // 命中時重置這些技能的 nextCastAt 到 tCast + 自身動畫
+  requiresField: 'skillId',              // 需場上有該技能 field 才能施放(未滿足 → nextCastAt += 200ms 等待重試)
+
+  // 爆炸型(Mist Eruption)
+  explosions: { count: 2 },                              // 固定爆炸次數;總擊數 = hitsPerCast × count;useCount += count
+  finalDmgByExplosions: { 2: 20, 3: 45, 4: 80, 5: 125 }, // key = 目標身上 DoT 層數 → 終傷 %(< 2 → 0%;>最大 key → 取最大值)
 }
 ```
+
+### 施放排程 / cast lock (`useBattleSim` tick 核心)
+
+每回合用「earliest-ready + priority tiebreak」選一支技能 fire,而非平行 for-loop。fire 後:
+- **主動型**(type 非 `'aura'` 非 `'derived'`):更新自身 `nextCastAt = tCast + max(animDelay, effCd)`,**同時把其他所有主動技能的 `nextCastAt` 推到 ≥ `tCast + animDelay`**(global cast lock)
+- **Aura 型**:只更新自身 `nextCastAt = tCast + intervalSec × 1000`,**不鎖其他、也不受鎖影響**
+- **Derived 型**:永不直接排程,只靠 `onHitSpawn` 觸發
+
+**Opener priority cascade**(`start()`):依 `priority` 遞減,累加每支 animDelay 作為前序等待時間,避免開場第一個 tick 齊發。例(攻速 8):
+```
+Flame Haze  (priority 100, anim 900ms)  → 900ms
+Mist Eruption (80, 720ms)                → 1620ms (但因需 Poison Mist field,會等到 Flame Haze 命中衍生 mist 後才能真正 fire)
+Teleport Mastery (60, 0ms)               → 1620ms (但 animDelay=0,不鎖其他)
+Flame Sweep (0, 600ms)                   → 2220ms (filler)
+```
+
+**Aura 首次觸發**:`firstHitWindowSec: [0, 3]` 範圍內隨機,與 priority cascade 獨立。
+
+### 傷害公式(useBattleSim)
 
 ### 傷害公式(useBattleSim)
 
@@ -396,9 +452,11 @@ dot   = basic × (DoT%/100) × elemMult × arcMult × skillFinalMult × buffFina
 | `elemMult` | skill.element × enemy.elementalDmg × 職業無視屬性 | 單一 | `ENEMY_ELEM_RESIST_PCT × ELEM_IGNORE_BY_JOB` |
 | `arcMult` | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %` |
 | `skillFinalMult` | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep Lv N × 2% 終傷 |
-| `buffFinalDmgMult` | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Fervent Drain 1 DoT → ×1.05 |
-| `buffDmgMult`(合入 Damage%) | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:法師傳授 3 層 → +9% Damage |
-| `defMult` | 怪物 DEF × 有效無視 | 相乘疊加 | CP ignore × VM × buff,三者相乘 |
+| `explosionMult` | Mist Eruption 爆炸終傷 | 單一 | `finalDmgByExplosions[DoT 層數]` 查表 → 單次乘區(僅主擊吃) |
+| `buffFinalDmgMult` | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Fervent Drain 1 DoT → ×1.05;Infinity time-ramp |
+| `buffDmgMult`(合入 Damage%) | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:Arcane Aim 5 層 → +40% Damage |
+| `hyperDmgPct`(合入 Damage%) | 超技能 `damagePct` / `burnDamagePct` | 與 CP Damage% 相加 | 主擊用 `damagePct`、DoT 用 `burnDamagePct`;**不乘進技能 %** |
+| `defMult` | 怪物 DEF × 有效無視 | 相乘疊加 | CP × VM × buff × hyper × 技能自帶 `ignoreDef`,**五項獨立相乘**(不加總) |
 | `fm` | CP Final Damage% | 已併入 basic / boss | 不重複套用 |
 
 ### Buff 系統 (`useBattleBuffs` / `constants/battleBuffs.js`)
@@ -410,6 +468,13 @@ dot   = basic × (DoT%/100) × elemMult × arcMult × skillFinalMult × buffFina
 **目前已實作**
 - `empirical_knowledge`(法師傳授 / Adventurer Mage link skill)— 用 link skill 現有 i18n 與圖示;Lv1–6 依連結結果
 - `fervent_drain`(火毒被動 / Elemental Drain icon)— 每層 +5% 最終傷害,max 5 層
+- `arcane_aim`(法系 4 轉被動,`passiveType: 'procOnHit'`)— 攻擊時 100% 抽 1 層,max 5 層,5 秒內每次疊層刷新計時;每層 +8% Damage(疊入 CP Damage%)。20% 無視防禦已在 CP 面板 `SKILLS` 計入,這裡只補疊層 Damage
+- `infinity`(火毒 4 轉 buff,`source: 'activeToggle'`)— 戰鬥模擬「開始」後 450ms(攻速 8)自動施放,冷卻 180s 後自動再施放
+  - 等級 = `baseLevel`(30)+(Combat Orders 啟用 ? 1 : 0)→ Lv30/31
+  - 起始 FD = `70 + (level - 30)`%;每 `tickIntervalSec=5` 相加 `tickIncreasePct=3`%(buff 內線性累加,與其他 buff 仍互乘)
+  - 持續時間 = `(40 + (level - 30))` × `(1 + buffDuration%/100)`(讀 `useCpDamage().statTotal('buffDuration')`)
+  - 左下角 `.bp-buffs__timer` 顯示剩餘秒數(青字黑描邊)
+  - 時間基準 = `state.elapsedMs`;戰鬥停止 / 重置一併清空
 
 **Buff 面板**(`BattlePage` 的 `.bp-buffs`,在 Enemy Settings 與統計列之間)
 - 只顯示技能圖示(置右);0 層 → 灰階;≥1 層 → 亮色;≥2 層 → 右下角金字黑描邊層數
@@ -447,8 +512,20 @@ Step 3: 3.5 < 5 → 帽子不生效
 - ARC 比值查表(`ARC_RATIO_TABLE`)→ 終傷 / 被擊傷害;`finalDmg` 透過 `arcRatioLookup(playerArc, bossArc)` 得出 `%`
 
 ### 單次施放測試(`simulateSingleCast`)
-- 按下「測試一下」→ 以當前 CP 數值 + buff 層數 + 1 個 DoT 模擬一次 Flame Sweep
-- 輸出 mainHits (7 筆)/ dotTicks (5 筆)/ 每個乘區數值 / 完整公式文字(VM / Buff / 重算 basic 與 boss / main / defense / DoT)
+- 按下「測試一下」→ 以當前 CP 數值 + buff 層數模擬一次施放
+- **DoT 層數判定**:sim 執行中 → 實際 `burnState` key 數 +(此技能有 burn 且尚未登記時 +1);sim 非執行 → `skill.burn ? 1 : 0`
+- 輸出 mainHits(= `hitsPerCast × explosionCount`)/ dotTicks(= `durationSec / tickIntervalSec`)/ 每個乘區數值 / 完整公式文字
+- 公式列:`vmatrix` / `explosion`(僅爆炸型顯示)/ `hyper` / `buff` / `rebuild`(主擊 Damage 桶 + DoT Damage 桶分開)/ `main` / `defense` / `dot`
+
+### 戰鬥頁時間軸(BattlePage 右欄)
+- **只顯示 cast 與 buff 事件**,DoT tick 不推入 timeline(避免噪音)
+- `type: 'buff'` — 來自 `useBattleBuffs.autoTick()` 回傳的 activations(例:Infinity 自動施放),金色方塊 + 金字
+- 時間格式走 `fmtTimelineClock(ms)` → `MM:SS.XX`(去掉小時,精確到百分秒);summary 大時鐘仍用 `fmtClock(HH:MM:SS)`
+
+### 技能詳情表的 useCount
+- 一般技能每次 `emitCast` → `useCount += 1`
+- **爆炸型**(Mist Eruption)→ `useCount += explosions.count`(每爆一次算一次使用)
+- `avgPerCast = total / useCount` 對爆炸型等於「每爆平均」
 
 ## UI 慣例
 
@@ -504,6 +581,42 @@ Step 3: 3.5 < 5 → 帽子不生效
 
 `findBranchByJob(jobKey)` 取得 branch key。
 
+## 數值精度 (`src/utils/numerics.js`)
+
+為避免 IEEE 浮點誤差(0.1 + 0.2 = 0.30000000000000004),核心計算管線**一律**走此模組提供的 helper:
+
+- `clean(x)` — 把 x 截到 1e10 精度(吃掉 < 1e-10 的漂移;不影響真實小數值)
+- `add / sub / mul / div` — variadic,每一步輸出都 clean
+- `sumBy(arr, fn)` — 陣列加總
+- `applyPct(base, pct)` — `base × (1 + pct/100)` 乾淨版
+- `combineIgnorePct(...pcts)` — `1 − Π(1 − xᵢ/100)`,回傳相對 %
+- `floor(x) / ceil(x) / roundTo(x, decimals)` — 先 clean 再捨入
+
+**規則**:
+- 任何「加總多個 flat / pct 值」→ 用 `sumBy / add`
+- 任何「一連串乘區」→ 用 `mul(...)` 或 `mulChain(...)`
+- 任何「相乘疊加的無視/減傷」→ 用 `combineIgnorePct(...)`
+- 顯示層(tooltip、formula)截位 → `roundTo(x, 2)` 或 `.toFixed(2)`
+- **新增計算邏輯時,不要用原生 `+` `*`**(尤其是跨百分比與絕對值的邊界)。已遷移的模組:`useCpDamage.js` / `useBattleSim.js`;其他 composable 若要碰 % 算術也請一併改走 numerics。
+
+## 超技能 Damage% 歸屬
+
+超技能的 `damagePct` / `burnDamagePct` **加算到 Damage% 桶**,不乘進技能 % 本身:
+
+```
+extraDmgPct (main) = Buff Damage% + Hyper damagePct
+basic/boss = baseRaw × (1 + (CP Damage% + extraDmgPct)/100) × fm
+hit        = bossBase × (skill.hit%/100) × ...  ← 技能 % 保持原值
+
+extraDmgPct (DoT)  = Buff Damage% + Hyper burnDamagePct
+basic      = baseRaw × (1 + (CP Damage% + extraDmgPct)/100) × fm
+dot        = basic × (skill.burn%/100) × ...
+```
+
+**影響**:
+- Flame Sweep Lv30(220% 主、240% DoT)+ Reinforce (+10%) → 以前 220% × 1.10 = 242%(錯);現在 220% 不動,Damage% +10% 進 basic/boss
+- 命中數 / DoT 時長 / 無視防禦 / 冷卻 走各自的管線,不與 Damage% 合併
+
 ## 工作慣例
 
 - **i18n**:所有字串放 `src/i18n/locales/zh-TW.json` + `en.json`;Bonus Stats / Potential / Rare / Epic / Unique / Legendary 等術語保留英文
@@ -542,6 +655,7 @@ Step 3: 3.5 < 5 → 帽子不生效
 | `msucp.cpTitles.v1` | Title 開關狀態 |
 | `msucp.cpCompare.v1` | CP 比較欄快照陣列 |
 | `msucp.enemy.v1` | 戰鬥模擬 ENEMY SETTINGS(type/level/defense/elementalDmg/bossArc) |
+| `msucp.hyperSkills.v1` | 超技能配點(picked: string[]) |
 
 **未持久化(session only)**
 - `useBattleSim`(durationSec / attackSpeed / skillLevels)
