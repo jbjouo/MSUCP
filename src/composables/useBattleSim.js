@@ -23,6 +23,9 @@ import { clean, add, sub, mul, applyPct, combineIgnorePct, floor } from '../util
 
 const SKILL_BY_ID = Object.fromEntries(SIM_SKILLS.map((s) => [s.id, s]))
 
+// DoT 通用係數 — 直接乘進所有 DoT tick (不影響主擊)
+const DOT_COEFFICIENT = 1.5
+
 function defaultSkillLevels() {
   const out = {}
   for (const s of SIM_SKILLS) out[s.id] = s.baseLevel
@@ -91,6 +94,12 @@ let rng = null
 let nextCastAt = {}
 let burnState = {}       // { [skillId]: { nextTickAt, expireAt, intervalMs } }
 let fieldState = {}      // { [skillId]: { expireAt } } — 場地技能持續時間(例:Poison Mist)
+
+// burnState 異動後立刻同步到 useDotTracker
+// — 同一 tick 內後續的 emitCast / 冷卻檢查 / Fervent Drain 疊層都能讀到當下數字
+function syncDotCount() {
+  useDotTracker().setActiveDotCount(Object.keys(burnState).length)
+}
 let currentArcMult = 1   // 每一 tick 重新取得
 let currentJobKey = ''   // 當前玩家職業 (用於屬性無視查表)
 let cpAttStats = null    // useCpDamage().attStatsInfo (lazy init)
@@ -227,7 +236,7 @@ function dotTickDmg(skill, enemy, att) {
   const { mult: specialMult } = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs)
   const pct = skillPctOf(skill).burn
   const enemyMult = dotEnemyMult(enemy)
-  return mul(att?.baseRaw || 0, pct / 100, skillFinalMult, specialMult, enemyMult)
+  return mul(att?.baseRaw || 0, pct / 100, skillFinalMult, specialMult, enemyMult, DOT_COEFFICIENT)
 }
 
 // 統一累加單次擊中 — 主擊與 DoT tick 都會流經此函式,
@@ -249,6 +258,8 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   const explosionsN = skillExplosionCount(skill)
   stats.useCount += explosionsN
   // 實戰 buff: 本次施放先 roll,命中則增加 1 層,後續傷害用新層數計算
+  // 若 proc 成功且 buff 標記 appliesDebuff → 連鎖觸發 linkCycle/triggerOn='debuffApplied'(例:Thief's Cunning)
+  // linkCycle 屬被動型 buff,不寫進 timeline(僅透過 buff 圖示呈現)
   useBattleBuffs().rollTriggers(rng, currentJobKey, tCast)
   const hs = hyperBagFor(skill.id)
   // 爆炸型:總擊數 = 固定爆炸數 × 每爆擊數 (與 DoT 層數無關)
@@ -297,6 +308,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
         intervalMs: ivMs,
         dmg: snapshotDmg,
       }
+      syncDotCount()
     }
   }
 }
@@ -319,7 +331,10 @@ function processBurnTicks(elapsed, enemy, att) {
       bs.nextTickAt += bs.intervalMs
       changed = true
     }
-    if (elapsed >= bs.expireAt) delete burnState[skill.id]
+    if (elapsed >= bs.expireAt) {
+      delete burnState[skill.id]
+      syncDotCount()
+    }
   }
   return changed
 }
@@ -363,6 +378,8 @@ function tick() {
     attackSpeed: state.attackSpeed,
     combatOrdersActive,
     buffDurationPct,
+    cooldownReductionPct: att?.cooldownReductionPct || 0,
+    cooldownReductionSec: att?.cooldownReductionSec || 0,
   })
 
   let changed = false
@@ -626,7 +643,7 @@ export function useBattleSim() {
     const burnDurationSec = add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
     const dotTickCount = floor(burnDurationSec / (skill.burn?.tickIntervalSec || 1)) || 0
     const dotBaseRaw = att.baseRaw || 0
-    const dotValue = mul(dotBaseRaw, pcts.burn / 100, skillFinalMult, dotSpecialMult, dotEnemyMultVal)
+    const dotValue = mul(dotBaseRaw, pcts.burn / 100, skillFinalMult, dotSpecialMult, dotEnemyMultVal, DOT_COEFFICIENT)
     const dotHit = skill.burn ? Math.max(dotValue > 0 ? 1 : 0, floor(dotValue)) : 0
     const dotTicks = []
     for (let i = 0; i < dotTickCount; i++) {
@@ -746,7 +763,7 @@ export function useBattleSim() {
           `無視防禦合併 = 1 − (1 − CP${cpIgnoreDefPct.toFixed(2)}%/100)(1 − VM${vm.ignoreDefPct}%/100)(1 − Buff${buffIgnoreDefPct}%/100)(1 − Hyper${hs.ignoreDefPct || 0}%/100)(1 − 技能${skillIgDef}%/100) = ${totalIgnoreDefPct.toFixed(2)}%\n` +
           `有效防禦 = 怪物DEF(${enemyDef}) × (1 − 合併無視/100) = ${effectiveDef.toFixed(2)}  ⇒  defMult = max(0, 1 − 有效防禦/100) = ${fmtMul(defMult)}`,
         dot:
-          `DoT = baseRaw(${Math.round(dotBaseRaw).toLocaleString?.('en-US') ?? 0}) × (${pcts.burn}% ÷ 100) × VM終傷(${fmtMul(skillFinalMult)}) × 特殊終傷(${fmtMul(dotSpecialMult)}; Fervent Drain ${ferventStacks}層×${ferventPerStack}%) × 怪物乘區(×${dotEnemyMultVal.toFixed(2)}; ${enemy?.type === 'boss' ? `Boss-${enemy?.elementalDmg}` : '一般怪物'})\n` +
+          `DoT = baseRaw(${Math.round(dotBaseRaw).toLocaleString?.('en-US') ?? 0}) × (${pcts.burn}% ÷ 100) × VM終傷(${fmtMul(skillFinalMult)}) × 特殊終傷(${fmtMul(dotSpecialMult)}; Fervent Drain ${ferventStacks}層×${ferventPerStack}%) × 怪物乘區(×${dotEnemyMultVal.toFixed(2)}; ${enemy?.type === 'boss' ? `Boss-${enemy?.elementalDmg}` : '一般怪物'}) × DoT係數(×${DOT_COEFFICIENT.toFixed(2)})\n` +
           `  baseRaw = 武器係數 × (4×主屬+副屬) × ATK(計算%後)/100 · 公式為一般怪物 未減半;Boss 未減半 ×1.86、Boss 減半 ×1.41\n` +
           `  ← 不吃面板終傷 / CP&Buff&Hyper Damage% / Boss Damage% / ARC / 防禦 / 爆擊 / 熟練度 / 屬性減傷`,
       },

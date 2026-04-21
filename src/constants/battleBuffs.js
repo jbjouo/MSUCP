@@ -6,6 +6,9 @@
 //                            時間基準為 sim elapsed (state.elapsedMs);結束/重置戰鬥時連同清空
 //                            Final Damage 隨時間階梯上升:base + floor(elapsed / tickInterval) × perTick
 //                            持續時間受 Buff Duration% (CP statTotal('buffDuration')) 放大
+//   source: 'linkCycle'    → 自 LinkSkillPanel 取得等級與 stats { damage, duration, cooldown };
+//                            自動循環觸發:啟動 → 持續 duration 秒 → 冷卻「從啟動瞬間」算 cooldown 秒後再觸發
+//                            效果為 +damage% Damage(與 CP/其他 Damage% 相加);不吃 Buff Duration% / CD 減免
 
 const YETIDB = (name) => `https://media.maplestorywiki.net/yetidb/Skill_${name}.png`
 
@@ -17,6 +20,8 @@ export const BATTLE_BUFFS = [
     descriptionKey: 'linkSkill.skills.empirical_knowledge.flavor',
     imageUrl: '/skills/link/empirical_knowledge.png',
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
+    // 成功 proc 時視為向怪物上 debuff(供 linkCycle/triggerOn='debuffApplied' 使用)
+    appliesDebuff: true,
   },
   {
     id: 'fervent_drain',
@@ -69,6 +74,16 @@ export const BATTLE_BUFFS = [
     cooldownIgnoresReset: true, // 註記:此 CD 不受 CD 重置影響
     // 戰鬥開始到第一次自動施放的延遲 (施放動作)
     initialDelayBySpeed: { 7: 500, 8: 450 },
+  },
+  {
+    id: 'thiefs_cunning',
+    source: 'linkCycle',
+    nameKey: 'linkSkill.skills.thiefs_cunning.name',
+    descriptionKey: 'linkSkill.skills.thiefs_cunning.flavor',
+    imageUrl: '/skills/link/thiefs_cunning.png',
+    // 觸發條件:對怪物上 debuff 時(目前由 Empirical Knowledge 成功 proc 代表)
+    // 啟動後 CD 從觸發瞬間算 → duration 結束後再等 (cooldown - duration) 秒才能重觸發
+    triggerOn: 'debuffApplied',
   },
 ]
 

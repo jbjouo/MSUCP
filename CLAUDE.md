@@ -439,7 +439,7 @@ hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buff
 
 **DoT**(獨立管線,與主擊完全切割)
 ```
-dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult
+dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult × DOT_COEFFICIENT
 ```
 
 - `baseRaw` — `att.baseRaw` = 武器係數 × (4×主屬+副屬) × ATK(計算 % 後)/100,直接取自 CP 面板
@@ -450,6 +450,7 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult
   - Boss + `elementalDmg='full'`(未減半)→ `1.86`
   - Boss + `elementalDmg='half'`(減半)→ `1.41`
   - Boss + `elementalDmg='none'`(免疫)→ `0`
+- `DOT_COEFFICIENT` — 模組級常數(`useBattleSim.js`),目前固定 **1.5**,所有 DoT tick 直接乘進去,僅 DoT 吃;主擊完全不受影響
 
 **DoT 一律不吃**:面板終傷 (fm) / CP Damage% / Buff Damage% / 超技能 `burnDamagePct` / Boss Damage% / 屬性減傷 (`elemMult`) / ARC 終傷 (`arcMult`) / 其他 buff 最終傷害(Infinity 等 activeToggle)/ 怪物 DEF / 爆擊 / 熟練度 / variance
 
@@ -470,6 +471,7 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult
 | `buffFinalDmgMult` | 主擊 | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Infinity time-ramp;DoT **不吃** |
 | `dotSpecialMult` | DoT | DoT 專用特殊終傷 | 單一 | 目前唯一:Fervent Drain 疊層 ×(1 + n×5/100);其他 buff 不貢獻 |
 | `dotEnemyMult` | DoT | 怪物類型 | 單一 | normal=1.00 · boss-full=1.86 · boss-half=1.41 · boss-none=0 |
+| `DOT_COEFFICIENT` | DoT | 模組常數 (`useBattleSim.js`) | 單一 | 固定 1.5;所有 DoT 都乘,主擊不吃 |
 | `buffDmgMult`(合入 Damage%) | 主擊 | 實戰 buff 的 Damage% | 與 CP Damage% 相加 | 例:Arcane Aim 5 層 → +40% Damage;DoT **不吃** |
 | `hyperDmgPct`(合入 Damage%) | 主擊 | 超技能 `damagePct` | 與 CP Damage% 相加 | **不乘進技能 %**;`burnDamagePct` 目前無作用(DoT 不吃) |
 | `defMult` | 主擊 | 怪物 DEF × 有效無視 | 相乘疊加 | CP × VM × buff × hyper × 技能自帶 `ignoreDef`;DoT **無視防禦** |
@@ -478,23 +480,33 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult
 ### Buff 系統 (`useBattleBuffs` / `constants/battleBuffs.js`)
 
 每筆 buff 有 `source`:
-- `linkSkill` → 動態查 `combinedLevelFor + bestLevelDataFor` 取得當前等級的 stats (procRate / maxStacks / duration / damagePerStack / ignoreDefPerStack)
+- `linkSkill` → 動態查 `combinedLevelFor + bestLevelDataFor` 取得當前等級的 stats (procRate / maxStacks / duration / damagePerStack / ignoreDefPerStack);用 rollTriggers 依 procRate 抽層
 - `passive` + `passiveType: 'dotCount'` → 層數 = `min(maxStacks, activeDotCount)`
+- `passive` + `passiveType: 'procOnHit'` → 同 linkSkill 抽層方式,但用 buff 自帶 procRate
+- `activeToggle` → 戰鬥開始後自動循環施放(Infinity);CD 吃一般 CD 減免(% + 帽子 flat,走 `computeEffectiveCooldown`)
+- `linkCycle` → level / stats 從 LinkSkill 系統取(duration / cooldown / damage),自動循環或事件觸發;**不吃 Buff Duration% 與 CD 減免**;可選 `triggerOn: 'debuffApplied'` 改為事件驅動
 
 **目前已實作**
-- `empirical_knowledge`(法師傳授 / Adventurer Mage link skill)— 用 link skill 現有 i18n 與圖示;Lv1–6 依連結結果
+- `empirical_knowledge`(法師傳授 / Adventurer Mage link skill)— 用 link skill 現有 i18n 與圖示;Lv1–6 依連結結果;`appliesDebuff: true`(成功 proc 視為對怪上 debuff)
 - `fervent_drain`(火毒被動 / Elemental Drain icon)— 每層 +5% 最終傷害,max 5 層
 - `arcane_aim`(法系 4 轉被動,`passiveType: 'procOnHit'`)— 攻擊時 100% 抽 1 層,max 5 層,5 秒內每次疊層刷新計時;每層 +8% Damage(疊入 CP Damage%)。20% 無視防禦已在 CP 面板 `SKILLS` 計入,這裡只補疊層 Damage
-- `infinity`(火毒 4 轉 buff,`source: 'activeToggle'`)— 戰鬥模擬「開始」後 450ms(攻速 8)自動施放,冷卻 180s 後自動再施放
+- `infinity`(火毒 4 轉 buff,`source: 'activeToggle'`)— 戰鬥模擬「開始」後 450ms(攻速 8)自動施放,冷卻 180s(吃 CD 減免)後自動再施放
   - 等級 = `baseLevel`(30)+(Combat Orders 啟用 ? 1 : 0)→ Lv30/31
   - 起始 FD = `70 + (level - 30)`%;每 `tickIntervalSec=5` 相加 `tickIncreasePct=3`%(buff 內線性累加,與其他 buff 仍互乘)
   - 持續時間 = `(40 + (level - 30))` × `(1 + buffDuration%/100)`(讀 `useCpDamage().statTotal('buffDuration')`)
-  - 左下角 `.bp-buffs__timer` 顯示剩餘秒數(青字黑描邊)
   - 時間基準 = `state.elapsedMs`;戰鬥停止 / 重置一併清空
+- `thiefs_cunning`(暗器的精髓,`source: 'linkCycle'` + `triggerOn: 'debuffApplied'`)
+  - 等級 / stats 從 link skill 系統取:Lv1 +3% Damage、Lv6 +18% Damage;duration 10s、cooldown 20s
+  - 觸發條件:`empirical_knowledge` 成功 proc(`appliesDebuff: true`)→ off-CD 才啟動
+  - Damage% 啟動中併入主擊 Damage 桶(與 CP Damage% 相加,DoT 不吃)
+  - CD 從啟動瞬間算(duration 10s 結束後還需等 10s 才能重觸發)
+  - **不吃 Buff Duration% / CD 減免**,不寫入時間軸(被動 buff)
 
 **Buff 面板**(`BattlePage` 的 `.bp-buffs`,在 Enemy Settings 與統計列之間)
 - 只顯示技能圖示(置右);0 層 → 灰階;≥1 層 → 亮色;≥2 層 → 右下角金字黑描邊層數
 - 新疊層時 420ms 金光 pulse 動畫(watch `state.stacks[id].count` 上升)
+- `.bp-buffs__timer`(左下,青字)— 當前剩餘持續時間;條件:`info.remainingMs > 0 && info.count > 0`(通用,所有 buff 皆顯示)
+- `.bp-buffs__cd`(正中央,金字)— buff 結束、CD 進行中時疊在灰階圖示中間;僅 activeToggle / linkCycle 有
 
 **最終傷害合成規則**:不同 buff 互乘,同 buff 層線性相加後轉為單一乘區
 ```
@@ -505,7 +517,7 @@ buffFinalDmgMult = Π over each buff [ 1 + (stacks × perStack) / 100 ]
 ### 冷卻公式 (`computeEffectiveCooldown` in `useCpDamage.js`)
 
 Step 順序嚴格:
-1. 技能優先扣秒 (`skill.cooldownPriorityRedSec`,例:Mist Eruption 爆炸 ≥5 次 -2s)
+1. 技能優先扣秒 (`skill.cooldownPriorityRedSec`,例:Mist Eruption DoT ≥5 個 -2s)
 2. 百分比減免(乘法疊加):`skill.cooldownOwnPctRed`(超技能 -50%)× `externalPctRed`(聯盟 Mercedes)
    - 特例 `cooldownExternalPctUsesBaseAsFlat: true` → 外部 % 以 base CD 為基準換算為 flat 秒扣除
 3. 帽子 flat (`hatFlatRedSec`):
@@ -513,6 +525,19 @@ Step 順序嚴格:
    - 若 **CD > 10s**:直接扣秒
    - 若 **5s ≤ CD ≤ 10s**:每 1s flat 轉 5% 減免
    - 最終 **≥ 5s 硬下限**
+
+**誰走 `computeEffectiveCooldown`**:
+- 所有一般技能(`skill.cooldown` 欄位)
+- `activeToggle` buff(Infinity)— `useBattleBuffs.autoTick` 呼叫;`externalPctRed = att.cooldownReductionPct`、`hatFlatRedSec = att.cooldownReductionSec`
+- **不走**:`linkCycle`(Thief's Cunning)直接用 link skill 原始 cooldown
+
+### DoT 計數同步 (Mist Eruption 爆炸終傷 / CD 優先減免)
+
+`useBattleSim.js` 的 `burnState` 一旦變動就 `syncDotCount()` → `useDotTracker.setActiveDotCount(Object.keys(burnState).length)`,確保:
+- 同一 tick 內先 fire 的技能(如 Flame Haze → spawn Poison Mist,加 2 個 DoT)其 DoT 數立刻反映出來
+- 後續 fire 的 Mist Eruption 在 `mainHitDmg` 讀 `activeDotCount` 時拿到**當下**的 DoT 數,`skillExplosionFinalDmgPct` 查表正確
+- `tick()` 裡的 CD 優先減免(`activeDots >= cooldownPriorityThreshold`)也讀到當下 DoT 數,`-2s` 正確觸發
+- 其他消費者(Fervent Drain 疊層)同步更新
 
 **Mist Eruption 特例範例**(baseCd 10、-2s 優先、-50% 超技能、5% Mercedes、-4s 帽)
 ```
@@ -534,7 +559,10 @@ Step 3: 3.5 < 5 → 帽子不生效
 - 公式列:`vmatrix` / `explosion`(僅爆炸型顯示)/ `hyper` / `buff` / `rebuild`(主擊 Damage 桶 + DoT Damage 桶分開)/ `main` / `defense` / `dot`
 
 ### 戰鬥頁時間軸(BattlePage 右欄)
-- **只顯示 cast 與 buff 事件**,DoT tick 不推入 timeline(避免噪音)
+- **只顯示主動施放的技能(`skill.type === 'attack'`)與 activeToggle 啟動事件**
+  - aura(Inferno Aura / Ifrit)/ derived(Poison Mist)→ 隱藏
+  - linkCycle(Thief's Cunning)屬被動 buff → `emitCast` 不把 `rollTriggers` 回傳的啟動 push 進 events
+  - DoT tick → 本來就不推入 timeline
 - `type: 'buff'` — 來自 `useBattleBuffs.autoTick()` 回傳的 activations(例:Infinity 自動施放),金色方塊 + 金字
 - 時間格式走 `fmtTimelineClock(ms)` → `MM:SS.XX`(去掉小時,精確到百分秒);summary 大時鐘仍用 `fmtClock(HH:MM:SS)`
 

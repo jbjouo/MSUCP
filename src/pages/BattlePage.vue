@@ -51,8 +51,8 @@ watch(
 function isBuffFlashing(id) { return !!flashingBuffs.value[id] }
 
 // 只保留 (1) 對當前職業可見 (2) 該 buff 有有效狀態的:
-//   linkSkill / passive → 需 level > 0 且 stats 存在
-//   activeToggle        → 一律顯示(等級從 baseLevel 推算)
+//   linkSkill / passive / linkCycle → 需 level > 0 且 stats 存在
+//   activeToggle                    → 一律顯示(等級從 baseLevel 推算)
 const visibleBuffs = computed(() =>
   visibleBuffsForJob(charStateBattle.job)
     .map((b) => ({ buff: b, info: buffInfo(b, charStateBattle.job, state.elapsedMs) }))
@@ -120,10 +120,18 @@ const battleClock = computed(() => {
   return fmtClock(state.durationSec * 1000)
 })
 
-// 時間軸事件 — 只顯示主動施放 (cast) 與 buff 啟動 (buff);DoT tick 不顯示
+// 時間軸事件 — 只顯示「主動施放」(type='attack' 的技能) 與 buff 啟動;
+// aura (Inferno Aura / Ifrit) / derived (Poison Mist) / DoT tick 都濾掉
 const timelineEvents = computed(() => {
   if (!result.value) return []
-  return result.value.events.filter((e) => e.type !== 'dot')
+  return result.value.events.filter((e) => {
+    if (e.type === 'buff') return true
+    if (e.type === 'cast') {
+      const skill = SIM_SKILLS.find((s) => s.id === e.skillId)
+      return skill?.type === 'attack'
+    }
+    return false
+  })
 })
 const timelineRows = computed(() => {
   if (!result.value) return []
@@ -270,9 +278,13 @@ const timelineRows = computed(() => {
           />
           <span v-if="info.count >= 2" class="bp-buffs__badge">{{ info.count }}</span>
           <span
-            v-if="info.source === 'activeToggle' && info.active"
+            v-if="info.remainingMs > 0 && info.count > 0"
             class="bp-buffs__timer"
           >{{ fmtBuffRemaining(info.remainingMs) }}</span>
+          <span
+            v-if="(info.source === 'activeToggle' || info.source === 'linkCycle') && info.onCooldown"
+            class="bp-buffs__cd"
+          >{{ fmtBuffRemaining(info.cooldownRemainingMs) }}</span>
         </div>
       </div>
 
@@ -1034,6 +1046,27 @@ const timelineRows = computed(() => {
   bottom: -4px;
   color: #5cd1ea;
   font-size: 0.78rem;
+  font-weight: 900;
+  font-family: inherit;
+  line-height: 1;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-shadow:
+    -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000,
+    -1px  0   0 #000,               1px  0   0 #000,
+    -1px  1px 0 #000, 0  1px 0 #000, 1px  1px 0 #000,
+    -2px  0   0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000;
+}
+/* CD 倒數 — 僅在 buff 結束、CD 進行中顯示,置於灰階圖示正中間 */
+.bp-buffs__cd {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffeaa0;
+  font-size: 0.95rem;
   font-weight: 900;
   font-family: inherit;
   line-height: 1;

@@ -3,6 +3,7 @@ import { BATTLE_BUFFS, resolveActiveToggleStats } from '../constants/battleBuffs
 import { combinedLevelFor, bestLevelDataFor } from './useLinkSkills.js'
 import { getLinkSkill } from '../data/linkSkills.js'
 import { useDotTracker } from './useDotTracker.js'
+import { computeEffectiveCooldown } from './useCpDamage.js'
 
 function defaultStacks() {
   const out = {}
@@ -32,9 +33,9 @@ function applicableForJob(buff, jobKey) {
 }
 
 // 依 buff 來源取得「當前等級的 stats 規則」
-//   linkSkill → 依連結結果動態查;passive → 直接從 buff 定義讀
+//   linkSkill / linkCycle → 依連結結果動態查;passive → 直接從 buff 定義讀
 function currentLevelStats(buff, jobKey) {
-  if (buff.source === 'linkSkill') {
+  if (buff.source === 'linkSkill' || buff.source === 'linkCycle') {
     const skill = getLinkSkill(buff.id)
     if (!skill) return null
     const level = combinedLevelFor(buff.id, jobKey)
@@ -80,9 +81,10 @@ function syncExpire(nowMs) {
     const s = state.stacks[id]
     if (s.count > 0 && nowMs >= s.expireAt) {
       s.count = 0
-      // activeToggle:保留 activatedAt / cooldownUntil(用於 CD 判斷與下次自動施放)
+      // activeToggle / linkCycle:保留 activatedAt / cooldownUntil(用於 CD 判斷與下次自動施放)
       const buff = BATTLE_BUFFS.find((b) => b.id === id)
-      if (buff?.source !== 'activeToggle') s.expireAt = 0
+      const preserveCycle = buff?.source === 'activeToggle' || buff?.source === 'linkCycle'
+      if (!preserveCycle) s.expireAt = 0
     }
   }
 }
@@ -118,10 +120,20 @@ export function useBattleBuffs() {
   // 回傳:本次 tick 內新啟動的 buff 陣列,讓 sim 可加入 timeline
   function autoTick(nowMs, jobKey, ctx = {}) {
     syncExpire(nowMs)
-    const { attackSpeed = 8, combatOrdersActive = false, buffDurationPct = 0 } = ctx
+    const {
+      attackSpeed = 8,
+      combatOrdersActive = false,
+      buffDurationPct = 0,
+      cooldownReductionPct = 0,
+      cooldownReductionSec = 0,
+    } = ctx
     const activated = []
     for (const buff of BATTLE_BUFFS) {
-      if (buff.source !== 'activeToggle') continue
+      const isActiveToggle = buff.source === 'activeToggle'
+      const isLinkCycle = buff.source === 'linkCycle'
+      if (!isActiveToggle && !isLinkCycle) continue
+      // triggerOn 指定為事件驅動(例:debuffApplied)→ 不在 autoTick 自動啟動,交由 rollTriggers 處理
+      if (isLinkCycle && buff.triggerOn) continue
       if (!applicableForJob(buff, jobKey)) continue
       const s = state.stacks[buff.id]
       const isActive = s.count > 0 && nowMs < s.expireAt
@@ -131,13 +143,40 @@ export function useBattleBuffs() {
       const threshold = s.activatedAt === 0 ? initialDelayMs : s.cooldownUntil
       if (nowMs < threshold) continue
 
+      if (isLinkCycle) {
+        // linkCycle:level + stats 從 LinkSkill 系統取得,未連結則跳過
+        const info = currentLevelStats(buff, jobKey)
+        if (!info?.stats || info.level <= 0) continue
+        const durationSec = Number(info.stats.duration) || 0
+        const cooldownSec = Number(info.stats.cooldown) || 0
+        if (durationSec <= 0 || cooldownSec <= 0) continue
+        // 不吃 Buff Duration% 與 CD 減免 → 直接使用 link skill 原始數值
+        const durationMs = durationSec * 1000
+        s.count = 1
+        s.activatedAt = nowMs
+        s.expireAt = nowMs + durationMs
+        s.cooldownUntil = nowMs + cooldownSec * 1000
+        s.durationMs = durationMs
+        s.level = info.level
+        activated.push({ id: buff.id, at: nowMs, buff, level: info.level })
+        continue
+      }
+
+      // activeToggle:level + stats 由 baseLevel + Combat Orders 計算
       const level = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
       const cfg = resolveActiveToggleStats(buff, level)
       const durationMs = cfg.durationSec * 1000 * (1 + (buffDurationPct || 0) / 100)
+      // CD 吃一般 CD 減免(% + 帽子 flat);走與一般技能相同的 computeEffectiveCooldown
+      const effCdSec = cfg.cooldownSec > 0
+        ? computeEffectiveCooldown(cfg.cooldownSec, {
+            externalPctRed: cooldownReductionPct,
+            hatFlatRedSec: cooldownReductionSec,
+          })
+        : 0
       s.count = 1
       s.activatedAt = nowMs
       s.expireAt = nowMs + durationMs
-      s.cooldownUntil = nowMs + cfg.cooldownSec * 1000
+      s.cooldownUntil = nowMs + effCdSec * 1000
       s.baseFinalDmgPct = cfg.baseFinalDmgPct
       s.tickIntervalMs = cfg.tickIntervalSec * 1000
       s.tickIncreasePct = cfg.tickIncreasePct
@@ -151,8 +190,13 @@ export function useBattleBuffs() {
   // 每次施放時呼叫 — 對 trigger-based buff 抽層
   //   linkSkill        → 依 link skill stats procRate 抽(例:法師傳授 25%)
   //   passive/procOnHit → 依 buff 自帶 procRate 抽(例:Arcane Aim Lv30 100%)
+  //
+  // 若 proc 成功的 buff 帶 appliesDebuff,視為「對怪物上 debuff」事件,
+  // 觸發所有 source='linkCycle' && triggerOn='debuffApplied' 的 buff(若 off-CD)。
+  // 回傳:本次被 proc 觸發啟動的 linkCycle buff 陣列,供 sim 寫入 timeline。
   function rollTriggers(rng, jobKey, nowMs) {
     syncExpire(nowMs)
+    let debuffApplied = false
     for (const buff of BATTLE_BUFFS) {
       if (!applicableForJob(buff, jobKey)) continue
       const isLinkSkill = buff.source === 'linkSkill'
@@ -163,15 +207,40 @@ export function useBattleBuffs() {
       const { procRate = 0, maxStacks = 0, duration = 0 } = info.stats
       if (!procRate) continue
       const s = state.stacks[buff.id]
+      const roll = rng() * 100 < procRate
       if (s.count >= maxStacks) {
-        if (rng() * 100 < procRate) s.expireAt = nowMs + duration * 1000
-        continue
-      }
-      if (rng() * 100 < procRate) {
+        if (roll) s.expireAt = nowMs + duration * 1000
+      } else if (roll) {
         s.count += 1
         s.expireAt = nowMs + duration * 1000
       }
+      if (roll && buff.appliesDebuff) debuffApplied = true
     }
+
+    const activated = []
+    if (!debuffApplied) return activated
+    for (const buff of BATTLE_BUFFS) {
+      if (buff.source !== 'linkCycle' || buff.triggerOn !== 'debuffApplied') continue
+      if (!applicableForJob(buff, jobKey)) continue
+      const s = state.stacks[buff.id]
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      if (isActive) continue
+      if (s.activatedAt > 0 && nowMs < s.cooldownUntil) continue
+      const info = currentLevelStats(buff, jobKey)
+      if (!info?.stats || info.level <= 0) continue
+      const durationSec = Number(info.stats.duration) || 0
+      const cooldownSec = Number(info.stats.cooldown) || 0
+      if (durationSec <= 0 || cooldownSec <= 0) continue
+      const durationMs = durationSec * 1000
+      s.count = 1
+      s.activatedAt = nowMs
+      s.expireAt = nowMs + durationMs
+      s.cooldownUntil = nowMs + cooldownSec * 1000
+      s.durationMs = durationMs
+      s.level = info.level
+      activated.push({ id: buff.id, at: nowMs, buff, level: info.level })
+    }
+    return activated
   }
 
   // 當前全部 buff 彙總:
@@ -187,6 +256,15 @@ export function useBattleBuffs() {
       if (buff.source === 'activeToggle') {
         const fdPct = activeToggleFinalDmgPct(buff, nowMs)
         if (fdPct > 0) total.finalDmgMult *= 1 + fdPct / 100
+        continue
+      }
+      // linkCycle:啟動中以 stats.damage 併入 Damage%(與 CP Damage 相加後進 basic/boss 桶)
+      if (buff.source === 'linkCycle') {
+        const s = state.stacks[buff.id]
+        if (!s || s.count <= 0 || nowMs >= s.expireAt) continue
+        const info = currentLevelStats(buff, jobKey)
+        const dmg = Number(info?.stats?.damage) || 0
+        if (dmg > 0) total.dmgPct += dmg
         continue
       }
       const info = currentLevelStats(buff, jobKey)
@@ -249,9 +327,30 @@ export function useBattleBuffs() {
         durationMs: s.durationMs || 0,
       }
     }
+    if (buff.source === 'linkCycle') {
+      const s = state.stacks[buff.id] || {}
+      const info = currentLevelStats(buff, jobKey)
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
+      const onCooldown = !isActive && s.activatedAt > 0 && s.cooldownUntil > nowMs
+      return {
+        level: info?.level || 0,
+        stats: info?.stats || null,
+        count: isActive ? 1 : 0,
+        expireAt: s.expireAt || 0,
+        active: isActive,
+        source: 'linkCycle',
+        remainingMs,
+        onCooldown,
+        cooldownRemainingMs: onCooldown ? s.cooldownUntil - nowMs : 0,
+        durationMs: s.durationMs || 0,
+      }
+    }
     const info = currentLevelStats(buff, jobKey)
     const count = stacksOf(buff, dotCountOverride)
     const s = state.stacks[buff.id] || { count: 0, expireAt: 0 }
+    const stacksActive = count > 0 && nowMs < (s.expireAt || 0)
+    const remainingMs = stacksActive ? Math.max(0, s.expireAt - nowMs) : 0
     return {
       level: info?.level || 0,
       stats: info?.stats || null,
@@ -259,6 +358,7 @@ export function useBattleBuffs() {
       expireAt: s.expireAt,
       active: !!info?.stats,
       source: buff.source,
+      remainingMs,
     }
   }
 
