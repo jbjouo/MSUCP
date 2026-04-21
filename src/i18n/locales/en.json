@@ -96,6 +96,18 @@
         "name": "Mist Eruption",
         "description": "Detonates nearby Poison Mists / DoTs on the target for massive poison damage. 10 hits on up to 12 enemies. Final damage scales with the number of continuous damage effects on the target (2 → +20%, 3 → +45%, 4 → +80%, 5+ → +125%). Hitting with 5+ explosions reduces its own cooldown by 2 sec (before other reductions). On hit, resets Flame Haze's cooldown."
       },
+      "meteor_shower": {
+        "name": "Meteor Shower",
+        "description": "Passive-only in this sim — never self-cast. Every use of a damaging skill rolls once for an extra meteorite (Lv30: 60% chance × 220% × 1 hit, fire). Sources include Flame Sweep / Haze / Mist Eruption / Teleport Mastery plus the main hits of Inferno Aura / Ifrit / Poison Mist; Meteor Shower does not trigger itself. Explosion skills (Mist Eruption) roll once per explosion (= useCount)."
+      },
+      "burning_magic": {
+        "name": "Burning Magic",
+        "description": "Archmage FP passive (Master Lv10). While any DoT is active on the target, main-attack final damage +20% (multiplies with other final-damage sources). The Lv10 DoT duration +100% effect is not yet applied in this sim. DoT ticks themselves do not receive this bonus (per the existing 'DoT ignores generic final damage' rule)."
+      },
+      "ignite": {
+        "name": "Ignite",
+        "description": "Archmage FP passive (Master Lv10) / toggle. Casting a Fire-attribute skill has a Lv10 50% chance to spawn a wall of fire at the target (excludes Inferno Aura). Each wall lasts 6s and deals damage at 2s/4s/6s (40% × 1 hit, up to 8 enemies). Multiple walls stack independently. Each tick runs through the main-hit pipeline (crit / mastery / defense / ARC / element / Burning Magic) — not a DoT. Ignite itself does not trigger other skills (e.g. Meteor Shower's Final Attack)."
+      },
       "inferno_aura": {
         "name": "Inferno Aura",
         "description": "Toggle aura (default ON). Every 3 sec deals 400% damage × 2 hits to nearby enemies, and applies a 500%/sec DoT for 30 sec (refreshed on each trigger). First trigger occurs at a random time within the first 3 sec of battle."
@@ -632,6 +644,9 @@
       },
       "mist_eruption_core": {
         "description": "Skill-specific V Matrix — affects Mist Eruption only: +2% final damage per level; at Lv40+, +20% ignore defense (separate row, not added with Hyper ignore)."
+      },
+      "ignite_core": {
+        "description": "Skill-specific V Matrix — affects Ignite only: +4% final damage per level; at Lv40+, +20% ignore defense (separate row, not added with Hyper ignore)."
       }
     }
   },

@@ -366,28 +366,35 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 ### 已實作技能(archmageFP)
 | id | type | 簡述 | 備註 |
 |---|---|---|---|
-| `flame_sweep` | attack | 7 擊 + 5s DoT (1s tick),Lv30 220%/240% | 專屬 VM;無 cooldown、priority 0(filler)|
-| `flame_haze` | attack | 15 擊 + 10s DoT,Lv30 202%/200%,CD 10s | 專屬 VM;priority 100;`onHitSpawn: ['poison_mist']` |
-| `mist_eruption` | attack | 2 爆炸 × 10 擊 + 0 DoT,Lv30 125%,CD 10s | 專屬 VM;priority 80;`requiresField: 'poison_mist'`;`onHitResetCooldown: ['flame_haze']`;爆炸終傷表 + 條件式 CD -2s |
-| `teleport_mastery` | attack | 單擊 + 20s DoT (2s tick),Lv10 272%/98%,CD 15s | 0 動畫(不鎖其他主動技能);priority 60 |
+| `flame_sweep` | attack | 7 擊 + 5s DoT (1s tick),Lv30 220%/240% | 專屬 VM(+2%/Lv);無 cooldown、priority 0(filler);`combatOrdersEligible`|
+| `flame_haze` | attack | 15 擊 + 10s DoT,Lv30 202%/200%,CD 10s | 專屬 VM;priority 100;`onHitSpawn: ['poison_mist']`;`combatOrdersEligible` |
+| `mist_eruption` | attack | 2 爆炸 × 10 擊 + 0 DoT,Lv30 125%,CD 10s | 專屬 VM;priority 80;`requiresField: 'poison_mist'`;`onHitResetCooldown: ['flame_haze']`;爆炸終傷表 + 條件式 CD -2s;`combatOrdersEligible` |
+| `teleport_mastery` | **aura** | 單擊 + 20s DoT (2s tick),Lv10 272%/98% | **無 CD**、sim 用 aura 型固定週期排程:`firstHitWindowSec: [0, 0]`(t=0 開打)+ `intervalSec: 30`(每 30s 重施以延續 DoT;DoT 40s 足以覆蓋);不鎖其他、不被鎖 |
 | `inferno_aura` | aura | 每 3s 觸發 2 擊 + 30s DoT,Lv1 400%/500% | 開場 0-3s 內隨機;不進 priority cascade |
-| `ifrit` | aura | 每 3s 觸發 3 擊 + 2s DoT,Lv30 150%/140% | 開場 0-3s 內隨機;被動 Mastery +70% 尚未接入 CP |
+| `ifrit` | aura | 每 3s 觸發 3 擊 + 2s DoT,Lv30 150%/140% | 開場 0-3s 內隨機;被動 Mastery +70% 尚未接入 CP;`combatOrdersEligible` |
 | `poison_mist` | derived | 直擊 + 6s DoT,Lv20 270%/240% | 不自排程,由 Flame Haze `onHitSpawn` 衍生;`fieldDurationSec: 15` 供 Mist Eruption 檢查 |
+| `meteor_shower` | passive | Final Attack — 角色任何主擊時 roll 1 次(爆炸技能 = `explosionCount` 次),Lv30 60% × 220% × 1 擊(火屬) | 不主動施放、不觸發自身;`skill.finalAttack: { procRate, damage }` 每級 +2%/+4%;成功 proc 走 `mainHitDmg` 主擊管線;`combatOrdersEligible` |
+| `ignite` | passive | 火屬技能施放時 Lv10 50% proc 生成火牆 — 6s 持續、每 2s 觸發一次傷害 (40% × 3 下) × 3 ticks | 排除 Inferno Aura;Meteor Shower proc 也算火屬事件 → 會觸發 Ignite;火牆獨立疊加;每 tick `useCount +1`;專屬 VM(+4%/Lv);**非 4 轉 → 無 Combat Orders** |
+
+### 被動(不進 SIM_SKILLS;模組直接 import)
+| id | 效果 | 備註 |
+|---|---|---|
+| `BURNING_MAGIC` | 場上 `activeDotCount ≥ 1` → 主擊終傷 +20%;DoT 時長 ×2 | 僅火毒;DoT tick 不吃 FD 加成,但吃時長倍率 |
 
 ### 技能資料模型 (`src/constants/skills/archmageFP.js`)
 ```js
 {
   id, name, nameKey, descriptionKey, imageUrl, color, jobs: ['archmageFP'],
   element: 'fire',               // fire / poison / ...;空值 = 無屬性
-  type: 'attack',                // attack(一般可施放) / aura(固定間隔自動) / derived(不自排程)
+  type: 'attack',                // attack(一般可施放) / aura(固定間隔自動) / derived(不自排程) / passive(不出現在 scheduler,純 proc 效果)
   baseLevel: 30,                 // sim 預設等級
+  combatOrdersEligible: true,    // 4 轉技能 → useCpToggles().isBuffActive('combat_orders') 為 true 時 effSkillLevel +1
   hitsPerCast, maxEnemies,
   damage: { base, perLevel },    // 主擊 % 線性成長
   burn: { base, perLevel, durationSec, tickIntervalSec },  // DoT;所有有 burn 的技能都登記進 burnState → 算入 activeDotCount
   castDelayBySpeed: { 7, 8 },    // 對應攻速階級的動畫延遲 (ms);0 = 不鎖其他主動技能
-  variance: 0.15,                // 傷害 ±15% 隨機
   cooldown,                      // 秒;選填。無 cooldown → 只受 animDelay 間隔
-  priority,                      // 開場 cascade 排序:高→先 (Flame Haze 100 / Mist Eruption 80 / Teleport Mastery 60 / 其他 0)
+  priority,                      // 開場 cascade 排序:高→先 (Flame Haze 100 / Mist Eruption 80 / 其他 0)
 
   // ── 進階欄位 ──
   vmatrix: { maxLevel, finalDmgPerLevel, ignoreDefBonus: { threshold, value } }, // 專屬 V 矩陣(需同時加入 constants/vmatrix.js 的 skillSpecific 項)
@@ -403,14 +410,28 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 
   // 命中副作用
   onHitSpawn: ['skillId', ...],          // 命中時同 tCast 一併 emitCast 衍生技能 (例 Flame Haze → Poison Mist)
-  onHitResetCooldown: ['skillId', ...],  // 命中時重置這些技能的 nextCastAt 到 tCast + 自身動畫
+  onHitResetCooldown: ['skillId', ...],  // 命中時 *遊戲 CD* 立即清零;scheduler 仍會被本次 animDelay 鎖住,由 cast lock 統一控制
   requiresField: 'skillId',              // 需場上有該技能 field 才能施放(未滿足 → nextCastAt += 200ms 等待重試)
 
   // 爆炸型(Mist Eruption)
   explosions: { count: 2 },                              // 固定爆炸次數;總擊數 = hitsPerCast × count;useCount += count
   finalDmgByExplosions: { 2: 20, 3: 45, 4: 80, 5: 125 }, // key = 目標身上 DoT 層數 → 終傷 %(< 2 → 0%;>最大 key → 取最大值)
+
+  // Meteor Shower 專用(type: 'passive')
+  finalAttack: {
+    procRate: { base, perLevel }, // % 每級線性
+    damage:   { base, perLevel }, // % 每級線性
+  },
+
+  // Ignite 專用(type: 'passive')
+  ignite: {
+    procRate: { base, perLevel }, damage: { base, perLevel },
+    tickIntervalSec, durationSec, hitsPerTick,
+  },
 }
 ```
+
+`effSkillLevel(skill)` = `state.skillLevels[id] (或 baseLevel) + (combatOrdersEligible && Combat Orders 啟用 ? 1 : 0)`;所有 `skillDamagePct / skillIgnoreDefPct / skillFinalAttackPcts / skillIgnitePcts` 都透過它讀等級。
 
 ### 施放排程 / cast lock (`useBattleSim` tick 核心)
 
@@ -423,23 +444,30 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 ```
 Flame Haze  (priority 100, anim 900ms)  → 900ms
 Mist Eruption (80, 720ms)                → 1620ms (但因需 Poison Mist field,會等到 Flame Haze 命中衍生 mist 後才能真正 fire)
-Teleport Mastery (60, 0ms)               → 1620ms (但 animDelay=0,不鎖其他)
 Flame Sweep (0, 600ms)                   → 2220ms (filler)
 ```
 
-**Aura 首次觸發**:`firstHitWindowSec: [0, 3]` 範圍內隨機,與 priority cascade 獨立。
+**Aura 首次觸發**:`firstHitWindowSec: [min, max]` 範圍內隨機,與 priority cascade 獨立。Teleport Mastery 使用 `[0, 0]` 開場立即施放;Inferno Aura / Ifrit 用 `[0, 3]`。
+
+### PRNG(`makeRng`)
+- **mulberry32**(32-bit hash-based)取代原 Numerical Recipes LCG — LCG 在固定 seed + 固定 stride 下會有明顯 bias(例:seed=42 + Flame Sweep 約 18 rng/cast 的採樣節奏,proc roll 平均落在 0.7+)
+- `state.seed` 預設 `Date.now() >>> 0`:每次 reload 新 seed,同一個 load 內 start/stop 重跑會得到同樣的序列。用 `setSeed(n)` 可強制重現。
 
 ### 傷害公式(useBattleSim)
 
 **主擊**
 ```
 bossMin ≤ bossBase ≤ bossMax   ← 先以 buff Damage%(法師傳授)併入 CP Damage% 後重算
-hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult × defMult × explosionMult × variance
+hit = bossBase × (主技%/100) × elemMult × arcMult × skillFinalMult × buffFinalDmgMult
+      × defMult × explosionMult × bmMult × levelDiffMult
 ```
+- 爆擊與熟練度已內化進 `bossMin / bossMax` 取樣,不另外疊 variance(原 `skill.variance=0.15` 欄位已移除)
+- `bmMult` = Burning Magic(`activeDotCount ≥ 1` → ×1.20;職業限 `archmageFP`)
+- `levelDiffMult` = 等差終傷(角色等級 − 怪物等級,`levelDiffFinalDmgPct` 查表)— 僅主擊套,DoT 不套
 
 **DoT**(獨立管線,與主擊完全切割)
 ```
-dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult × DOT_COEFFICIENT
+dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult × arcMult × DOT_COEFFICIENT
 ```
 
 - `baseRaw` — `att.baseRaw` = 武器係數 × (4×主屬+副屬) × ATK(計算 % 後)/100,直接取自 CP 面板
@@ -452,7 +480,9 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult 
   - Boss + `elementalDmg='none'`(免疫)→ `0`
 - `DOT_COEFFICIENT` — 模組級常數(`useBattleSim.js`),目前固定 **1.5**,所有 DoT tick 直接乘進去,僅 DoT 吃;主擊完全不受影響
 
-**DoT 一律不吃**:面板終傷 (fm) / CP Damage% / Buff Damage% / 超技能 `burnDamagePct` / Boss Damage% / 屬性減傷 (`elemMult`) / ARC 終傷 (`arcMult`) / 其他 buff 最終傷害(Infinity 等 activeToggle)/ 怪物 DEF / 爆擊 / 熟練度 / variance
+**DoT 一律不吃**:面板終傷 (fm) / CP Damage% / Buff Damage% / 超技能 `burnDamagePct` / Boss Damage% / 屬性減傷 (`elemMult`) / 其他 buff 最終傷害(Infinity 等 activeToggle)/ Burning Magic FD / 等差終傷 / 怪物 DEF / 爆擊 / 熟練度
+**DoT 有吃**:ARC 終傷(`arcMult`,隨主擊一起);DoT 時長另有 Burning Magic ×2 倍率
+**DoT 時長快照**:`(base + hyper flat) × burningMagicDotDurationMult()` 於 `emitCast` 建立 DoT 時寫入 `burnState[id].expireAt`
 
 **DoT 傷害快照(sticky)**:`emitCast` 建立新 DoT 時以當下面板計算 `dotDmg` 並存入 `burnState[id].dmg`;只要這段 DoT 還沒過期,即使中途:
 - Fervent Drain 層數改變 / VM 等級改變 / 技能等級改變 / 面板 Damage% 變動
@@ -465,10 +495,12 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult 
 | 乘區 | 套用於 | 來源 | 型態 | 備註 |
 |---|---|---|---|---|
 | `elemMult` | 主擊 | skill.element × enemy.elementalDmg × 職業無視屬性 | 單一 | `ENEMY_ELEM_RESIST_PCT × ELEM_IGNORE_BY_JOB`;DoT **不吃**(已被 `dotEnemyMult` 取代) |
-| `arcMult` | 主擊 | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %`;DoT **不吃** |
-| `skillFinalMult` | 主擊 & DoT | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep Lv N × 2% 終傷 |
+| `arcMult` | **主擊 & DoT** | 秘法符文 ARC 比值對照 | 單一 | 玩家ARC / 怪物ARC 查表 → `finalDmg %` |
+| `skillFinalMult` | 主擊 & DoT | 技能專屬 V 矩陣 | 單一 | 例:Flame Sweep / Haze / Mist Eruption / Ignite × Lv × 其 `finalDmgPerLevel` 終傷(Ignite +4%/Lv;其餘 +2%/Lv);Lv40+ 再 +20% 無視防禦(僅主擊意義) |
 | `explosionMult` | 主擊 | Mist Eruption 爆炸終傷 | 單一 | `finalDmgByExplosions[DoT 層數]` 查表;DoT **不吃** |
 | `buffFinalDmgMult` | 主擊 | 實戰 buff 最終傷害 | **不同 buff 互乘,同 buff 層加** | Infinity time-ramp;DoT **不吃** |
+| `bmMult` | 主擊 | Burning Magic | 單一 | `activeDotCount ≥ 1 && currentJobKey ∈ BURNING_MAGIC.jobs` → ×1.20,否則 ×1.00;DoT 主傷害不吃(但 DoT 時長吃 ×2) |
+| `levelDiffMult` | 主擊 | 等差終傷 (`levelDiffFinalDmgPct`) | 單一 | 角色等級 − 怪物等級查表;+5 封頂 +20%、-40 封底 -100%;DoT **不吃**(DoT 有獨立的等差減傷機制,sim 未實作) |
 | `dotSpecialMult` | DoT | DoT 專用特殊終傷 | 單一 | 目前唯一:Fervent Drain 疊層 ×(1 + n×5/100);其他 buff 不貢獻 |
 | `dotEnemyMult` | DoT | 怪物類型 | 單一 | normal=1.00 · boss-full=1.86 · boss-half=1.41 · boss-none=0 |
 | `DOT_COEFFICIENT` | DoT | 模組常數 (`useBattleSim.js`) | 單一 | 固定 1.5;所有 DoT 都乘,主擊不吃 |
@@ -548,6 +580,30 @@ Step 3: 3.5 < 5 → 帽子不生效
 最終: 3.5s
 ```
 
+### Meteor Shower Final Attack(`meteor_shower` passive)
+- **觸發來源**:任何 emitCast 呼叫且來源技能 `hitsPerCast > 0` 且 `id !== 'meteor_shower'`;含 type `attack / aura / derived` 的主擊(Inferno Aura / Ifrit / Poison Mist 也算)
+- **Rolls 數**:`skillExplosionCount(skill)`(一般 1、Mist Eruption 2)
+- **Proc 公式**:`skillFinalAttackPcts(meteor, effSkillLevel(meteor))`,Lv30 60%/220% → Lv31 62%/224%(Combat Orders)
+- **傷害管線**:`mainHitDmg(meteor, elem, enemy, att, fa.damage)` — 走主擊管線(含 elemMult / arcMult / VM / Buff / 防禦 / Burning Magic / 等差終傷);`variance` 不適用
+- **useCount**:每顆成功 proc `+1`;`attackCount +1`
+- **反向觸發**:Meteor Shower 的追打是 fire element → 會再 roll Ignite 一次(`maybeProcIgnite(meteor, tCast, res)` 掛在 meteor proc 成功分支)
+- **Debug log**:`window.__METEOR_DEBUG = true` 啟用 console 輸出 roll/prob/result
+
+### Ignite 火牆(`ignite` passive)
+- **觸發來源**:emitCast 呼叫 + `skill.element === 'fire'` + `skill.id !== 'inferno_aura'`(Meteor Shower proc 成功也觸發)
+- **火牆狀態**:模組級 `igniteWalls = [{ sourceSkillId, spawnAt, nextTickAt, expireAt, tickIntervalMs, tickPct, hitsPerTick }, ...]`,多次 proc 各自獨立疊加
+- **Tick**:每 `tickIntervalSec=2` 造成一次傷害(Lv10 40% × `hitsPerTick=3` 下);3 ticks / 6s(+2s / +4s / +6s)
+- **傷害管線**:`mainHitDmg(ignite, elem, enemy, att, tickPct)`(含 VM +4%/Lv、Lv40+ +20% 無視);**非 DoT,不進 burnState,Burning Magic DoT 計數不變**
+- **useCount / attackCount**:每 tick `useCount +1`、`attackCount += hitsPerTick`(一面火牆全跑完 → 3 useCount / 9 attackCount)
+- **非 4 轉技能** → 無 `combatOrdersEligible`;Lv10 固定封頂
+- **處理時機**:`tick()` 內 `processIgniteWalls(elapsed, enemy, att)` 於 `processBurnTicks` 之後;tick 完清掉 `nextTickAt > expireAt` 的已結束火牆
+- **Debug log**:`window.__IGNITE_DEBUG = true`;debug 面板同步出現在時間軸下方(`.bp-ignite-debug`)
+
+### 等差終傷(`levelDiffFinalDmgPct`,`constants/enemySettings.js`)
+- 角色等級 − 怪物等級 → 終傷 % 查表:+5 封頂 +20%、0 → +10%、-2 → 0%、-4 → -10%、-5 → -12.5%(之後每 -1 等差多 -2.5%)、-40 封底 -100%
+- `useBattleSim` 每 tick 快照 `currentCharLevel / currentEnemyLevel`,`levelDiffMainMult()` 轉乘區並接入 `mainHitDmg` 尾端 mul 鏈
+- **僅主擊**。DoT 有另一套(sim 未實作)
+
 ### ENEMY SETTINGS (`useEnemySettings`)
 - Type(BOSS / 一般)、Level、Defense、Elemental DMG Taken(full/half/none)、Boss ARC
 - ARC 比值查表(`ARC_RATIO_TABLE`)→ 終傷 / 被擊傷害;`finalDmg` 透過 `arcRatioLookup(playerArc, bossArc)` 得出 `%`
@@ -563,13 +619,32 @@ Step 3: 3.5 < 5 → 帽子不生效
   - aura(Inferno Aura / Ifrit)/ derived(Poison Mist)→ 隱藏
   - linkCycle(Thief's Cunning)屬被動 buff → `emitCast` 不把 `rollTriggers` 回傳的啟動 push 進 events
   - DoT tick → 本來就不推入 timeline
+  - Ignite tick → 不推入 timeline(噪音太多)
 - `type: 'buff'` — 來自 `useBattleBuffs.autoTick()` 回傳的 activations(例:Infinity 自動施放),金色方塊 + 金字
 - 時間格式走 `fmtTimelineClock(ms)` → `MM:SS.XX`(去掉小時,精確到百分秒);summary 大時鐘仍用 `fmtClock(HH:MM:SS)`
 
-### 技能詳情表的 useCount
-- 一般技能每次 `emitCast` → `useCount += 1`
-- **爆炸型**(Mist Eruption)→ `useCount += explosions.count`(每爆一次算一次使用)
-- `avgPerCast = total / useCount` 對爆炸型等於「每爆平均」
+### 技能詳情表的 useCount / attackCount 規則
+- 一般技能每次 `emitCast` → `useCount += 1`、`attackCount += hits`(主擊每下一筆)
+- 爆炸型(Mist Eruption)→ `useCount += explosions.count`(2),`attackCount += hitsPerCast × count`
+- Meteor Shower proc 成功:`useCount +1 / attackCount +1`(單擊追加)
+- Ignite tick(每 2s):`useCount +1 / attackCount += hitsPerTick`(每 tick 一次「使用」)
+- **DoT tick**:僅 `attackCount += 1`,`useCount` 不動
+- `avgPerCast = total / useCount`、`avgPerHit = total / attackCount`
+
+### 衍生統計節流(`refreshDerived`)
+- 只計算 `share / avgDmgPerSec / avgPerSec / avgPerCast / avgPerHit` 與 `totalDmg`(各技能 `total` 加總);raw counter(`total / useCount / attackCount / maxHit / minHit`)由 `emitHit / emitCast` 即時寫
+- **節流**:每 1000 模擬毫秒才跑一次,避免面板跟著 rAF(≈60Hz)閃;`tick()` 條件 `elapsed - lastRefreshMs >= 1000 || elapsed >= totalMs`
+- `stop()` 強制跑一次,確保停止當下看到最新值
+
+### CD / 下次施放時間分離
+- **`nextCastAt[id]`**(模組級 + `state.nextCastAt` reactive 快照)— scheduler 用,`max(animDelay, effCd)` 都寫進這裡,其他主動技能的 cast lock 也會改這個
+- **`cooldownEndAt[id]`**(模組級 + `state.cooldownEndAt` reactive 快照)— **純遊戲 CD**,不含動畫鎖;`onHitResetCooldown` 會把它設為 `tCast`(立即 ready)。CD 面板只讀這個,確保 Mist Eruption 重置 Flame Haze 後面板馬上顯示 ready
+- 兩個 map 在每個有 cast 變動的 tick 與 `start()` 以 `syncNextCastAt()` 同步到 reactive state
+
+### 主動技能 CD 面板(`BattlePage` 的 `.bp-cds`,Buff 面板下方)
+- 篩選:`SIM_SKILLS.filter(s => s.type === 'attack' && Number(s.cooldown) > 0)`(目前:Flame Haze / Mist Eruption;Teleport Mastery 已改 aura 排除)
+- 讀 `state.cooldownEndAt[id] - state.elapsedMs`;Ready → 彩色 icon,CD 中 → 灰階 + 中央黃字倒數
+- 統一時間格式 `fmtTimeRemaining(ms)`:<10s 一位小數(`9.3`)、≥10s 整數(`12`)、`≤0` 空字串 — 與 Buff 面板 `.bp-buffs__timer` / `.bp-buffs__cd` 共用
 
 ## UI 慣例
 

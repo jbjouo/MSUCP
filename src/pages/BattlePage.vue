@@ -59,11 +59,47 @@ const visibleBuffs = computed(() =>
     .filter((x) => x.info.source === 'activeToggle' || (x.info.level > 0 && x.info.stats)),
 )
 
-function fmtBuffRemaining(ms) {
+// 統一的剩餘時間格式化:≥10s 顯示整數秒,<10s 顯示一位小數
+//   用於 buff 剩餘時間 / buff CD / 主動技能 CD 三處
+function fmtTimeRemaining(ms) {
   if (!ms || ms <= 0) return ''
-  const s = Math.ceil(ms / 1000)
-  if (s < 60) return `${s}s`
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+  const s = ms / 1000
+  if (s < 10) return s.toFixed(1)
+  return Math.ceil(s).toString()
+}
+
+// Ignite 觸發來源統計 — 火屬技能施放 proc 生成火牆
+const igniteProcRows = computed(() => {
+  if (!result.value?.igniteProcs) return []
+  const rows = []
+  for (const [srcId, stat] of Object.entries(result.value.igniteProcs)) {
+    const src = SIM_SKILLS.find((s) => s.id === srcId)
+    rows.push({
+      id: srcId,
+      name: src?.nameKey ? t(src.nameKey) : (src?.name || srcId),
+      color: src?.color || '#8ea6b8',
+      rolls: stat.rolls,
+      procs: stat.procs,
+      dmg: stat.dmg,
+      rate: stat.rolls > 0 ? (stat.procs / stat.rolls) * 100 : 0,
+    })
+  }
+  rows.sort((a, b) => b.procs - a.procs)
+  return rows
+})
+const igniteProcTotal = computed(() => {
+  const rows = igniteProcRows.value
+  const rolls = rows.reduce((s, r) => s + r.rolls, 0)
+  const procs = rows.reduce((s, r) => s + r.procs, 0)
+  const dmg = rows.reduce((s, r) => s + r.dmg, 0)
+  return { rolls, procs, dmg, rate: rolls > 0 ? (procs / rolls) * 100 : 0 }
+})
+function fmtCompact(n) {
+  const v = Number(n || 0)
+  if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B'
+  if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M'
+  if (v >= 1e3) return (v / 1e3).toFixed(1) + 'k'
+  return String(v)
 }
 
 
@@ -132,6 +168,30 @@ const timelineEvents = computed(() => {
     }
     return false
   })
+})
+// 主動攻擊技能 CD 面板資料 — 顯示在 Buff 面板下方
+//   來源:state.cooldownEndAt[id] vs state.elapsedMs (純遊戲 CD,不含動畫鎖)
+//   → Mist Eruption 重置 Flame Haze 時,Flame Haze 會立即顯示 ready (不再看到動畫鎖的殘影)
+//   篩選:type='attack' 且 cooldown > 0 (排除 filler Flame Sweep / aura / derived / passive)
+const activeSkillCds = computed(() => {
+  const arr = []
+  const elapsed = state.elapsedMs || 0
+  for (const sk of SIM_SKILLS) {
+    if (sk.type !== 'attack') continue
+    if (!(Number(sk.cooldown) > 0)) continue
+    const endAt = state.cooldownEndAt?.[sk.id] ?? 0
+    const remainingMs = Math.max(0, endAt - elapsed)
+    arr.push({
+      id: sk.id,
+      name: sk.nameKey ? t(sk.nameKey) : sk.name,
+      imageUrl: sk.imageUrl,
+      color: sk.color,
+      cooldownSec: sk.cooldown,
+      remainingMs,
+      ready: remainingMs === 0,
+    })
+  }
+  return arr
 })
 const timelineRows = computed(() => {
   if (!result.value) return []
@@ -280,11 +340,25 @@ const timelineRows = computed(() => {
           <span
             v-if="info.remainingMs > 0 && info.count > 0"
             class="bp-buffs__timer"
-          >{{ fmtBuffRemaining(info.remainingMs) }}</span>
+          >{{ fmtTimeRemaining(info.remainingMs) }}</span>
           <span
             v-if="(info.source === 'activeToggle' || info.source === 'linkCycle') && info.onCooldown"
             class="bp-buffs__cd"
-          >{{ fmtBuffRemaining(info.cooldownRemainingMs) }}</span>
+          >{{ fmtTimeRemaining(info.cooldownRemainingMs) }}</span>
+        </div>
+      </div>
+
+      <!-- 主動攻擊技能 CD 面板 — 概念同 Buff 面板;ready → 彩色,CD 中 → 灰階 + 剩餘秒數 -->
+      <div v-if="activeSkillCds.length" class="bp-cds">
+        <div
+          v-for="sk in activeSkillCds"
+          :key="sk.id"
+          class="bp-cds__icon-wrap"
+          :class="{ 'bp-cds__icon-wrap--cd': !sk.ready }"
+          :title="`${sk.name} · CD ${sk.cooldownSec}s${sk.ready ? '' : ` · 剩餘 ${(sk.remainingMs/1000).toFixed(1)}s`}`"
+        >
+          <img class="bp-cds__icon" :src="sk.imageUrl" :alt="sk.name" loading="lazy" />
+          <span v-if="!sk.ready" class="bp-cds__cd">{{ fmtTimeRemaining(sk.remainingMs) }}</span>
         </div>
       </div>
 
@@ -610,6 +684,33 @@ const timelineRows = computed(() => {
       <div v-if="result && timelineEvents.length > 200" class="bp-timeline__more">
         … +{{ timelineEvents.length - 200 }} {{ t('battle.timeline.more') }}
       </div>
+
+      <!-- [DEBUG] Ignite 觸發來源統計 -->
+      <section v-if="result" class="bp-ignite-debug">
+        <header class="bp-ignite-debug__head">
+          <span class="bp-ignite-debug__tag">[DEBUG]</span>
+          <span>Ignite Procs</span>
+        </header>
+        <div v-if="igniteProcTotal.rolls > 0" class="bp-ignite-debug__summary">
+          <span class="bp-ignite-debug__sum-rate">
+            <b>{{ igniteProcTotal.procs }}</b> / {{ igniteProcTotal.rolls }}
+            <small>({{ igniteProcTotal.rate.toFixed(1) }}%)</small>
+          </span>
+          <span class="bp-ignite-debug__sum-dmg">{{ fmtCompact(igniteProcTotal.dmg) }}</span>
+        </div>
+        <div v-if="igniteProcRows.length === 0" class="bp-ignite-debug__empty">—</div>
+        <ul v-else class="bp-ignite-debug__list">
+          <li v-for="row in igniteProcRows" :key="row.id" class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__dot" :style="{ background: row.color }" />
+            <span class="bp-ignite-debug__name">{{ row.name }}</span>
+            <span class="bp-ignite-debug__nums">
+              <b>{{ row.procs }}</b><span class="bp-ignite-debug__sep">/</span>{{ row.rolls }}
+              <small>{{ row.rate.toFixed(1) }}%</small>
+            </span>
+            <span class="bp-ignite-debug__dmg">{{ fmtCompact(row.dmg) }}</span>
+          </li>
+        </ul>
+      </section>
     </aside>
   </section>
 </template>
@@ -863,8 +964,6 @@ const timelineRows = computed(() => {
   flex-direction: column;
   gap: 6px;
   align-self: flex-start;
-  max-height: 720px;
-  overflow: hidden;
 }
 .bp-timeline__head {
   display: flex;
@@ -940,6 +1039,152 @@ const timelineRows = computed(() => {
   font-size: 0.7rem;
   color: #8ea6b8;
   padding: 4px;
+}
+
+/* [DEBUG] Ignite 觸發統計 — 時間軸下方暫時面板 (同 Meteor Shower debug 之前的樣式) */
+.bp-ignite-debug {
+  margin-top: 4px;
+  padding: 6px 8px 8px;
+  background: rgba(255, 106, 42, 0.06);
+  border: 1px dashed rgba(255, 106, 42, 0.45);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bp-ignite-debug__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #ff9a6e;
+  text-transform: uppercase;
+}
+.bp-ignite-debug__tag {
+  font-size: 0.62rem;
+  color: #ff6a2a;
+  background: rgba(255, 106, 42, 0.16);
+  border: 1px solid rgba(255, 106, 42, 0.4);
+  border-radius: 3px;
+  padding: 1px 4px;
+  letter-spacing: 0.1em;
+}
+.bp-ignite-debug__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+.bp-ignite-debug__sum-rate b { color: #ffc857; font-weight: 800; }
+.bp-ignite-debug__sum-rate small { color: #8ea6b8; font-size: 0.68rem; margin-left: 2px; }
+.bp-ignite-debug__sum-dmg {
+  color: #ff9a6e;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+.bp-ignite-debug__empty {
+  text-align: center;
+  padding: 6px;
+  font-size: 0.72rem;
+  color: #8ea6b8;
+}
+.bp-ignite-debug__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.bp-ignite-debug__row {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 4px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+.bp-ignite-debug__row:nth-child(odd) { background: rgba(255, 255, 255, 0.03); }
+.bp-ignite-debug__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid #1a1f27;
+}
+.bp-ignite-debug__name {
+  color: #e8edf2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-ignite-debug__nums b { color: #ffc857; font-weight: 800; }
+.bp-ignite-debug__nums small { color: #8ea6b8; font-size: 0.66rem; margin-left: 3px; }
+.bp-ignite-debug__sep { color: #8ea6b8; margin: 0 1px; }
+.bp-ignite-debug__dmg {
+  color: #ff9a6e;
+  font-weight: 700;
+  min-width: 42px;
+  text-align: right;
+}
+
+/* 主動技能 CD 面板 — 結構同 .bp-buffs;CD 中 → 灰階 + 中央倒數秒數 */
+.bp-cds {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: linear-gradient(180deg, #2f3642 0%, #262d38 100%);
+  border: 1px solid #1a1f27;
+  border-radius: 8px;
+  min-height: 50px;
+}
+.bp-cds__icon-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.bp-cds__icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  background: #1f2630;
+  border: 1px solid #141a22;
+  border-radius: 5px;
+  display: block;
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+.bp-cds__icon-wrap--cd .bp-cds__icon {
+  filter: grayscale(1) brightness(0.55);
+  opacity: 0.75;
+}
+.bp-cds__cd {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffeaa0;
+  font-size: 0.95rem;
+  font-weight: 900;
+  font-family: inherit;
+  line-height: 1;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-shadow:
+    -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000,
+    -1px  0   0 #000,               1px  0   0 #000,
+    -1px  1px 0 #000, 0  1px 0 #000, 1px  1px 0 #000,
+    -2px  0   0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000;
 }
 
 /* 中央主面板 */

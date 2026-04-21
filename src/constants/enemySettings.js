@@ -54,3 +54,24 @@ export const DEFAULT_ENEMY_SETTINGS = {
   elementalDmg: 'half',
   bossArc: 1000,
 }
+
+// 等差 (角色等級 − 怪物等級) → 主擊終傷修正 %
+//   ≥ +5    : 封頂 +20%
+//    0 ~ +5 : +10% + diff × 2%   (每 +1 等差 +2%)
+//    0 → -4 : 階梯 +10 / +5 / 0 / -5 / -10 (每降 1 等差 -5%)
+//   -5 ~ -40: -10% − (|diff|-4) × 2.5%  (每降 1 等差 -2.5%)
+//   ≤ -40   : 封底 -100% (×0,打不動)
+// 僅套用於「主擊」— DoT 有另一套等差減傷機制,不適用本表。
+export function levelDiffFinalDmgPct(charLevel, enemyLevel) {
+  const cl = Math.floor(Number(charLevel) || 0)
+  const el = Math.floor(Number(enemyLevel) || 0)
+  const diff = cl - el
+  if (diff >= 5) return 20
+  if (diff >= 0) return 10 + diff * 2
+  if (diff === -1) return 5
+  if (diff === -2) return 0
+  if (diff === -3) return -5
+  if (diff === -4) return -10
+  if (diff <= -40) return -100
+  return -10 - (Math.abs(diff) - 4) * 2.5
+}

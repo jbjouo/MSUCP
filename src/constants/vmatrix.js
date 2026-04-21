@@ -68,6 +68,13 @@ export const VMATRIX_SKILLS = [
     jobs: ['archmageFP'],
     maxLevel: 60,
     skillSpecific: true },
+  { id: 'ignite',
+    nameKey: 'skills.archmageFP.ignite.name',
+    descriptionKey: 'vmatrix.skills.ignite_core.description',
+    imageUrl: ICON('Ignite'),
+    jobs: ['archmageFP'],
+    maxLevel: 60,
+    skillSpecific: true },
 ]
 
 export function maxLevelOf(skill) {

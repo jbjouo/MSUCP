@@ -96,6 +96,18 @@
         "name": "Mist Eruption",
         "description": "引爆目標周圍的 Poison Mist / 持續傷害,給予致命毒屬傷害。10 連擊、最多命中 12 名敵人。終傷依目標身上的 DoT 層數遞增(2 → +20%、3 → +45%、4 → +80%、5+ → +125%)。命中 ≥5 層 DoT 時自身冷卻 -2 秒(優先於其他冷卻減免)。命中時重置 Flame Haze 冷卻。"
       },
+      "meteor_shower": {
+        "name": "Meteor Shower",
+        "description": "本 sim 僅作為被動 Final Attack(不主動施放)。角色任何主擊技能每次「使用」roll 一次追加隕石 — Lv30 60% 機率 × 220% × 1 擊(火屬性)。觸發來源包含 Flame Sweep / Haze / Mist Eruption / Teleport Mastery 與 Inferno Aura / Ifrit / Poison Mist 的主擊;Meteor Shower 自身不觸發自身。爆炸型技能(Mist Eruption)一次施放獨立 roll 2 次(= useCount)。"
+      },
+      "burning_magic": {
+        "name": "Burning Magic",
+        "description": "火毒 passive (Master Lv10)。場上有任何 DoT 生效時,主擊終傷 +20%(與其他終傷來源相乘)。Lv10 原另附 DoT 持續時間 +100%,本 sim 尚未套用。DoT tick 本身不吃此加成(依既有「DoT 不吃通用終傷」規則)。"
+      },
+      "ignite": {
+        "name": "Ignite",
+        "description": "火毒 passive (Master Lv10) / 開關技能。施放火屬性技能時 Lv10 50% 機率在目標位置生成火牆(排除 Inferno Aura)。每道火牆持續 6s,2s/4s/6s 各造成一次傷害 (40% × 1 擊,最多 8 敵)。多個火牆互相獨立 — 每次 proc 都可能疊加一道新火牆。每次 tick 走主擊 pipeline (吃爆擊 / 熟練度 / 防禦 / ARC / 屬性 / Burning Magic),不是 DoT。Ignite 本身不觸發其他技能(例 Meteor Shower 追打)。"
+      },
       "inferno_aura": {
         "name": "Inferno Aura",
         "description": "開關型氣場(預設開啟)。每 3 秒對周圍敵人造成 400% × 2 擊主傷,並施加 500%/秒 × 30 秒的持續傷害(每次觸發刷新)。戰鬥開始後首次觸發時間於 0-3 秒間隨機。"
@@ -632,6 +644,9 @@
       },
       "mist_eruption_core": {
         "description": "技能專屬 V 矩陣 — 僅作用於 Mist Eruption:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
+      },
+      "ignite_core": {
+        "description": "技能專屬 V 矩陣 — 僅作用於 Ignite:每等級 +4% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
       }
     }
   },

@@ -19,6 +19,7 @@ export const FLAME_SWEEP = {
   element: 'fire',
   type: 'attack',
   baseLevel: 30,
+  combatOrdersEligible: true,
   mpCost: 40,
   hitsPerCast: 7,
   maxEnemies: 8,
@@ -30,7 +31,6 @@ export const FLAME_SWEEP = {
     tickIntervalSec: 1,
   },
   castDelayBySpeed: { 7: 660, 8: 600 },
-  variance: 0.15,
   // 技能專屬 V 矩陣 (僅作用於此技能,不顯示於角色面板)
   //   maxLevel = 60
   //   每等級 +2% 終傷
@@ -58,6 +58,7 @@ export const FLAME_HAZE = {
   element: 'fire',
   type: 'attack',
   baseLevel: 30,
+  combatOrdersEligible: true,
   mpCost: 70,
   hitsPerCast: 15,
   maxEnemies: 1, // 單體
@@ -69,7 +70,6 @@ export const FLAME_HAZE = {
     tickIntervalSec: 1,
   },
   castDelayBySpeed: { 7: 960, 8: 900 },
-  variance: 0.15,
   cooldown: 10,
   // 開場優先序 (高優先 → 先排程)
   priority: 100,
@@ -102,6 +102,7 @@ export const MIST_ERUPTION = {
   element: 'poison',
   type: 'attack',
   baseLevel: 30,
+  combatOrdersEligible: true,
   mpCost: 100,
   // 每次「爆炸」的擊數 (Number of Attacks);實際每施放總擊數 = hitsPerCast × 爆炸數
   hitsPerCast: 10,
@@ -110,7 +111,6 @@ export const MIST_ERUPTION = {
   // 技能自帶無視防禦(Lv30 +40%,每級 +1%)
   ignoreDef: { base: 40, perLevel: 1 },
   castDelayBySpeed: { 7: 780, 8: 720 },
-  variance: 0.15,
   cooldown: 10,
   // 固定每次施放爆炸 count 次,總擊數 = hitsPerCast × count
   //   DoT 層數只影響終傷查表(finalDmgByExplosions)與 CD 優先減免,與擊數無關
@@ -164,7 +164,6 @@ export const POISON_MIST = {
     tickIntervalSec: 1,
   },
   castDelayBySpeed: { 7: 0, 8: 0 },
-  variance: 0.15,
   // 場上霧氣存在時長(控制 Mist Eruption 可用性)
   fieldDurationSec: 15,
 }
@@ -196,7 +195,6 @@ export const INFERNO_AURA = {
   },
   // 開關型:非一般施放,不占動畫時間;cast 延遲空 0 配合 aura 間隔排程
   castDelayBySpeed: { 7: 0, 8: 0 },
-  variance: 0.15,
   // 開關型持續技能 — 固定間隔觸發,忽略 cooldown 與 priority cascade
   aura: {
     intervalSec: 3,
@@ -222,6 +220,7 @@ export const IFRIT = {
   element: 'fire',
   type: 'aura',
   baseLevel: 30,
+  combatOrdersEligible: true,
   mpCost: 120,
   hitsPerCast: 3,
   maxEnemies: 3,
@@ -233,7 +232,6 @@ export const IFRIT = {
     tickIntervalSec: 1,
   },
   castDelayBySpeed: { 7: 0, 8: 0 },
-  variance: 0.15,
   aura: {
     intervalSec: 3,
     firstHitWindowSec: [0, 3],
@@ -244,20 +242,21 @@ export const IFRIT = {
 }
 
 // ─── Teleport Mastery ──────────────────────────────────────────────────────
-// 開關技能(sim 預設開啟)— 戰鬥開始後第一次排程使用,之後每 15s 重施一次刷新 DoT
-// Lv10 (master):單擊 272% + DoT 98%/2sec × 20sec(10 ticks);CD 15s
+// 遊戲中 CD = 0,sim 用 aura 型作週期性排程以延續 DoT。
+//   開場 t=0 立即使用一次,之後每 30 秒重施 (DoT 40s ≥ 30s + 安全緩衝)。
+//   aura 型不受其他技能的 cast lock 影響、也不會鎖住其他技能;不會出現在 CD 面板。
+// Lv10 (master):單擊 272% + DoT 98%/2sec × 20sec(Lv30 + Burning Magic ×2 → 40sec)
 // Lv1: 200% / 71% (每級 +8% 主 / +3% DoT)
-// 對應 priority 60 → 開場在 Flame Haze(100) / Mist Eruption(80) 之後排程
 export const TELEPORT_MASTERY = {
   id: 'teleport_mastery',
   name: 'Teleport Mastery',
   nameKey: 'skills.archmageFP.teleport_mastery.name',
   descriptionKey: 'skills.archmageFP.teleport_mastery.description',
-  imageUrl: ICON('Teleport_Mastery'),
+  imageUrl: 'https://media.maplestorywiki.net/yetidb/Skill_Teleport_Mastery_%28Fire%2C_Poison%29.png',
   color: '#9ad4ff',
   jobs: ['archmageFP'],
   element: 'fire',
-  type: 'attack',
+  type: 'aura',
   baseLevel: 10,
   mpCost: 20,
   hitsPerCast: 1,
@@ -269,16 +268,144 @@ export const TELEPORT_MASTERY = {
     durationSec: 20,
     tickIntervalSec: 2,
   },
-  // 瞬移無施放延遲;fire 時不鎖其他主動技能 (animDelay=0 → lockUntil = tCast,等於沒鎖)
   castDelayBySpeed: { 7: 0, 8: 0 },
-  variance: 0.15,
-  cooldown: 15,
-  priority: 60,
+  // 開場 t=0 立即施放,之後每 30s 一次 (延續 DoT)
+  aura: {
+    intervalSec: 30,
+    firstHitWindowSec: [0, 0],
+    defaultEnabled: true,
+  },
+}
+
+// ─── Meteor Shower ─────────────────────────────────────────────────────────
+// 本 sim 僅視為「被動 Final Attack」— 永遠不主動施放(type: 'passive' 不進排程)。
+// 角色主動技能的每次「使用」有機率追加 1 顆隕石。
+// Lv30: 60% 機率 / 220% × 1 擊
+// Lv31: 62% / 224%               (每級 +2% / +4%)
+// Lv1:   2% / 104%
+// 觸發來源:任何有主擊的技能,除 Meteor Shower 自身
+//   → 含 type='attack' (主動) / 'aura' (Inferno Aura / Ifrit) / 'derived' (Poison Mist) 之主擊
+//   爆炸型技能(Mist Eruption 2 次)每次施放 roll explosions.count 次(= useCount)
+//
+// 參考:完整主動版本 Lv30 = 315% × 12 擊、CD 45s、MP 300;在本 sim 不使用。
+export const METEOR_SHOWER = {
+  id: 'meteor_shower',
+  name: 'Meteor Shower',
+  nameKey: 'skills.archmageFP.meteor_shower.name',
+  descriptionKey: 'skills.archmageFP.meteor_shower.description',
+  imageUrl: ICON('Meteor_Shower'),
+  color: '#ff784a',
+  jobs: ['archmageFP'],
+  element: 'fire',
+  type: 'passive',
+  baseLevel: 30,
+  combatOrdersEligible: true,
+  // 參考用(主動版本);sim 不排程,只用於 simulateSingleCast 顯示
+  mpCost: 300,
+  hitsPerCast: 12,
+  maxEnemies: 15,
+  damage: { base: 315, perLevel: 3 },
+  finalAttack: {
+    procRate: { base: 60, perLevel: 2 }, // %
+    damage:   { base: 220, perLevel: 4 }, // %
+  },
+}
+
+// ─── Burning Magic ─────────────────────────────────────────────────────────
+// 火毒 passive (Master Lv10) — 不進 SIM_SKILLS (不產生傷害,純 passive 加成,避免
+// 在技能詳情表出現全 0 的 row)。useBattleSim 直接 import 本常數取值。
+//
+// Lv10:
+//   - 場上有任何 DoT 生效 → 主擊終傷 +20% (與其他終傷來源相乘)
+//   - DoT 持續時間 +100%  (目前 sim 尚未套用)
+// 觸發條件:currentJobKey ∈ jobs。main hit 才吃,DoT tick 不吃 (依既有「DoT 不吃通用終傷」規則)。
+export const BURNING_MAGIC = {
+  id: 'burning_magic',
+  name: 'Burning Magic',
+  nameKey: 'skills.archmageFP.burning_magic.name',
+  descriptionKey: 'skills.archmageFP.burning_magic.description',
+  imageUrl: ICON('Burning_Magic'),
+  jobs: ['archmageFP'],
+  baseLevel: 10,
+  finalDmgPctWhenDotActive: 20,
+  dotDurationMult: 2.0, // 參考:Lv10 DoT 時長 +100%;sim 尚未套用
+}
+
+// ─── Ignite ────────────────────────────────────────────────────────────────
+// 火毒 passive (Master Lv10) — 開關技能,sim 視為常駐。
+// 玩家施放「火屬性」技能時有機率在目標位置生成火牆;
+//   火牆每 tickIntervalSec 造成一次傷害,持續 durationSec (3 ticks:+2s / +4s / +6s)。
+//   每次 tick 走主擊 pipeline (爆擊 / 熟練度 / 防禦 / ARC / 屬性 / Burning Magic 等)。
+//   多個火牆互相獨立 — 每次施放 proc 都可能疊生一個新火牆。
+//
+// sim 規則:
+//   - 觸發來源:emitCast 呼叫 + skill.element === 'fire' + skill.id !== 'inferno_aura'
+//   - type: 'passive' → 不進 scheduler、也不會觸發 Meteor Shower 追打 (meteorTriggerRolls 回 0)
+//   - 每次 tick = +1 useCount、+hitsPerTick attackCount
+//   - 不是 DoT (不進 burnState,Burning Magic 計數不變)
+//
+// Lv10 (master): 50% 觸發,40% × 1 擊,持續 6s (3 ticks);Max 8 enemies
+// Lv1:  14%,31%,持續 4s
+// sim 使用線性推定 (perLevel);duration 固定 6s
+// Ignite 非 4 轉技能 → 不吃 Combat Orders +1 (baseLevel 為最終 master 10)
+export const IGNITE = {
+  id: 'ignite',
+  name: 'Ignite',
+  nameKey: 'skills.archmageFP.ignite.name',
+  descriptionKey: 'skills.archmageFP.ignite.description',
+  imageUrl: ICON('Ignite'),
+  color: '#ff6a2a',
+  jobs: ['archmageFP'],
+  element: 'fire',
+  type: 'passive',
+  baseLevel: 10,
+  // Ignite 非 4 轉技能,不吃 Combat Orders +1 (上限固定為 master Lv10)
+  maxEnemies: 8,
+  ignite: {
+    procRate: { base: 50, perLevel: 4 },   // Lv1 14% → Lv10 50% (master)
+    damage:   { base: 40, perLevel: 1 },   // Lv1 31% → Lv10 40%
+    tickIntervalSec: 2,
+    durationSec: 6,                         // 固定 6s (Lv10)
+    hitsPerTick: 3,                         // Attack Count: 3 → 每次 tick 3 下攻擊
+  },
+  // 技能專屬 V 矩陣 — 每等級 +4% 終傷;Lv40+ 額外無視防禦 +20% (獨立一排,與 Hyper 無視不相加)
+  vmatrix: {
+    maxLevel: 60,
+    finalDmgPerLevel: 4,
+    ignoreDefBonus: { threshold: 40, value: 20 },
+  },
+}
+
+// 依等級計算 Ignite 實際數值 — 若技能無 ignite 設定回 null
+export function skillIgnitePcts(skill, level) {
+  const d = skill?.ignite
+  if (!d) return null
+  const lv = Math.max(skill.baseLevel, Number(level) || skill.baseLevel)
+  const delta = Math.max(0, lv - skill.baseLevel)
+  return {
+    procRate: (d.procRate?.base || 0) + delta * (d.procRate?.perLevel || 0),
+    damage:   (d.damage?.base   || 0) + delta * (d.damage?.perLevel   || 0),
+    tickIntervalSec: d.tickIntervalSec || 2,
+    durationSec: d.durationSec || 6,
+    hitsPerTick: d.hitsPerTick || 1,
+  }
 }
 
 export const ARCHMAGE_FP_SKILLS = [
-  FLAME_SWEEP, FLAME_HAZE, MIST_ERUPTION, INFERNO_AURA, POISON_MIST, IFRIT, TELEPORT_MASTERY,
+  FLAME_SWEEP, FLAME_HAZE, MIST_ERUPTION, METEOR_SHOWER, IGNITE, INFERNO_AURA, POISON_MIST, IFRIT, TELEPORT_MASTERY,
 ]
+
+// Meteor Shower 被動 Final Attack 在給定等級的實際數值 — 若技能無 finalAttack 回 null。
+export function skillFinalAttackPcts(skill, level) {
+  const fa = skill?.finalAttack
+  if (!fa) return null
+  const lv = Math.max(skill.baseLevel, Number(level) || skill.baseLevel)
+  const delta = Math.max(0, lv - skill.baseLevel)
+  return {
+    procRate: (fa.procRate?.base || 0) + delta * (fa.procRate?.perLevel || 0),
+    damage:   (fa.damage?.base   || 0) + delta * (fa.damage?.perLevel   || 0),
+  }
+}
 
 // 依等級計算實際傷害 / DoT 百分比
 export function skillDamagePct(skill, level) {
