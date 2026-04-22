@@ -21,7 +21,24 @@ import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
+
+// 統一從技能/buff/title entry 取顯示文字:優先 i18n(nameKey / descriptionKey),
+// 否則 fallback 到 entry.name。所有側欄與 tooltip 相關顯示都走這兩個 helper。
+function displayName(entry) {
+  if (!entry) return ''
+  if (entry.nameKey && te(entry.nameKey)) return t(entry.nameKey)
+  return entry.name || entry.id || ''
+}
+function displayDescription(entry) {
+  if (entry?.descriptionKey && te(entry.descriptionKey)) return t(entry.descriptionKey)
+  return ''
+}
+function tooltipText(entry) {
+  const n = displayName(entry)
+  const d = displayDescription(entry)
+  return d ? `${n} — ${d}` : n
+}
 const {
   activeBuffs,
   activeSkillIds,
@@ -113,8 +130,8 @@ const visibleTitles = computed(() => {
   return TITLES.filter((t) => !t.jobs || t.jobs.includes(jobKey))
 })
 
-// 側欄只列出「可切換」的共通技能;passive 職業技能不顯示開關
-const toggleableSkills = computed(() => SKILLS.filter((s) => !s.passive))
+// 側欄只列出「可切換」的共通技能 — 依 cp.role 判斷,不再依技能本體的 passive 欄位
+const toggleableSkills = computed(() => SKILLS.filter((s) => s.cp?.role === 'toggle'))
 
 // BUFF 側欄只顯示符合當前職業的 buff
 const visibleBuffs = computed(() => {
@@ -375,7 +392,7 @@ const breakdowns = computed(() => {
     if (!activeBuffs.value.has(buff.id)) continue
     if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
-    const buffLabel = t('cp.tip.buffPrefix', { name: buff.name })
+    const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
     // 靜態 stats
     for (const [k, v] of Object.entries(buff.stats || {})) {
       if (PCT_KEYS.has(k)) addPct(k, buffLabel, v, cpExc)
@@ -422,7 +439,7 @@ const breakdowns = computed(() => {
   for (const title of TITLES) {
     if (!activeTitleIds.value.has(title.id)) continue
     if (title.jobs && !title.jobs.includes(currentJob.value?.key)) continue
-    const label = t('cp.tip.titlePrefix', { name: title.name })
+    const label = t('cp.tip.titlePrefix', { name: displayName(title) })
     for (const [k, v] of Object.entries(title.stats || {})) {
       if (PCT_KEYS.has(k)) addPct(k, label, v)
       else addFlat(k, label, v)
@@ -442,19 +459,22 @@ const breakdowns = computed(() => {
     skillLevelBonus, // Combat Orders 等會影響被動技能等級
   }
   for (const skill of SKILLS) {
+    const role = skill.cp?.role
     let bag = null
-    if (skill.passive) {
+    if (role === 'passive') {
       if (skill.jobs && !skill.jobs.includes(myJobKey)) continue
       bag = typeof skill.contribute === 'function'
         ? skill.contribute(skillCtx)
         : skill.stats
-    } else {
+    } else if (role === 'toggle') {
       if (!activeSkillIds.value.has(skill.id)) continue
       bag = skill.stats
+    } else {
+      continue // 沒 CP 角色
     }
     if (!bag) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(skill.id)
-    const skillLabel = t('cp.tip.skillPrefix', { name: skill.name })
+    const skillLabel = t('cp.tip.skillPrefix', { name: displayName(skill) })
     for (const [k, v] of Object.entries(bag)) {
       if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
       else addFlat(k, skillLabel, v, false, cpExc)
@@ -1229,10 +1249,10 @@ function onPanelOut(e) {
             type="button"
             class="buff-cell"
             :class="{ 'buff-cell--on': isSkillActive(skill.id) }"
-            :title="skill.name"
+            :title="tooltipText(skill)"
             @click="toggleSkill(skill.id)"
           >
-            <img :src="skill.icon" :alt="skill.name" />
+            <img :src="skill.icon" :alt="displayName(skill)" />
           </button>
         </div>
       </section>
@@ -1246,10 +1266,10 @@ function onPanelOut(e) {
             type="button"
             class="buff-cell"
             :class="{ 'buff-cell--on': isBuffActive(buff.id) }"
-            :title="buff.name"
+            :title="tooltipText(buff)"
             @click="toggleBuff(buff.id)"
           >
-            <img :src="buff.icon" :alt="buff.name" />
+            <img :src="buff.icon" :alt="displayName(buff)" />
           </button>
         </div>
       </section>
@@ -1263,10 +1283,10 @@ function onPanelOut(e) {
             type="button"
             class="buff-cell"
             :class="{ 'buff-cell--on': isTitleActive(title.id) }"
-            :title="title.name"
+            :title="tooltipText(title)"
             @click="toggleTitle(title.id)"
           >
-            <img :src="title.icon" :alt="title.name" />
+            <img :src="title.icon" :alt="displayName(title)" />
           </button>
         </div>
       </section>

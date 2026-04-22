@@ -65,6 +65,8 @@ function emptyResult(durationSec) {
     meteorProcs: {},
     // Ignite 觸發除錯統計:{ [sourceSkillId]: { rolls, procs, dmg } } (dmg 累計該來源所有火牆的傷害)
     igniteProcs: {},
+    // 第一次 Megiddo Flame 施放的 snapshot(debug 面板用)— null 表尚未施放
+    megiddoFirstCast: null,
   }
 }
 
@@ -393,7 +395,7 @@ function processIgniteWalls(elapsed, enemy, att) {
 function meteorTriggerRolls(skill, meteor) {
   if (!skill || !meteor) return 0
   if (skill.id === meteor.id) return 0
-  if (skill.type === 'passive') return 0
+  if (skill.sim?.role === 'passive') return 0
   if (!skill.hitsPerCast) return 0
   return Math.max(0, skillExplosionCount(skill))
 }
@@ -444,15 +446,31 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   // 爆炸型:總擊數 = 固定爆炸數 × 每爆擊數 (與 DoT 層數無關)
   const baseHits = (skill.hitsPerCast || 0) * explosionsN
   const hits = Math.max(0, baseHits + (hs.hitsPerCastBonus || 0))
-  for (let h = 0; h < hits; h++) {
-    // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
-    emitHit(stats, mainHitDmg(skill, elemMult, enemy, att))
+  // 分波火球(例:Megiddo Flame 11 顆 × 4 擊):第 1 顆 FD 100%,其餘 × subsequentFdMult
+  //   每擊獨立呼叫 mainHitDmg(各自的 crit / variance),乘上該顆 orb 的 FD 倍率
+  const orbs = skill.sim?.orbs
+  if (orbs?.maxTotal && orbs?.attacksPerOrb) {
+    const totalOrbs = orbs.maxTotal
+    const perOrb = orbs.attacksPerOrb
+    const subFd = orbs.subsequentFdMult ?? 1
+    for (let o = 0; o < totalOrbs; o++) {
+      const fd = (o === 0) ? 1 : subFd
+      for (let h = 0; h < perOrb; h++) {
+        emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * fd)
+      }
+    }
+  } else {
+    for (let h = 0; h < hits; h++) {
+      // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
+      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att))
+    }
   }
   // Mist Eruption 等技能命中時重置指定技能 CD (例:→ Flame Haze)
   //   scheduler 下一次可施放 = 本施放的動畫完成後 (避免施放重疊) — 由下面的 cast lock 統一處理
   //   UI CD 面板讀 cooldownEndAt → 立即設為 tCast,反映「遊戲 CD 已清零」
-  if (Array.isArray(skill.onHitResetCooldown) && skill.onHitResetCooldown.length) {
-    for (const targetId of skill.onHitResetCooldown) {
+  const onHitResetCooldown = skill.sim?.onHitResetCooldown
+  if (Array.isArray(onHitResetCooldown) && onHitResetCooldown.length) {
+    for (const targetId of onHitResetCooldown) {
       nextCastAt[targetId] = tCast + Math.floor(rng() * 40)
       cooldownEndAt[targetId] = tCast
     }
@@ -462,8 +480,9 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     fieldState[skill.id] = { expireAt: tCast + skill.fieldDurationSec * 1000 }
   }
   // 衍生技能 — 於同 tCast 一併施放(例:Flame Haze → Poison Mist)
-  if (Array.isArray(skill.onHitSpawn) && skill.onHitSpawn.length) {
-    for (const derivedId of skill.onHitSpawn) {
+  const onHitSpawn = skill.sim?.onHitSpawn
+  if (Array.isArray(onHitSpawn) && onHitSpawn.length) {
+    for (const derivedId of onHitSpawn) {
       const derived = SKILL_BY_ID[derivedId]
       if (derived) emitCast(derived, tCast, elemMultFor(derived, enemy), enemy, att)
     }
@@ -490,6 +509,44 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
         dmg: snapshotDmg,
       }
       syncDotCount()
+    }
+  }
+
+  // [DEBUG] Megiddo Flame — 僅捕捉戰鬥開始後第一次施放的 main hit / DoT snapshot
+  if (skill.id === 'megiddo_flame' && !res.megiddoFirstCast) {
+    const sampleMain = mainHitDmg(skill, elemMult, enemy, att)
+    const orbsMeta = skill.sim?.orbs
+    const totalOrbs = orbsMeta?.maxTotal ?? 1
+    const perOrb = orbsMeta?.attacksPerOrb ?? hits
+    const subFd = orbsMeta?.subsequentFdMult ?? 1
+    const firstOrbHit = sampleMain
+    const subOrbHit = sampleMain * subFd
+    const hitsFirstOrb = perOrb
+    const hitsSubOrbs = perOrb * Math.max(0, totalOrbs - 1)
+    const mainTotalEst = Math.floor(firstOrbHit * hitsFirstOrb + subOrbHit * hitsSubOrbs)
+
+    const bs = burnState[skill.id]
+    const dotTick = bs?.dmg || 0
+    const burnDurSec = (skill.burn?.durationSec || 0) + (hs.burnDurationBonusSec || 0)
+    const tickIvSec = skill.burn?.tickIntervalSec || 1
+    const dotTickCount = Math.max(0, Math.floor(burnDurSec / tickIvSec))
+    res.megiddoFirstCast = {
+      tCast,
+      skillLevel: effSkillLevel(skill),
+      hitsRaw: perOrb * totalOrbs,
+      orbTotal: totalOrbs,
+      perOrb,
+      subFdMult: subFd,
+      firstOrbHit: Math.floor(firstOrbHit),
+      subOrbHit: Math.floor(subOrbHit),
+      hitsFirstOrb,
+      hitsSubOrbs,
+      mainTotalEst,
+      dotTickDmg: dotTick,
+      dotTickCount,
+      dotTotal: dotTick * dotTickCount,
+      dotDurationSec: burnDurSec,
+      tickIntervalSec: tickIvSec,
     }
   }
 
@@ -632,10 +689,11 @@ function tick() {
     let pickTime = Infinity
     let pickPriority = -Infinity
     for (const s of SIM_SKILLS) {
-      if (s.type === 'derived' || s.type === 'passive') continue
+      const role = s.sim?.role
+      if (role === 'derived' || role === 'passive') continue
       const t = nextCastAt[s.id]
       if (t == null || t > elapsed) continue
-      const pri = s.priority || 0
+      const pri = s.sim?.priority || 0
       if (t < pickTime || (t === pickTime && pri > pickPriority)) {
         pick = s
         pickTime = t
@@ -645,8 +703,9 @@ function tick() {
     if (!pick) break
     const skill = pick
     // 前置條件 requiresField — 不滿足就推後 200ms,回圈再選下一個
-    if (skill.requiresField) {
-      const fs = fieldState[skill.requiresField]
+    const requiresField = skill.sim?.requiresField
+    if (requiresField) {
+      const fs = fieldState[requiresField]
       if (!fs || elapsed >= fs.expireAt) {
         nextCastAt[skill.id] = elapsed + 200
         continue
@@ -657,28 +716,30 @@ function tick() {
     changed = true
 
     // Aura:固定間隔觸發,不鎖其他技能
-    if (skill.aura) {
-      const intervalMs = Math.max(50, (skill.aura.intervalSec || 3) * 1000)
+    const auraSim = skill.sim?.aura
+    if (auraSim) {
+      const intervalMs = Math.max(50, (auraSim.intervalSec || 3) * 1000)
       nextCastAt[skill.id] = tCast + intervalMs
       continue
     }
 
-    const animDelay = skill.castDelayBySpeed?.[state.attackSpeed] ?? 1000
+    const animDelay = skill.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 1000
     const baseCd = Number(skill.cooldown) || 0
     const hsCd = hyperBagFor(skill.id)
     // 條件式優先減免(Mist Eruption 命中 ≥5 爆炸 -2s):爆炸數以施放當下 activeDotCount 判斷
     const activeDots = useDotTracker().state.activeDotCount
-    const priorityThreshold = skill.cooldownPriorityThreshold || 0
+    const cdSim = skill.sim?.cooldown || {}
+    const priorityThreshold = cdSim.priorityThreshold || 0
     const priorityRed = (priorityThreshold > 0 && activeDots >= priorityThreshold)
-      ? (skill.cooldownPriorityRedSec || 0)
-      : (priorityThreshold === 0 ? (skill.cooldownPriorityRedSec || 0) : 0)
+      ? (cdSim.priorityRedSec || 0)
+      : (priorityThreshold === 0 ? (cdSim.priorityRedSec || 0) : 0)
     const effCdMs = baseCd > 0
       ? computeEffectiveCooldown(baseCd, {
           skillPriorityRedSec: priorityRed,
-          skillOwnPctRed: (skill.cooldownOwnPctRed || 0) + (hsCd.cooldownOwnPctRed || 0),
+          skillOwnPctRed: (cdSim.ownPctRed || 0) + (hsCd.cooldownOwnPctRed || 0),
           externalPctRed: att?.cooldownReductionPct || 0,
           hatFlatRedSec: att?.cooldownReductionSec || 0,
-          externalPctUsesBaseAsFlat: !!skill.cooldownExternalPctUsesBaseAsFlat,
+          externalPctUsesBaseAsFlat: !!cdSim.externalPctUsesBaseAsFlat,
         }) * 1000
       : 0
     const nextDelta = Math.max(animDelay, effCdMs)
@@ -691,7 +752,8 @@ function tick() {
     const lockUntil = tCast + animDelay
     for (const other of SIM_SKILLS) {
       if (other === skill) continue
-      if (other.type === 'aura' || other.type === 'derived' || other.type === 'passive') continue
+      const otherRole = other.sim?.role
+      if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
       const cur = nextCastAt[other.id]
       if (cur != null && cur < lockUntil) nextCastAt[other.id] = lockUntil
     }
@@ -765,18 +827,19 @@ export function useBattleSim() {
     //   derived 型(例 Poison Mist)→ 完全不排程,靠 onHitSpawn 觸發
     //   aura 型(開關持續技)→ 首次觸發在 firstHitWindowSec 內隨機,不進 priority cascade
     //   一般型                → 依 priority 遞減累加 animDelay,避免同 tick 齊發
-    const schedulable = SIM_SKILLS.filter((s) => s.type !== 'derived' && s.type !== 'passive')
-    const auraSkills = schedulable.filter((s) => s.aura)
-    const normalSkills = schedulable.filter((s) => !s.aura)
-    const ordered = [...normalSkills].sort((a, b) => (b.priority || 0) - (a.priority || 0))
+    const schedulable = SIM_SKILLS.filter((s) => s.sim?.role !== 'derived' && s.sim?.role !== 'passive')
+    const auraSkills = schedulable.filter((s) => s.sim?.aura)
+    const normalSkills = schedulable.filter((s) => !s.sim?.aura)
+    const ordered = [...normalSkills].sort((a, b) => (b.sim?.priority || 0) - (a.sim?.priority || 0))
     let cursor = 0
     for (const skill of ordered) {
-      const anim = skill.castDelayBySpeed?.[state.attackSpeed] ?? 1000
+      const anim = skill.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 1000
       cursor += anim
       nextCastAt[skill.id] = cursor + Math.floor(rng() * 40)
     }
     for (const skill of auraSkills) {
-      const [minSec, maxSec] = skill.aura.firstHitWindowSec || [0, skill.aura.intervalSec || 3]
+      const auraCfg = skill.sim.aura
+      const [minSec, maxSec] = auraCfg.firstHitWindowSec || [0, auraCfg.intervalSec || 3]
       const minMs = Math.max(0, minSec) * 1000
       const maxMs = Math.max(minMs, maxSec * 1000)
       nextCastAt[skill.id] = minMs + Math.floor(rng() * Math.max(1, maxMs - minMs))

@@ -137,7 +137,13 @@ const PER_LV10_MAP = {
 // ─── composable ────────────────────────────────────────────────────────────
 
 export function useCpDamage() {
-  const { t } = useI18n()
+  const { t, te } = useI18n()
+  // 從技能/buff/title entry 取顯示名稱:優先 nameKey(若 i18n 有對應),否則 fallback 到 entry.name
+  const displayName = (entry) => {
+    if (!entry) return ''
+    if (entry.nameKey && te(entry.nameKey)) return t(entry.nameKey)
+    return entry.name || entry.id || ''
+  }
   const { state: equipState, totalStats, resolveEntry } = useEquipment()
   const { state: charState, primaryStat, currentJob } = useCharacter()
   const {
@@ -291,7 +297,7 @@ export function useCpDamage() {
       if (!activeBuffs.value.has(buff.id)) continue
       if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
       const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
-      const buffLabel = t('cp.tip.buffPrefix', { name: buff.name })
+      const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
       for (const [k, v] of Object.entries(buff.stats || {})) {
         if (PCT_KEYS.has(k)) addPct(k, buffLabel, v, cpExc)
         else addFlat(k, buffLabel, v, false, cpExc)
@@ -334,7 +340,7 @@ export function useCpDamage() {
     for (const title of TITLES) {
       if (!activeTitleIds.value.has(title.id)) continue
       if (title.jobs && !title.jobs.includes(currentJob.value?.key)) continue
-      const label = t('cp.tip.titlePrefix', { name: title.name })
+      const label = t('cp.tip.titlePrefix', { name: displayName(title) })
       for (const [k, v] of Object.entries(title.stats || {})) {
         if (PCT_KEYS.has(k)) addPct(k, label, v)
         else addFlat(k, label, v)
@@ -352,19 +358,22 @@ export function useCpDamage() {
       skillLevelBonus,
     }
     for (const skill of SKILLS) {
+      const role = skill.cp?.role
       let bag = null
-      if (skill.passive) {
+      if (role === 'passive') {
         if (skill.jobs && !skill.jobs.includes(myJobKey)) continue
         bag = typeof skill.contribute === 'function'
           ? skill.contribute(skillCtx)
           : skill.stats
-      } else {
+      } else if (role === 'toggle') {
         if (!activeSkillIds.value.has(skill.id)) continue
         bag = skill.stats
+      } else {
+        continue // 沒 CP 角色
       }
       if (!bag) continue
       const cpExc = !CP_SKILL_ALLOWLIST.has(skill.id)
-      const skillLabel = t('cp.tip.skillPrefix', { name: skill.name })
+      const skillLabel = t('cp.tip.skillPrefix', { name: displayName(skill) })
       for (const [k, v] of Object.entries(bag)) {
         if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
         else addFlat(k, skillLabel, v, false, cpExc)

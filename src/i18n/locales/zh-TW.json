@@ -123,7 +123,171 @@
       "teleport_mastery": {
         "name": "Teleport Mastery",
         "description": "開關技能(sim 預設開啟)。Lv10:單擊 272% + 98%/2秒 × 20 秒 DoT;每 15 秒重施一次刷新 DoT。開場在 Flame Haze / Mist Eruption 優先序之後排程。暈眩 / 擊退抗性未模擬。"
+      },
+      "meditation": {
+        "name": "Meditation",
+        "description": "啟用時給予隊友 MATK +30。"
+      },
+      "energy_bolt": {
+        "name": "Energy Bolt",
+        "description": "1 轉火屬性能量彈攻擊。"
+      },
+      "magic_guard": {
+        "name": "Magic Guard",
+        "description": "啟用時將部分受到的 HP 傷害轉為 MP 消耗。"
+      },
+      "teleport": {
+        "name": "Teleport",
+        "description": "位移技能,提升基礎與最大速度。"
+      },
+      "mana_wave": {
+        "name": "Mana Wave",
+        "description": "向上跳躍並可緩降。"
+      },
+      "magic_armor": {
+        "name": "Magic Armor",
+        "description": "被動提升武器防禦。"
+      },
+      "flame_orb": {
+        "name": "Flame Orb",
+        "description": "火屬性火球,可擊中多名敵人。"
+      },
+      "poison_breath": {
+        "name": "Poison Breath",
+        "description": "毒霧攻擊,對目標附加持續傷害。"
+      },
+      "mp_eater": {
+        "name": "MP Eater",
+        "description": "魔法攻擊時有機率吸收敵人 MP。"
+      },
+      "elemental_drain": {
+        "name": "Elemental Drain",
+        "description": "被動:依目標身上生效的 DoT 層數提供最終傷害加成。"
+      },
+      "explosion": {
+        "name": "Explosion",
+        "description": "向周圍敵人造成火焰爆炸傷害。"
+      },
+      "creeping_toxin": {
+        "name": "Creeping Toxin",
+        "description": "召喚毒霧圖騰擴散毒池,可引爆造成額外傷害。"
+      },
+      "elemental_adaptation": {
+        "name": "Elemental Adaptation",
+        "description": "啟用時覆蓋火毒護罩阻擋異常狀態。"
+      },
+      "teleport_boost": {
+        "name": "Teleport Boost",
+        "description": "提升 Teleport 距離。"
+      },
+      "megiddo_flame": {
+        "name": "Megiddo Flame",
+        "description": "超技能主動 (Lv 160):藍炎蔓延並對目標施加 700% DoT。"
+      },
+      "epic_adventure": {
+        "name": "Epic Adventure",
+        "description": "超技能主動 (Lv 190):隊伍 Damage +10% 增益。"
+      },
+      "heros_will": {
+        "name": "Hero's Will",
+        "description": "立即解除異常狀態。"
+      },
+      "dot_punisher": {
+        "name": "DoT Punisher",
+        "description": "V 技能:依敵人身上 DoT 層數召喚火焰球攻擊。"
+      },
+      "infernal_venom": {
+        "name": "Infernal Venom",
+        "description": "HEXA 起源技能:終極火毒融合攻擊。"
+      },
+      "immortal_flame": {
+        "name": "Immortal Flame",
+        "description": "HEXA Ascent 技能。"
+      },
+      "hexa_flame_sweep": {
+        "name": "HEXA Flame Sweep",
+        "description": "HEXA 強化版 Flame Sweep:巨炎並附加餘燼爆炸。"
+      },
+      "hexa_flame_haze": {
+        "name": "HEXA Flame Haze",
+        "description": "HEXA 強化版 Flame Haze。"
+      },
+      "hexa_mist_eruption": {
+        "name": "HEXA Mist Eruption",
+        "description": "HEXA 強化版 Mist Eruption,附加新機制。"
+      },
+      "hexa_ignite": {
+        "name": "HEXA Ignite",
+        "description": "HEXA 強化版 Ignite。"
+      },
+      "hexa_ifrit": {
+        "name": "HEXA Ifrit",
+        "description": "HEXA 強化版 Ifrit 召喚。"
+      },
+      "hexa_inferno_aura": {
+        "name": "HEXA Inferno Aura",
+        "description": "HEXA 強化版 Inferno Aura 氣場。"
+      },
+      "hexa_creeping_toxin": {
+        "name": "HEXA Creeping Toxin",
+        "description": "HEXA 強化版 Creeping Toxin。"
+      },
+      "hexa_meteor_shower": {
+        "name": "HEXA Meteor Shower",
+        "description": "HEXA 強化版 Meteor Shower,傷害倍率提升。"
+      },
+      "hexa_megiddo_flame": {
+        "name": "HEXA Megiddo Flame",
+        "description": "HEXA 強化版 Megiddo Flame。"
+      },
+      "dot_punisher_boost": {
+        "name": "DoT Punisher Boost",
+        "description": "HEXA 強化:提升 DoT Punisher 最終傷害成長。"
       }
+    },
+    "common": {
+      "will_of_the_alliance": {
+        "name": "Will of the Alliance",
+        "description": "提升 STR / DEX / INT / LUK 與 ATT / MATK 少量。"
+      },
+      "blessing_of_the_fairy": {
+        "name": "Blessing of the Fairy",
+        "description": "啟用時 ATT / MATK +20。"
+      },
+      "empress_blessing": {
+        "name": "Empress's Blessing",
+        "description": "啟用時 ATT / MATK +30。與精靈的祝福互斥。"
+      },
+      "decent_sharp_eyes": {
+        "name": "Decent Sharp Eyes",
+        "description": "啟用時 爆擊率 +10%、爆擊傷害 +8%。"
+      },
+      "combat_orders": {
+        "name": "Combat Orders",
+        "description": "啟用時 武器熟練度 +1%,並使其他 buff 技能等級 +1。"
+      },
+      "heros_echo": {
+        "name": "Hero's Echo",
+        "description": "提升附近所有角色的 ATT 與 MATK。Max Level 1 / Master Level 1。Lv1:MP 消耗 30、持續 2400 秒、ATT & MATK +4%、冷卻 300 秒。"
+      },
+      "maple_warrior": {
+        "name": "Maple Warrior",
+        "description": "依 AP 配點的主屬性按百分比增加。Lv30 = +15%。"
+      },
+      "sol_janus": {
+        "name": "Sol Janus",
+        "description": "HEXA 共通:雙形態技能(Dawn / Dusk),附帶 EXP 加成。"
+      },
+      "sol_janus_dusk": {
+        "name": "Sol Janus: Dusk",
+        "description": "HEXA 共通:攻擊時被動累積原始晶石。"
+      }
+    }
+  },
+  "titles": {
+    "blessed_maple_goddesses": {
+      "name": "Blessed of the Maple Goddesses",
+      "description": "稱號:全屬性 +20、ATT / MATK +10、Boss 傷害 +10%、無視防禦 +10%、爆擊率 +15%、Buff 持續 +15%。"
     }
   },
   "hyperSkill": {
@@ -636,6 +800,7 @@
       "will_of_erda": "Will of Erda",
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
+      "unreliable_memory_desc": "選擇一個 V 技能並複製其效果。本 sim 固定鏡像 Infinity —— Infinity 結束後自動觸發一次,持續時間 / tick 機制完全相同。",
       "flame_sweep_core": {
         "description": "技能專屬 V 矩陣 — 僅作用於 Flame Sweep:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
       },

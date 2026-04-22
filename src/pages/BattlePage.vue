@@ -94,6 +94,9 @@ const igniteProcTotal = computed(() => {
   const dmg = rows.reduce((s, r) => s + r.dmg, 0)
   return { rolls, procs, dmg, rate: rolls > 0 ? (procs / rolls) * 100 : 0 }
 })
+
+// [DEBUG] 戰鬥開始後第一次施放的 Megiddo Flame — 主擊 / DoT snapshot
+const megiddoFirstCast = computed(() => result.value?.megiddoFirstCast || null)
 function fmtCompact(n) {
   const v = Number(n || 0)
   if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B'
@@ -164,7 +167,7 @@ const timelineEvents = computed(() => {
     if (e.type === 'buff') return true
     if (e.type === 'cast') {
       const skill = SIM_SKILLS.find((s) => s.id === e.skillId)
-      return skill?.type === 'attack'
+      return skill?.sim?.role === 'attack'
     }
     return false
   })
@@ -177,7 +180,7 @@ const activeSkillCds = computed(() => {
   const arr = []
   const elapsed = state.elapsedMs || 0
   for (const sk of SIM_SKILLS) {
-    if (sk.type !== 'attack') continue
+    if (sk.sim?.role !== 'attack') continue
     if (!(Number(sk.cooldown) > 0)) continue
     const endAt = state.cooldownEndAt?.[sk.id] ?? 0
     const remainingMs = Math.max(0, endAt - elapsed)
@@ -328,12 +331,12 @@ const timelineRows = computed(() => {
             'bp-buffs__icon-wrap--dim': info.count === 0,
             'bp-buffs__icon-wrap--flash': isBuffFlashing(buff.id),
           }"
-          :title="`${t(buff.nameKey)} Lv.${info.level} · ${t(buff.descriptionKey)}`"
+          :title="`${buff.nameKey ? t(buff.nameKey) : buff.id} Lv.${info.level}${buff.descriptionKey ? ' · ' + t(buff.descriptionKey) : ''}`"
         >
           <img
             class="bp-buffs__icon"
             :src="buff.imageUrl"
-            :alt="t(buff.nameKey)"
+            :alt="buff.nameKey ? t(buff.nameKey) : buff.id"
             loading="lazy"
           />
           <span v-if="info.count >= 2" class="bp-buffs__badge">{{ info.count }}</span>
@@ -685,29 +688,58 @@ const timelineRows = computed(() => {
         … +{{ timelineEvents.length - 200 }} {{ t('battle.timeline.more') }}
       </div>
 
-      <!-- [DEBUG] Ignite 觸發來源統計 -->
+      <!-- [DEBUG] Megiddo Flame 第一次施放 snapshot -->
       <section v-if="result" class="bp-ignite-debug">
         <header class="bp-ignite-debug__head">
           <span class="bp-ignite-debug__tag">[DEBUG]</span>
-          <span>Ignite Procs</span>
+          <span>Megiddo Flame (1st cast)</span>
         </header>
-        <div v-if="igniteProcTotal.rolls > 0" class="bp-ignite-debug__summary">
-          <span class="bp-ignite-debug__sum-rate">
-            <b>{{ igniteProcTotal.procs }}</b> / {{ igniteProcTotal.rolls }}
-            <small>({{ igniteProcTotal.rate.toFixed(1) }}%)</small>
-          </span>
-          <span class="bp-ignite-debug__sum-dmg">{{ fmtCompact(igniteProcTotal.dmg) }}</span>
+        <div v-if="!megiddoFirstCast" class="bp-ignite-debug__empty">
+          尚未施放
         </div>
-        <div v-if="igniteProcRows.length === 0" class="bp-ignite-debug__empty">—</div>
         <ul v-else class="bp-ignite-debug__list">
-          <li v-for="row in igniteProcRows" :key="row.id" class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__dot" :style="{ background: row.color }" />
-            <span class="bp-ignite-debug__name">{{ row.name }}</span>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">施放時間</span>
             <span class="bp-ignite-debug__nums">
-              <b>{{ row.procs }}</b><span class="bp-ignite-debug__sep">/</span>{{ row.rolls }}
-              <small>{{ row.rate.toFixed(1) }}%</small>
+              <b>{{ (megiddoFirstCast.tCast / 1000).toFixed(2) }}</b>s
+              <small>Lv.{{ megiddoFirstCast.skillLevel }} · {{ megiddoFirstCast.hitsRaw }} hits</small>
             </span>
-            <span class="bp-ignite-debug__dmg">{{ fmtCompact(row.dmg) }}</span>
+          </li>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">首顆 FD 100%</span>
+            <span class="bp-ignite-debug__nums">
+              <b>{{ fmtCompact(megiddoFirstCast.firstOrbHit) }}</b>
+              <small>× {{ megiddoFirstCast.hitsFirstOrb }} hits</small>
+            </span>
+            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.firstOrbHit * megiddoFirstCast.hitsFirstOrb) }}</span>
+          </li>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">後續 FD {{ (megiddoFirstCast.subFdMult * 100).toFixed(0) }}%</span>
+            <span class="bp-ignite-debug__nums">
+              <b>{{ fmtCompact(megiddoFirstCast.subOrbHit) }}</b>
+              <small>× {{ megiddoFirstCast.hitsSubOrbs }} hits ({{ megiddoFirstCast.orbTotal - 1 }} 顆)</small>
+            </span>
+            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.subOrbHit * megiddoFirstCast.hitsSubOrbs) }}</span>
+          </li>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">主擊合計</span>
+            <span class="bp-ignite-debug__nums">—</span>
+            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.mainTotalEst) }}</span>
+          </li>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">DoT / tick</span>
+            <span class="bp-ignite-debug__nums">
+              <b>{{ fmtCompact(megiddoFirstCast.dotTickDmg) }}</b>
+              <small>× {{ megiddoFirstCast.dotTickCount }} ticks ({{ megiddoFirstCast.dotDurationSec }}s)</small>
+            </span>
+            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.dotTotal) }}</span>
+          </li>
+          <li class="bp-ignite-debug__row">
+            <span class="bp-ignite-debug__name">總合計</span>
+            <span class="bp-ignite-debug__nums">—</span>
+            <span class="bp-ignite-debug__dmg">
+              <b>{{ fmtCompact(megiddoFirstCast.mainTotalEst + megiddoFirstCast.dotTotal) }}</b>
+            </span>
           </li>
         </ul>
       </section>

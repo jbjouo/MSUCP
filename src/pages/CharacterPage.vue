@@ -175,11 +175,11 @@ async function onLoadSeed() {
       <PetPanel />
     </div>
 
-    <!-- 內潛 + V 矩陣 (左右 5:5,V 矩陣為佔位) -->
-    <div class="char-page__split">
-      <InnerPotentialPanel />
-      <VMatrixPanel />
-    </div>
+    <!-- 內潛 (獨立一整行) -->
+    <InnerPotentialPanel />
+
+    <!-- V 矩陣 (獨立一整行) -->
+    <VMatrixPanel />
 
     <!-- 超技能 (5 點配點) -->
     <HyperSkillPanel />

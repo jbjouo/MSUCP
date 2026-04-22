@@ -233,20 +233,32 @@ Legion 分兩區,在 `LegionPanel.vue`:
 
 ### V 矩陣 (`src/constants/vmatrix.js` + `useVMatrix.js`)
 
-- 通用 V 技能 + 職業專屬;`VMATRIX_MAX_LEVEL = 30`
-- Schema:`{ id, nameKey, imageUrl, jobs?, branch?, passive? }`
-  - `passive.type`:`'allStat'` / `'attMatk'` / `'stat'`(+`statKey`)
-  - `passive.per`:每 N 等 +1(`per=1` 即每等 +1)
-  - **`passiveValueAt(skill, lv) = ceil(lv / per)`** — Lv1 就有 1 點;Lv6 (per=5) 變 2
-  - 沒 `passive` → 面板隱藏(技能名仍存於資料,可填等級但無效果)
-- `jobs?` / `branch?`:限定職業可見+貢獻(例 Unreliable Memory 僅 archmageFP/IL/bishop)
-- **CP 串接**:全屬 / ATT·MATK / 單一屬性都走 flat,**吃 % 加成**(非 fixed)
-- 已實作技能(11 通用 + 1 法系專屬):
-  - 通用:Rope Lift(全屬 per=1)、Decent Mystic Door / Sharp Eyes / Hyper Body / Advanced Blessing / Speed Infusion(全屬 per=5)、Blink(ATT/MATK per=1)
-  - 無被動隱藏:Decent Combat Orders / Erda Nova / Will of Erda / Decent Holy Symbol
-  - 冒險家法師(`archmageFP/IL/bishop`):Unreliable Memory(INT per=1)
-- 圖示來源:`https://media.maplestorywiki.net/yetidb/Skill_<Name>.png`(部分 Decent 共用原技能圖)
-- 中文技能名稱保留英文(不翻譯)
+**新 schema**:V 矩陣資料整合進各技能 entry 的 `vmatrix` 子物件,不再單獨維護 VMATRIX 陣列。頂層 barrel 從所有技能 filter `s.vmatrix` 得到 `VMATRIX_SKILLS`(去重)。
+
+```js
+skill.vmatrix = {
+  kind: 'boost' | 'skill',            // 必填
+  // 'boost' → 增強 1~4 轉既有技能(等級提升 finalDmg / ignoreDef)
+  // 'skill' → V 技能本身(等級 = 技能自身等級;可帶 passive 貢獻 CP)
+  passive?: { type, per, statKey?, fixed? },  // 僅 skill:CP 屬性加成
+  maxLevel?: number,                          // 覆寫預設 30;boost 多半 60
+  finalDmgPerLevel?, ignoreDefBonus?,         // 僅 boost:戰鬥模擬終傷與無視
+  coreGroupId?: string,                       // 多支技能共用同一 core(等級同步)
+  descriptionKey?, nameKey?,                  // V 矩陣面板自己的 i18n key
+}
+```
+
+- `VMATRIX_MAX_LEVEL = 30`(skill 預設);boost 多半 60;helper `maxLevelOf(skill)` 只讀 `vmatrix.maxLevel`,不 fallback 到 `skill.maxLevel`(CP Buff 的欄位)
+- `passiveValueAt(skill, lv) = ceil(lv / passive.per)` — Lv1 就有 1 點
+- `isBoostCore / isSkillCore` helper(`constants/vmatrix.js`)
+- **CP 貢獻**:僅 `kind === 'skill'` 且帶 `passive` 的技能;走 flat,**吃 % 加成**(非 fixed)。boost core 不貢獻 CP,等級只影響戰鬥模擬
+- **共用 core**:`coreGroupId` 相同的技能 VM 等級同步。useVMatrix 的 `setLevel(id, lv)` 會寫入同組所有 id;`loadState` 亦取同組最大值回填
+  - 目前:Teleport Mastery ↔ Creeping Toxin(`coreGroupId: 'teleport_mastery_creeping_toxin'`)
+- **已實作**:
+  - 通用 skill(12):Rope Lift / Decent Mystic Door / Decent Sharp Eyes / Decent Hyper Body / Decent Combat Orders / Decent Advanced Blessing / Decent Speed Infusion / Blink / Erda Nova / Will of Erda / Decent Holy Symbol / Unreliable Memory
+  - 火毒 boost core(14 支):flame_orb / poison_breath / ignite / explosion / poison_mist / creeping_toxin / teleport_mastery / flame_sweep / flame_haze / mist_eruption / ifrit / meteor_shower / inferno_aura / megiddo_flame(預設 +2%/Lv + Lv40+ 無視 +20%;ignite +4%/Lv;Teleport Mastery / Creeping Toxin coreGroup 共用 +3%/Lv)
+  - 火毒 skill(5 轉 V):dot_punisher(骨架)
+- 圖示:本地 `/skills/<scope>/Skill_<Name>.png`(`LOCAL_ICON` helper;scope 為 `'archmage-fp'` 或 `'common'`)
 - 儲存:`msucp.vmatrix.v1`
 
 ### CP 計算機 (`src/pages/CpCalculatorPage.vue`)
@@ -375,11 +387,75 @@ CP    = floor(Zone1 × Z2Z3 × Zone4 × Zone5 × Zone6)
 | `poison_mist` | derived | 直擊 + 6s DoT,Lv20 270%/240% | 不自排程,由 Flame Haze `onHitSpawn` 衍生;`fieldDurationSec: 15` 供 Mist Eruption 檢查 |
 | `meteor_shower` | passive | Final Attack — 角色任何主擊時 roll 1 次(爆炸技能 = `explosionCount` 次),Lv30 60% × 220% × 1 擊(火屬) | 不主動施放、不觸發自身;`skill.finalAttack: { procRate, damage }` 每級 +2%/+4%;成功 proc 走 `mainHitDmg` 主擊管線;`combatOrdersEligible` |
 | `ignite` | passive | 火屬技能施放時 Lv10 50% proc 生成火牆 — 6s 持續、每 2s 觸發一次傷害 (40% × 3 下) × 3 ticks | 排除 Inferno Aura;Meteor Shower proc 也算火屬事件 → 會觸發 Ignite;火牆獨立疊加;每 tick `useCount +1`;專屬 VM(+4%/Lv);**非 4 轉 → 無 Combat Orders** |
+| `megiddo_flame` | attack | Hyper Active(Lv 160)11 顆火球 × 4 擊,380% + 30s DoT 700%/秒,CD 50s | 首顆 FD 100%、後 10 顆 FD 45%(分組套 FD,每擊獨立 crit/variance);`sim.orbs` metadata(`maxTotal`/`attacksPerOrb`/`subsequentFdMult`/`splitDelayMs`);priority 90;fire element;castDelay@8 = 690ms;MP 500;[DEBUG] 第一次施放 snapshot 面板 |
+
+### Hyper Active(`hyperKind: 'active'`,`advancement: 'hyper'`)
+以完整 skill entry 存在,可進戰鬥模擬(有 sim 欄位)或作為 battle buff(有 battle 欄位)。
+| id | 類型 | 簡述 |
+|---|---|---|
+| `inferno_aura` | SIM aura | 見上表 |
+| `megiddo_flame` | SIM attack | 見上表 |
+| `epic_adventure` | battle buff | Lv 190;activeToggle / duration 60s / CD 120s / +10% Damage(併入主擊 Damage%);**不吃 Buff Duration%**(`ignoresBuffDuration: true`);0 delay、不鎖其他技能 |
 
 ### 被動(不進 SIM_SKILLS;模組直接 import)
 | id | 效果 | 備註 |
 |---|---|---|
 | `BURNING_MAGIC` | 場上 `activeDotCount ≥ 1` → 主擊終傷 +20%;DoT 時長 ×2 | 僅火毒;DoT tick 不吃 FD 加成,但吃時長倍率 |
+
+### 技能資料架構(`src/constants/skills/`)
+
+舊 `constants/skills/archmageFP.js` 已拆成資料夾結構。各檔透過 barrel 彙整,原 consumer(`SIM_SKILLS` / `SKILLS` / `BUFFS` / `BATTLE_BUFFS` / `VMATRIX_SKILLS` / `HYPER_SKILLS`)繼續使用,路徑不變。
+
+```
+src/constants/skills/
+├── _shared/
+│   ├── helpers.js              # YETIDB_ICON / LOCAL_ICON / skillDamagePct 等
+│   ├── all-jobs/{0..6}th.js    # 全職業共通(Will of Alliance / Hero's Echo / Rope Lift / Decent 系列 / Erda Nova / ...)
+│   ├── branches/magician/{0..6}th.js      # 法師群共通(目前 placeholder)
+│   └── class-groups/adventurer-mage/{0..6}th.js  # 冒險家法師(mp_boost / arcane_aim / unreliable_memory / empirical_knowledge)
+├── jobs/
+│   ├── _template/              # 新職業範本(0th..6th.js + hyper.js + index.js)
+│   └── archmage-fp/{0..6}th.js + hyper.js + index.js
+└── index.js                    # 頂層 barrel(SIM / SKILLS / BUFFS / BATTLE_BUFFS / VMATRIX / HYPER)
+```
+
+**每個 Nth.js 採單一主列表 + filter derive**。主列表 `<SCOPE>_<N>TH_SKILLS`,子分類從主列表 filter:
+- `TOGGLE_SKILLS / BUFFS / PASSIVE_SKILLS` → 依 `cp.role`
+- `VMATRIX_SKILLS` → 依 `s.vmatrix`
+- `SIM_SKILLS` → 依 `s.sim`
+- `BATTLE_BUFFS` → filter `s.battle` 後 map 合併 meta + battle 欄位
+
+**Skill entry 共通 schema**(遊戲屬性於 top level,系統角色於子物件):
+```js
+{
+  id, name, nameKey, descriptionKey, imageUrl, icon, color,
+  jobs, advancement,                        // 0~6 / 'hyper' / 'title'
+  kind,                                     // 'attack'|'passive'|'buff'|'toggle'|'summon'|'aura'|'utility'|'link' 等
+  element, baseLevel, maxLevel,
+  mpCost, hitsPerCast, maxEnemies, cooldown,
+  damage, burn, explosions, finalDmgByExplosions, ignoreDef, finalAttack, ignite, fieldDurationSec,
+  stats, mastery, skillLevelBonus, contribute,    // CP 計算用
+  combatOrdersEligible,
+
+  cp:     { role, group },                  // CP 面板角色
+  vmatrix: { kind, maxLevel, passive?, finalDmgPerLevel?, ignoreDefBonus?, coreGroupId?, ... },
+  battle:  { source, mirror?, onceOnly?, triggerAfter?, ignoresBuffDuration?, hideCooldown?, base?, ... },
+  sim:     { role, castDelayBySpeed, priority, aura?, onHitSpawn?, onHitResetCooldown?, requiresField?, cooldown?, orbs? },
+}
+```
+
+**單一 entry 可同時具備多角色**(例:Decent Sharp Eyes 同時是 CP Buff 與 V 矩陣;arcane_aim 同時是 CP passive 與 Battle Buff)。SIM 進戰鬥模擬的條件是 `s.sim` 存在,而非獨立陣列。
+
+**職業規模(火毒,ARCHMAGE_FP_SKILLS 合計 ~51 支)**
+- 1 轉(5):Energy Bolt / Magic Guard / Teleport / Mana Wave / Magic Armor
+- 2 轉(9):Flame Orb / Poison Breath / Ignite / Meditation / Spell Mastery / High Wisdom / Agile Magic / MP Eater / Elemental Drain
+- 3 轉(10):Explosion / Poison Mist / Creeping Toxin / Elemental Adaptation / Teleport Mastery / Teleport Boost / Element Amplification / Elemental Decrease / Arcane Overdrive / Burning Magic
+- 4 轉(9):Flame Sweep / Flame Haze / Mist Eruption / Ifrit / Meteor Shower / Buff Mastery / Fervent Drain / Infinity / Hero's Will
+- 5 轉(1):DoT Punisher
+- 6 轉(14):Sol Janus / Sol Janus: Dusk / Infernal Venom (Origin) / Immortal Flame (Ascent) / 9 支 HEXA Mastery(hexa_xxx)/ DoT Punisher Boost
+- Hyper Active(3):Inferno Aura / Megiddo Flame / Epic Adventure
+
+**圖片**:`public/skills/archmage-fp/`(58 支)與 `public/skills/common/`(14 支)從 wiki 資料夾複製。`LOCAL_ICON(name, scope)` helper 產生 URL。
 
 ### 技能資料模型 (`src/constants/skills/archmageFP.js`)
 ```js
@@ -524,9 +600,18 @@ dot = baseRaw × (DoT%/100) × skillFinalMult × dotSpecialMult × dotEnemyMult 
 - `arcane_aim`(法系 4 轉被動,`passiveType: 'procOnHit'`)— 攻擊時 100% 抽 1 層,max 5 層,5 秒內每次疊層刷新計時;每層 +8% Damage(疊入 CP Damage%)。20% 無視防禦已在 CP 面板 `SKILLS` 計入,這裡只補疊層 Damage
 - `infinity`(火毒 4 轉 buff,`source: 'activeToggle'`)— 戰鬥模擬「開始」後 450ms(攻速 8)自動施放,冷卻 180s(吃 CD 減免)後自動再施放
   - 等級 = `baseLevel`(30)+(Combat Orders 啟用 ? 1 : 0)→ Lv30/31
-  - 起始 FD = `70 + (level - 30)`%;每 `tickIntervalSec=5` 相加 `tickIncreasePct=3`%(buff 內線性累加,與其他 buff 仍互乘)
-  - 持續時間 = `(40 + (level - 30))` × `(1 + buffDuration%/100)`(讀 `useCpDamage().statTotal('buffDuration')`)
+  - 起始 FD = `70 + (level - 30)`%;`tickIncreasePct=3`%/tick
+  - 持續時間 = `(40 + (level - 30))` × `(1 + buffDuration%/100)`
+  - **Tick 伺服器延遲模擬**:每 tick 間隔為 5s 或 10s(固定),依 `tickServerDelayRate` 獨立抽樣(預設 0.8 → 期望 9 秒/tick);
+    - 期望 tick 數 = duration / 9;整數當保底,小數當多跳 1 次的機率
+    - 累積超過 duration → 把多餘 slow(10s)改為 fast(5s)balance;確保所有 tick 都在 duration 內
+    - 實作:`computeDelayedTickTimes(duration, fastMs, slowMs, delayRate, rng)` 於 `useBattleBuffs.js`;activate 時存入 `stack.tickTimes[]`,查詢時線性掃已過時間點
   - 時間基準 = `state.elapsedMs`;戰鬥停止 / 重置一併清空
+- `unreliable_memory`(冒險家法師 5 轉 V,`source: 'activeToggle'` + `mirror: 'infinity'` + `onceOnly: true` + `hideCooldown: true` + `triggerAfter: 'infinity'`)
+  - Infinity expire 後自動觸發一次,cfg 完全鏡像 Infinity(含 tick 延遲分布)
+  - 戰鬥中僅一次;CD 不顯示
+- `epic_adventure`(火毒 Hyper Active,`source: 'activeToggle'` + `ignoresBuffDuration: true`)
+  - 0ms delay、60s duration、CD 120s(吃 CD 減免);啟動中主擊 Damage +10%(併入 CP Damage 桶)
 - `thiefs_cunning`(暗器的精髓,`source: 'linkCycle'` + `triggerOn: 'debuffApplied'`)
   - 等級 / stats 從 link skill 系統取:Lv1 +3% Damage、Lv6 +18% Damage;duration 10s、cooldown 20s
   - 觸發條件:`empirical_knowledge` 成功 proc(`appliesDebuff: true`)→ off-CD 才啟動
@@ -613,6 +698,15 @@ Step 3: 3.5 < 5 → 帽子不生效
 - **DoT 層數判定**:sim 執行中 → 實際 `burnState` key 數 +(此技能有 burn 且尚未登記時 +1);sim 非執行 → `skill.burn ? 1 : 0`
 - 輸出 mainHits(= `hitsPerCast × explosionCount`)/ dotTicks(= `durationSec / tickIntervalSec`)/ 每個乘區數值 / 完整公式文字
 - 公式列:`vmatrix` / `explosion`(僅爆炸型顯示)/ `hyper` / `buff` / `rebuild`(主擊 Damage 桶 + DoT Damage 桶分開)/ `main` / `defense` / `dot`
+
+### Megiddo Flame Debug 面板(BattlePage 右欄時間軸下方 `.bp-ignite-debug`)
+- 追蹤「戰鬥開始後第一次施放 Megiddo Flame」的快照,rows:
+  - 施放時間、skillLevel、44 hitsRaw
+  - 首顆 FD 100% / 4 hits × mainHitSample
+  - 後續 FD 45% / 40 hits × subOrbHit(10 顆)
+  - 主擊合計、DoT / tick × 30 ticks、總合計
+- snapshot 寫入 `state.result.megiddoFirstCast`(emitCast 捕捉);BattlePage computed `megiddoFirstCast`
+- 尚未施放時顯示「尚未施放」
 
 ### 戰鬥頁時間軸(BattlePage 右欄)
 - **只顯示主動施放的技能(`skill.type === 'attack'`)與 activeToggle 啟動事件**

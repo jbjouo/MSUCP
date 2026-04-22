@@ -1,12 +1,11 @@
-// 戰鬥模擬器 — 技能匯總
-// 目前只納入火毒 (Archmage FP) 的 Flame Sweep。
-// 未來新增其他職業請建立 src/constants/skills/{jobKey}.js 後在此 merge。
+// [相容殼] — 戰鬥模擬器技能匯總
+// 新結構:SIM_SKILLS 由 skills/index.js 依 JOB_SKILL_REGISTRY 自動彙整
 
-import { ARCHMAGE_FP_SKILLS } from './skills/archmageFP.js'
+import { COMBINED_SIM_SKILLS } from './skills/index.js'
 
-export const SIM_SKILLS = [...ARCHMAGE_FP_SKILLS]
+export const SIM_SKILLS = COMBINED_SIM_SKILLS
 
-// 時間 (ms) → "00:03:01" (battle summary 用,保留時:分:秒)
+// 時間 (ms) → "HH:MM:SS" (battle summary 用)
 export function fmtClock(ms) {
   const totalSec = Math.max(0, Math.floor(ms / 1000))
   const h = Math.floor(totalSec / 3600)

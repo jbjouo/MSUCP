@@ -47,10 +47,11 @@ export function useCpToggles() {
       s.delete(id)
     } else {
       const target = SKILLS.find((x) => x.id === id)
-      if (target?.group) {
+      const targetGroup = target?.cp?.group
+      if (targetGroup) {
         for (const other of SKILLS) {
           if (other.id === id) continue
-          if (other.group === target.group) s.delete(other.id)
+          if (other.cp?.group === targetGroup) s.delete(other.id)
         }
       }
       s.add(id)

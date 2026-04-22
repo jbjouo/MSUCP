@@ -123,7 +123,171 @@
       "teleport_mastery": {
         "name": "Teleport Mastery",
         "description": "Toggle skill (default ON in sim). Lv10: single hit 272% + DoT 98%/2sec for 20 sec; recast every 15 sec to refresh DoT. First cast at battle start (after Flame Haze / Mist Eruption priority). Stun / KB resistance not modeled."
+      },
+      "meditation": {
+        "name": "Meditation",
+        "description": "Grants allies Magic ATT +30 while active."
+      },
+      "energy_bolt": {
+        "name": "Energy Bolt",
+        "description": "1st-job fire-attribute energy bolt attack."
+      },
+      "magic_guard": {
+        "name": "Magic Guard",
+        "description": "Redirects a portion of HP damage to MP while active."
+      },
+      "teleport": {
+        "name": "Teleport",
+        "description": "Movement skill; increases base and max speed."
+      },
+      "mana_wave": {
+        "name": "Mana Wave",
+        "description": "Upward jump with a slow descent option."
+      },
+      "magic_armor": {
+        "name": "Magic Armor",
+        "description": "Passively increases Weapon Defense."
+      },
+      "flame_orb": {
+        "name": "Flame Orb",
+        "description": "Fire-attribute orb attack hitting multiple enemies."
+      },
+      "poison_breath": {
+        "name": "Poison Breath",
+        "description": "Poison cloud attack that leaves a DoT on targets."
+      },
+      "mp_eater": {
+        "name": "MP Eater",
+        "description": "Chance to absorb enemy MP on magic attacks."
+      },
+      "elemental_drain": {
+        "name": "Elemental Drain",
+        "description": "Passive: Final Damage bonus per active DoT stack on the target."
+      },
+      "explosion": {
+        "name": "Explosion",
+        "description": "Fire explosion that damages enemies around you."
+      },
+      "creeping_toxin": {
+        "name": "Creeping Toxin",
+        "description": "Summons a poison totem that spreads toxic pools, detonatable for extra damage."
+      },
+      "elemental_adaptation": {
+        "name": "Elemental Adaptation",
+        "description": "Fire and poison veil that blocks debuffs while active."
+      },
+      "teleport_boost": {
+        "name": "Teleport Boost",
+        "description": "Increases Teleport range."
+      },
+      "megiddo_flame": {
+        "name": "Megiddo Flame",
+        "description": "Hyper active (Lv 160): spreads blue flame to targets with 700% DoT."
+      },
+      "epic_adventure": {
+        "name": "Epic Adventure",
+        "description": "Hyper active (Lv 190): party Damage +10% buff."
+      },
+      "heros_will": {
+        "name": "Hero's Will",
+        "description": "Immediately removes abnormal status effects."
+      },
+      "dot_punisher": {
+        "name": "DoT Punisher",
+        "description": "V skill: summons flame orbs based on the number of DoT stacks on enemies."
+      },
+      "infernal_venom": {
+        "name": "Infernal Venom",
+        "description": "HEXA Origin: ultimate fire/poison fusion attack."
+      },
+      "immortal_flame": {
+        "name": "Immortal Flame",
+        "description": "HEXA Ascent skill."
+      },
+      "hexa_flame_sweep": {
+        "name": "HEXA Flame Sweep",
+        "description": "HEXA-enhanced Flame Sweep with giant flame and ember explosions."
+      },
+      "hexa_flame_haze": {
+        "name": "HEXA Flame Haze",
+        "description": "HEXA-enhanced Flame Haze."
+      },
+      "hexa_mist_eruption": {
+        "name": "HEXA Mist Eruption",
+        "description": "HEXA-enhanced Mist Eruption with additional mechanics."
+      },
+      "hexa_ignite": {
+        "name": "HEXA Ignite",
+        "description": "HEXA-enhanced Ignite."
+      },
+      "hexa_ifrit": {
+        "name": "HEXA Ifrit",
+        "description": "HEXA-enhanced Ifrit summon."
+      },
+      "hexa_inferno_aura": {
+        "name": "HEXA Inferno Aura",
+        "description": "HEXA-enhanced Inferno Aura toggle."
+      },
+      "hexa_creeping_toxin": {
+        "name": "HEXA Creeping Toxin",
+        "description": "HEXA-enhanced Creeping Toxin."
+      },
+      "hexa_meteor_shower": {
+        "name": "HEXA Meteor Shower",
+        "description": "HEXA-enhanced Meteor Shower with higher damage scaling."
+      },
+      "hexa_megiddo_flame": {
+        "name": "HEXA Megiddo Flame",
+        "description": "HEXA-enhanced Megiddo Flame."
+      },
+      "dot_punisher_boost": {
+        "name": "DoT Punisher Boost",
+        "description": "HEXA enhancement: increases DoT Punisher Final Damage progression."
       }
+    },
+    "common": {
+      "will_of_the_alliance": {
+        "name": "Will of the Alliance",
+        "description": "Increases STR / DEX / INT / LUK and ATT / Magic ATT by a small amount."
+      },
+      "blessing_of_the_fairy": {
+        "name": "Blessing of the Fairy",
+        "description": "ATT & Magic ATT +20 while active."
+      },
+      "empress_blessing": {
+        "name": "Empress's Blessing",
+        "description": "ATT & Magic ATT +30 while active. Mutually exclusive with Blessing of the Fairy."
+      },
+      "decent_sharp_eyes": {
+        "name": "Decent Sharp Eyes",
+        "description": "Critical Rate +10%, Critical Damage +8% while active."
+      },
+      "combat_orders": {
+        "name": "Combat Orders",
+        "description": "Weapon Mastery +1%, and increases the level of other buff skills by 1 while active."
+      },
+      "heros_echo": {
+        "name": "Hero's Echo",
+        "description": "Increases the Attack Power and Magic ATT of all nearby characters. Max Level 1 / Master Level 1. Lv1: MP Cost 30, Duration 2400 sec, ATT & Magic ATT +4%, Cooldown 300 sec."
+      },
+      "maple_warrior": {
+        "name": "Maple Warrior",
+        "description": "Increases primary stat by a percentage based on AP. Lv30 = +15%."
+      },
+      "sol_janus": {
+        "name": "Sol Janus",
+        "description": "HEXA shared skill: dual-form (Dawn / Dusk) with EXP bonus."
+      },
+      "sol_janus_dusk": {
+        "name": "Sol Janus: Dusk",
+        "description": "HEXA shared: passively generates Primal Crystals from attacks."
+      }
+    }
+  },
+  "titles": {
+    "blessed_maple_goddesses": {
+      "name": "Blessed of the Maple Goddesses",
+      "description": "Title granting all-stat +20, ATT / MATK +10, Boss Damage +10%, Ignore Defense +10%, Critical Rate +15%, Buff Duration +15%."
     }
   },
   "hyperSkill": {
@@ -636,6 +800,7 @@
       "will_of_erda": "Will of Erda",
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
+      "unreliable_memory_desc": "Transforms into a chosen V skill. In this sim it mirrors Infinity — after Infinity ends, triggers once with the same duration / tick schedule.",
       "flame_sweep_core": {
         "description": "Skill-specific V Matrix — affects Flame Sweep only: +2% final damage per level; at Lv40+, +20% ignore defense (separate row, not added with Hyper ignore)."
       },

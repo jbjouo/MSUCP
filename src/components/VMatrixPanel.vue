@@ -2,14 +2,14 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVMatrix } from '../composables/useVMatrix.js'
-import { maxLevelOf } from '../constants/vmatrix.js'
+import { maxLevelOf, vmatrixNameKey, vmatrixDescriptionKey } from '../constants/vmatrix.js'
 
 const { t } = useI18n()
 const { state, setLevel, reset, visibleSkills: jobSkills, MAX_LEVEL } = useVMatrix()
 
-// 隱藏「無被動且非技能專屬」的技能 (例如 Erda Nova / Decent Combat Orders)
+// V 矩陣面板:顯示所有帶 vmatrix 欄位的技能(不論 kind='boost' 或 'skill')
 const visibleSkills = computed(() =>
-  jobSkills.value.filter((s) => s.passive || s.skillSpecific),
+  jobSkills.value.filter((s) => !!s.vmatrix),
 )
 </script>
 
@@ -27,21 +27,16 @@ const visibleSkills = computed(() =>
         v-for="skill in visibleSkills"
         :key="skill.id"
         class="vm-cell"
-        :class="{
-          'vm-cell--max': (state.levels[skill.id] || 0) >= maxLevelOf(skill),
-          'vm-cell--specific': skill.skillSpecific,
-        }"
-        :title="skill.descriptionKey ? t(skill.descriptionKey) : ''"
+        :title="vmatrixDescriptionKey(skill) ? t(vmatrixDescriptionKey(skill)) : ''"
       >
         <img
           class="vm-cell__icon"
           :src="skill.imageUrl"
-          :alt="t(skill.nameKey)"
+          :alt="t(vmatrixNameKey(skill))"
           loading="lazy"
         />
-        <div class="vm-cell__name">{{ t(skill.nameKey) }}</div>
-        <div v-if="skill.skillSpecific" class="vm-cell__badge">{{ t('vmatrix.skillSpecificBadge') }}</div>
-        <div class="vm-cell__input-wrap">
+        <div class="vm-cell__name">{{ t(vmatrixNameKey(skill)) }}</div>
+        <div class="vm-cell__level">
           <input
             type="number"
             class="vm-cell__input"
@@ -101,7 +96,7 @@ const visibleSkills = computed(() =>
 
 .vm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   gap: 8px;
   padding: 10px;
   background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
@@ -109,43 +104,25 @@ const visibleSkills = computed(() =>
   border-radius: 8px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
+
+/* Cell:固定三段 — icon / name / level
+   外框統一素色(不隨狀態變色),底色統一藍灰,不依 kind 區分 */
 .vm-cell {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 2.4em auto;
   align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  background: #2b3441;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  background: #3d4654;
   border: 1px solid #1a1f27;
   border-radius: 6px;
   min-width: 0;
 }
-.vm-cell--max {
-  border-color: #ffc857;
-  box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.35);
-}
-.vm-cell--specific {
-  border-color: #c29bff;
-  box-shadow: 0 0 0 1px rgba(194, 155, 255, 0.25);
-}
-.vm-cell--specific.vm-cell--max {
-  border-color: #ffc857;
-  box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.45);
-}
-.vm-cell__badge {
-  font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #c29bff;
-  text-transform: uppercase;
-  padding: 1px 4px;
-  border: 1px solid rgba(194, 155, 255, 0.5);
-  border-radius: 4px;
-  line-height: 1;
-}
+
 .vm-cell__icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
   background: #1f2630;
   border: 1px solid #141a22;
@@ -158,18 +135,22 @@ const visibleSkills = computed(() =>
   font-weight: 600;
   letter-spacing: 0.02em;
   text-align: center;
-  line-height: 1.15;
+  line-height: 1.2;
   width: 100%;
   word-break: break-word;
   hyphens: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.vm-cell__input-wrap {
+.vm-cell__level {
   display: flex;
   align-items: baseline;
-  gap: 0.2rem;
+  justify-content: center;
+  gap: 0.25rem;
 }
 .vm-cell__input {
-  width: 42px;
+  width: 44px;
   background: #1f2630;
   color: #f1f3f7;
   border: 1px solid #141a22;
@@ -182,7 +163,8 @@ const visibleSkills = computed(() =>
 }
 .vm-cell__input:focus { outline: none; border-color: #ffc857; }
 .vm-cell__cap {
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   color: #8ea6b8;
+  font-variant-numeric: tabular-nums;
 }
 </style>

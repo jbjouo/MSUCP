@@ -15,10 +15,13 @@ function defaultStacks() {
       activatedAt: 0,
       cooldownUntil: 0,
       baseFinalDmgPct: 0,
+      baseDamagePct: 0,       // 啟動中 Damage +N%(+ 進 CP Damage 桶)
       tickIntervalMs: 0,
       tickIncreasePct: 0,
       durationMs: 0,
       level: 0,
+      // tick 時間點 (相對 activatedAt 的 ms;若無則 fallback 到固定 interval 計算)
+      tickTimes: null,
     }
   }
   return out
@@ -89,13 +92,66 @@ function syncExpire(nowMs) {
   }
 }
 
-// activeToggle 在指定 ctx 下當前的最終傷害 %(elapsed 內的層級 3% 相加)
+// activeToggle 在指定 ctx 下當前的最終傷害 %
+//   若 stack 帶 tickTimes(由伺服器延遲模擬決定) → 計算已通過的 tick 數
+//   否則 fallback 到固定 interval(nowMs - activatedAt) / tickIntervalMs
 function activeToggleFinalDmgPct(buff, nowMs) {
   const s = state.stacks[buff.id]
   if (!s || !s.count || nowMs >= s.expireAt) return 0
-  const iv = s.tickIntervalMs || 1
-  const ticks = Math.max(0, Math.floor((nowMs - s.activatedAt) / iv))
+  let ticks
+  if (Array.isArray(s.tickTimes) && s.tickTimes.length) {
+    const elapsed = nowMs - s.activatedAt
+    // tickTimes 已排序,用線性從前往後掃找已過的 tick 數
+    ticks = 0
+    for (const t of s.tickTimes) {
+      if (elapsed >= t) ticks++
+      else break
+    }
+  } else {
+    const iv = s.tickIntervalMs || 1
+    ticks = Math.max(0, Math.floor((nowMs - s.activatedAt) / iv))
+  }
   return (s.baseFinalDmgPct || 0) + ticks * (s.tickIncreasePct || 0)
+}
+
+// 依「伺服器延遲率」決定單次 activate 期間的 tick 時間點
+//   期望間隔 = (1 - delayRate) × fast + delayRate × slow
+//   期望 tick 數 = durationMs / 期望間隔;整數為保底 tick,小數當機率多 1 次
+//   分布方式:每個間隔為 fast(5s)或 slow(10s),由 delayRate 獨立隨機決定
+//   累積超過 duration 時,把多餘 slow 改為 fast 平衡(確保所有 tick 都在 duration 內)
+function computeDelayedTickTimes(durationMs, fastIntervalMs, slowIntervalMs, delayRate, rng = Math.random) {
+  if (durationMs <= 0) return []
+  const expectedMs = (1 - delayRate) * fastIntervalMs + delayRate * slowIntervalMs
+  if (expectedMs <= 0) return []
+  const expectedTicks = durationMs / expectedMs
+  const floorTicks = Math.floor(expectedTicks)
+  const frac = expectedTicks - floorTicks
+  const actualTicks = floorTicks + (rng() < frac ? 1 : 0)
+  if (actualTicks <= 0) return []
+
+  // 每個間隔獨立隨機抽 fast 或 slow
+  const intervals = []
+  for (let i = 0; i < actualTicks; i++) {
+    intervals.push(rng() < delayRate ? slowIntervalMs : fastIntervalMs)
+  }
+  // 累積超過 duration 時,把 slow 改為 fast 直到可接受;最差情況全 fast 若仍超過則最後 tick clamp
+  let totalMs = intervals.reduce((a, b) => a + b, 0)
+  let guard = intervals.length
+  while (totalMs > durationMs && guard-- > 0) {
+    const idx = intervals.indexOf(slowIntervalMs)
+    if (idx === -1) break
+    intervals[idx] = fastIntervalMs
+    totalMs -= (slowIntervalMs - fastIntervalMs)
+  }
+
+  // 累積輸出 tick 時間點;最後 tick 若仍超出 duration 則 clamp 至 duration
+  const times = []
+  let t = 0
+  for (const iv of intervals) {
+    t += iv
+    times.push(Math.min(t, durationMs))
+  }
+  return times
 }
 
 export function useBattleBuffs() {
@@ -107,10 +163,12 @@ export function useBattleBuffs() {
       s.activatedAt = 0
       s.cooldownUntil = 0
       s.baseFinalDmgPct = 0
+      s.baseDamagePct = 0
       s.tickIntervalMs = 0
       s.tickIncreasePct = 0
       s.durationMs = 0
       s.level = 0
+      s.tickTimes = null
     }
   }
 
@@ -139,9 +197,19 @@ export function useBattleBuffs() {
       const isActive = s.count > 0 && nowMs < s.expireAt
       if (isActive) continue
 
+      // onceOnly:戰鬥中只能觸發一次(例:Unreliable Memory 鏡像 Infinity)
+      if (buff.onceOnly && s.activatedAt > 0) continue
+
       const initialDelayMs = buff.initialDelayBySpeed?.[attackSpeed] ?? 450
       const threshold = s.activatedAt === 0 ? initialDelayMs : s.cooldownUntil
       if (nowMs < threshold) continue
+
+      // triggerAfter:必須等指定 buff 啟動過且已 expire 才能觸發
+      if (buff.triggerAfter) {
+        const tgt = state.stacks[buff.triggerAfter]
+        if (!tgt || tgt.activatedAt === 0) continue
+        if (nowMs < tgt.expireAt) continue
+      }
 
       if (isLinkCycle) {
         // linkCycle:level + stats 從 LinkSkill 系統取得,未連結則跳過
@@ -163,9 +231,20 @@ export function useBattleBuffs() {
       }
 
       // activeToggle:level + stats 由 baseLevel + Combat Orders 計算
-      const level = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
-      const cfg = resolveActiveToggleStats(buff, level)
-      const durationMs = cfg.durationSec * 1000 * (1 + (buffDurationPct || 0) / 100)
+      //   buff.mirror 指向另一個 buff(例:Unreliable Memory → Infinity)→ 複製鏡像目標 cfg
+      let cfg, cfgLevel
+      if (buff.mirror) {
+        const mirrorBuff = BATTLE_BUFFS.find((b) => b.id === buff.mirror)
+        if (!mirrorBuff) continue
+        cfgLevel = (mirrorBuff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
+        cfg = resolveActiveToggleStats(mirrorBuff, cfgLevel)
+      } else {
+        cfgLevel = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
+        cfg = resolveActiveToggleStats(buff, cfgLevel)
+      }
+      // 不吃 Buff Duration% 的 buff(例:Epic Adventure)直接用原始秒數
+      const durationMult = cfg.ignoresBuffDuration ? 1 : (1 + (buffDurationPct || 0) / 100)
+      const durationMs = cfg.durationSec * 1000 * durationMult
       // CD 吃一般 CD 減免(% + 帽子 flat);走與一般技能相同的 computeEffectiveCooldown
       const effCdSec = cfg.cooldownSec > 0
         ? computeEffectiveCooldown(cfg.cooldownSec, {
@@ -178,10 +257,22 @@ export function useBattleBuffs() {
       s.expireAt = nowMs + durationMs
       s.cooldownUntil = nowMs + effCdSec * 1000
       s.baseFinalDmgPct = cfg.baseFinalDmgPct
+      s.baseDamagePct = cfg.baseDamagePct || 0
       s.tickIntervalMs = cfg.tickIntervalSec * 1000
       s.tickIncreasePct = cfg.tickIncreasePct
       s.durationMs = durationMs
       s.level = cfg.level
+      // 伺服器延遲 tick 模擬:設定了 tickDelayedIntervalSec + tickServerDelayRate 就啟用
+      if (cfg.tickDelayedIntervalSec > 0 && cfg.tickServerDelayRate > 0) {
+        s.tickTimes = computeDelayedTickTimes(
+          durationMs,
+          cfg.tickIntervalSec * 1000,
+          cfg.tickDelayedIntervalSec * 1000,
+          cfg.tickServerDelayRate,
+        )
+      } else {
+        s.tickTimes = null
+      }
       activated.push({ id: buff.id, at: nowMs, buff, level: cfg.level })
     }
     return activated
@@ -253,9 +344,15 @@ export function useBattleBuffs() {
     for (const buff of BATTLE_BUFFS) {
       if (!applicableForJob(buff, jobKey)) continue
       // activeToggle:時間階梯式終傷 → 組成單一乘區後與其他 buff 互乘
+      //              啟動中若有 baseDamagePct(例:Epic Adventure +10%)→ 併入 Damage% 桶
       if (buff.source === 'activeToggle') {
         const fdPct = activeToggleFinalDmgPct(buff, nowMs)
         if (fdPct > 0) total.finalDmgMult *= 1 + fdPct / 100
+        const s = state.stacks[buff.id]
+        if (s && s.count > 0 && nowMs < s.expireAt) {
+          const dmgPct = s.baseDamagePct || 0
+          if (dmgPct > 0) total.dmgPct += dmgPct
+        }
         continue
       }
       // linkCycle:啟動中以 stats.damage 併入 Damage%(與 CP Damage 相加後進 basic/boss 桶)
@@ -311,7 +408,12 @@ export function useBattleBuffs() {
       const isActive = s.count > 0 && nowMs < s.expireAt
       const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
       const currentFdPct = isActive ? activeToggleFinalDmgPct(buff, nowMs) : 0
-      const onCooldown = !isActive && s.activatedAt > 0 && s.cooldownUntil > nowMs
+      // hideCooldown / onceOnly 的 buff 不顯示 CD(例:Unreliable Memory)
+      const onCooldown = !buff.hideCooldown
+        && !buff.onceOnly
+        && !isActive
+        && s.activatedAt > 0
+        && s.cooldownUntil > nowMs
       return {
         level: s.level || buff.baseLevel || 0,
         stats: null,
