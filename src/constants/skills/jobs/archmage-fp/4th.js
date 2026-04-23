@@ -270,6 +270,7 @@ export const ARCHMAGE_FP_4TH_SKILLS = [
       cooldownSec: 180,
       cooldownIgnoresReset: true,
       initialDelayBySpeed: { 7: 500, 8: 450 },
+      skipWhileActive: ['unreliable_memory'],
     },
   },
   // Hero's Will — 免狀態 active 技能 (骨架)

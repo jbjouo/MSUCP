@@ -143,6 +143,9 @@ let rng = null
 let nextCastAt = {}
 let burnState = {}       // { [skillId]: { nextTickAt, expireAt, intervalMs } }
 let fieldState = {}      // { [skillId]: { expireAt } } — 場地技能持續時間(例:Poison Mist)
+// 延遲命中的火球 — 施放時 schedule,tick 到期才觸發傷害 / useCount / Meteor Shower / Ignite
+//   [{ skillId, fireAt, orbIndex, fd, attacksPerOrb }]
+let pendingOrbHits = []
 
 // burnState 異動後立刻同步到 useDotTracker
 // — 同一 tick 內後續的 emitCast / 冷卻檢查 / Fervent Drain 疊層都能讀到當下數字
@@ -400,6 +403,46 @@ function meteorTriggerRolls(skill, meteor) {
   return Math.max(0, skillExplosionCount(skill))
 }
 
+// Meteor Shower — 執行 N 次 proc roll,成功則以 Meteor Shower 主擊管線追加 1 擊
+//   emitCast 施放時用(一般技能 1 次、爆炸型 N 次);延遲火球時每顆獨立呼叫(rolls=1)
+function rollMeteorShowerTriggers(sourceSkill, rolls, tCast, enemy, att) {
+  if (rolls <= 0) return
+  const meteor = SKILL_BY_ID['meteor_shower']
+  if (!meteor) return
+  const mlv = effSkillLevel(meteor)
+  const fa = skillFinalAttackPcts(meteor, mlv)
+  if (!fa || fa.procRate <= 0 || fa.damage <= 0) return
+  const procProb = clean(Math.min(1, Math.max(0, fa.procRate / 100)))
+  const mElem = elemMultFor(meteor, enemy)
+  const res = state.result
+  const mStats = res.perSkill[meteor.id]
+  const mp = res.meteorProcs[sourceSkill.id] || { rolls: 0, procs: 0, dmg: 0 }
+  mp.rolls += rolls
+  for (let r = 0; r < rolls; r++) {
+    const roll = rng()
+    const success = roll < procProb
+    if (typeof window !== 'undefined' && window.__METEOR_DEBUG) {
+      console.log(
+        `[MS] src=${sourceSkill.id.padEnd(14)} t=${Math.floor(tCast)}ms ` +
+        `roll=${roll.toFixed(4)} prob=${procProb.toFixed(3)} ` +
+        `${success ? 'PROC' : 'miss'}  (mp.rolls=${mp.rolls} mp.procs=${mp.procs + (success ? 1 : 0)})`
+      )
+    }
+    if (success) {
+      const raw = mainHitDmg(meteor, mElem, enemy, att, fa.damage)
+      const intDmg = Math.max(1, Math.floor(raw))
+      emitHit(mStats, raw)
+      // 每顆成功觸發的隕石算 Meteor Shower 的一次「使用」(單擊追加,非 DoT)
+      mStats.useCount += 1
+      mp.procs += 1
+      mp.dmg += intDmg
+      // Meteor Shower 追打 (element='fire') 本身也視為一次火屬攻擊事件 → 可觸發 Ignite
+      maybeProcIgnite(meteor, tCast, res)
+    }
+  }
+  res.meteorProcs[sourceSkill.id] = mp
+}
+
 // 單次 DoT tick — 新公式(與主擊完全獨立):
 //   DoT = baseRaw × (DoT 技能倍率/100) × V矩陣終傷 × 特殊終傷 × 怪物類型乘區 × ARC終傷
 //
@@ -434,10 +477,16 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   const res = state.result
   res.events.push({ time: tCast, skillId: skill.id, type: 'cast' })
   const stats = res.perSkill[skill.id]
+  const orbs = skill.sim?.orbs
+  // 延遲火球型 (例:DoT Punisher) — 施放瞬間不算傷害 / useCount / Meteor Shower / Ignite,
+  //   全部延後到每顆 orb 的 fireAt 觸發 (見 processOrbHits)。
+  //   依然保留:timeline cast 事件 / rollTriggers / burn 登記 / onHitSpawn / onHitResetCooldown / fieldState
+  const hasDelayedOrbs = !!(orbs?.hitDelayRange && orbs?.attacksPerOrb)
   // 爆炸型技能(Mist Eruption):每次爆炸視為一次使用 (useCount += 爆炸數)
   //   一般技能 skillExplosionCount 回傳 1,等同 +1
+  //   延遲火球型 (DoT Punisher) 在 processOrbHits per-orb 累加,施放瞬間不加
   const explosionsN = skillExplosionCount(skill)
-  stats.useCount += explosionsN
+  if (!hasDelayedOrbs) stats.useCount += explosionsN
   // 實戰 buff: 本次施放先 roll,命中則增加 1 層,後續傷害用新層數計算
   // 若 proc 成功且 buff 標記 appliesDebuff → 連鎖觸發 linkCycle/triggerOn='debuffApplied'(例:Thief's Cunning)
   // linkCycle 屬被動型 buff,不寫進 timeline(僅透過 buff 圖示呈現)
@@ -448,15 +497,37 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   const hits = Math.max(0, baseHits + (hs.hitsPerCastBonus || 0))
   // 分波火球(例:Megiddo Flame 11 顆 × 4 擊):第 1 顆 FD 100%,其餘 × subsequentFdMult
   //   每擊獨立呼叫 mainHitDmg(各自的 crit / variance),乘上該顆 orb 的 FD 倍率
-  const orbs = skill.sim?.orbs
-  if (orbs?.maxTotal && orbs?.attacksPerOrb) {
-    const totalOrbs = orbs.maxTotal
+  if (orbs?.attacksPerOrb) {
     const perOrb = orbs.attacksPerOrb
     const subFd = orbs.subsequentFdMult ?? 1
-    for (let o = 0; o < totalOrbs; o++) {
-      const fd = (o === 0) ? 1 : subFd
-      for (let h = 0; h < perOrb; h++) {
-        emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * fd)
+    // 火球數:固定 (Megiddo) 或 基礎 + DoT 層數 × k (DoT Punisher);上限 maxTotal
+    const activeDots = useDotTracker().state.activeDotCount
+    const baseCount = orbs.baseCount != null ? orbs.baseCount : (orbs.maxTotal || 0)
+    const perDotStack = orbs.perDotStack || 0
+    const dynamicCount = baseCount + perDotStack * activeDots
+    const totalOrbs = orbs.maxTotal ? Math.min(orbs.maxTotal, dynamicCount) : dynamicCount
+    if (hasDelayedOrbs) {
+      // 延遲命中:每顆 orb 在 tCast + uniformRandom(hitDelayRange) 觸發
+      const [minMs, maxMs] = orbs.hitDelayRange
+      const span = Math.max(0, maxMs - minMs)
+      for (let o = 0; o < totalOrbs; o++) {
+        const fd = (o === 0) ? 1 : subFd
+        const delay = minMs + rng() * span
+        pendingOrbHits.push({
+          skillId: skill.id,
+          fireAt: tCast + delay,
+          orbIndex: o,
+          fd,
+          attacksPerOrb: perOrb,
+        })
+      }
+    } else {
+      // 同 tick 全部命中 (Megiddo Flame 原行為)
+      for (let o = 0; o < totalOrbs; o++) {
+        const fd = (o === 0) ? 1 : subFd
+        for (let h = 0; h < perOrb; h++) {
+          emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * fd)
+        }
       }
     }
   } else {
@@ -550,50 +621,16 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     }
   }
 
-  // Meteor Shower 被動 Final Attack — 角色任何主擊(含 aura / derived)的每次使用觸發 roll
+  // Meteor Shower 被動 Final Attack — 一般技能於施放瞬間 roll;延遲火球型於每顆 orb 的 fireAt roll
   //   來源只要有 hitsPerCast 就會 roll;僅排除 Meteor Shower 自身 (type='passive')
   //   爆炸型技能(Mist Eruption)一次施放產生 explosionsN 次 roll(與 useCount 一致)
   //   成功則以 Meteor Shower 自身的傷害管線(含其屬性 / VM / buff / defMult)追加 1 擊
-  const meteor = SKILL_BY_ID['meteor_shower']
-  const rolls = meteorTriggerRolls(skill, meteor)
-  if (rolls > 0) {
-    const mlv = effSkillLevel(meteor)
-    const fa = skillFinalAttackPcts(meteor, mlv)
-    if (fa && fa.procRate > 0 && fa.damage > 0) {
-      const procProb = clean(Math.min(1, Math.max(0, fa.procRate / 100)))
-      const mElem = elemMultFor(meteor, enemy)
-      const mStats = res.perSkill[meteor.id]
-      const mp = res.meteorProcs[skill.id] || { rolls: 0, procs: 0, dmg: 0 }
-      mp.rolls += rolls
-      for (let r = 0; r < rolls; r++) {
-        const roll = rng()
-        const success = roll < procProb
-        // [DEBUG] 每次 proc roll 記一筆,方便比對 rolls/procs 異常狀況
-        if (typeof window !== 'undefined' && window.__METEOR_DEBUG) {
-          console.log(
-            `[MS] src=${skill.id.padEnd(14)} t=${Math.floor(tCast)}ms ` +
-            `roll=${roll.toFixed(4)} prob=${procProb.toFixed(3)} ` +
-            `${success ? 'PROC' : 'miss'}  (mp.rolls=${mp.rolls} mp.procs=${mp.procs + (success ? 1 : 0)})`
-          )
-        }
-        if (success) {
-          const raw = mainHitDmg(meteor, mElem, enemy, att, fa.damage)
-          const intDmg = Math.max(1, Math.floor(raw))
-          emitHit(mStats, raw)
-          // 每顆成功觸發的隕石算 Meteor Shower 的一次「使用」(單擊追加,非 DoT)
-          mStats.useCount += 1
-          mp.procs += 1
-          mp.dmg += intDmg
-          // Meteor Shower 追打 (element='fire') 本身也視為一次火屬攻擊事件 → 可觸發 Ignite
-          maybeProcIgnite(meteor, tCast, res)
-        }
-      }
-      res.meteorProcs[skill.id] = mp
-    }
+  if (!hasDelayedOrbs) {
+    const meteor = SKILL_BY_ID['meteor_shower']
+    rollMeteorShowerTriggers(skill, meteorTriggerRolls(skill, meteor), tCast, enemy, att)
+    // Ignite — 火屬技能(非 Inferno Aura)施放時機率生成火牆
+    maybeProcIgnite(skill, tCast, res)
   }
-
-  // Ignite — 火屬技能(非 Inferno Aura)施放時機率生成火牆
-  maybeProcIgnite(skill, tCast, res)
 }
 
 function processBurnTicks(elapsed, enemy, att) {
@@ -619,6 +656,37 @@ function processBurnTicks(elapsed, enemy, att) {
       syncDotCount()
     }
   }
+  return changed
+}
+
+// 延遲火球處理 — 每 tick 檢查 pendingOrbHits,到期的 orb 觸發傷害 / useCount / MS / Ignite
+// 每顆火球獨立:attacksPerOrb 次 mainHitDmg × fd,useCount +1,Meteor Shower 1 次 roll,
+// Ignite 1 次 roll (走 maybeProcIgnite)。
+function processOrbHits(elapsed, enemy, att) {
+  if (!pendingOrbHits.length) return false
+  const res = state.result
+  let changed = false
+  const remaining = []
+  for (const p of pendingOrbHits) {
+    if (p.fireAt > elapsed) {
+      remaining.push(p)
+      continue
+    }
+    const skill = SKILL_BY_ID[p.skillId]
+    if (!skill) { changed = true; continue }
+    const stats = res.perSkill[skill.id]
+    if (!stats) { changed = true; continue }
+    const elemMult = elemMultFor(skill, enemy)
+    for (let h = 0; h < p.attacksPerOrb; h++) {
+      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * p.fd)
+    }
+    stats.useCount += 1
+    // 每顆 orb 獨立觸發 Meteor Shower 1 次 + Ignite 1 次
+    rollMeteorShowerTriggers(skill, 1, p.fireAt, enemy, att)
+    maybeProcIgnite(skill, p.fireAt, res)
+    changed = true
+  }
+  pendingOrbHits = remaining
   return changed
 }
 
@@ -758,6 +826,7 @@ function tick() {
       if (cur != null && cur < lockUntil) nextCastAt[other.id] = lockUntil
     }
   }
+  if (processOrbHits(elapsed, enemy, att)) changed = true
   if (processBurnTicks(elapsed, enemy, att)) changed = true
   if (processIgniteWalls(elapsed, enemy, att)) changed = true
 
@@ -821,6 +890,7 @@ export function useBattleSim() {
     burnState = {}
     fieldState = {}
     igniteWalls = []
+    pendingOrbHits = []
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
     // 開場排程:

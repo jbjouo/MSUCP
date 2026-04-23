@@ -200,6 +200,20 @@ export function useBattleBuffs() {
       // onceOnly:戰鬥中只能觸發一次(例:Unreliable Memory 鏡像 Infinity)
       if (buff.onceOnly && s.activatedAt > 0) continue
 
+      // skipWhileActive:指定的其他 buff 還在持續時,跳過本 buff 的自動施放
+      //   (例:Infinity 不重施,若 Unreliable Memory 鏡像還在跑)
+      if (Array.isArray(buff.skipWhileActive)) {
+        let blocked = false
+        for (const otherId of buff.skipWhileActive) {
+          const other = state.stacks[otherId]
+          if (other && other.count > 0 && nowMs < other.expireAt) {
+            blocked = true
+            break
+          }
+        }
+        if (blocked) continue
+      }
+
       const initialDelayMs = buff.initialDelayBySpeed?.[attackSpeed] ?? 450
       const threshold = s.activatedAt === 0 ? initialDelayMs : s.cooldownUntil
       if (nowMs < threshold) continue

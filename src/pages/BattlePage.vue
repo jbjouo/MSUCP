@@ -68,11 +68,11 @@ function fmtTimeRemaining(ms) {
   return Math.ceil(s).toString()
 }
 
-// Ignite 觸發來源統計 — 火屬技能施放 proc 生成火牆
-const igniteProcRows = computed(() => {
-  if (!result.value?.igniteProcs) return []
+// 通用 proc 來源統計表建構器 — 給 ignite / meteor 兩個面板共用
+function buildProcRows(procs) {
+  if (!procs) return []
   const rows = []
-  for (const [srcId, stat] of Object.entries(result.value.igniteProcs)) {
+  for (const [srcId, stat] of Object.entries(procs)) {
     const src = SIM_SKILLS.find((s) => s.id === srcId)
     rows.push({
       id: srcId,
@@ -86,17 +86,22 @@ const igniteProcRows = computed(() => {
   }
   rows.sort((a, b) => b.procs - a.procs)
   return rows
-})
-const igniteProcTotal = computed(() => {
-  const rows = igniteProcRows.value
+}
+function totalOfRows(rows) {
   const rolls = rows.reduce((s, r) => s + r.rolls, 0)
   const procs = rows.reduce((s, r) => s + r.procs, 0)
   const dmg = rows.reduce((s, r) => s + r.dmg, 0)
   return { rolls, procs, dmg, rate: rolls > 0 ? (procs / rolls) * 100 : 0 }
-})
+}
 
-// [DEBUG] 戰鬥開始後第一次施放的 Megiddo Flame — 主擊 / DoT snapshot
-const megiddoFirstCast = computed(() => result.value?.megiddoFirstCast || null)
+// Ignite 觸發來源統計 — 火屬技能施放 proc 生成火牆
+const igniteProcRows = computed(() => buildProcRows(result.value?.igniteProcs))
+const igniteProcTotal = computed(() => totalOfRows(igniteProcRows.value))
+
+// Meteor Shower 觸發來源統計 — 主擊 Final Attack proc
+const meteorProcRows = computed(() => buildProcRows(result.value?.meteorProcs))
+const meteorProcTotal = computed(() => totalOfRows(meteorProcRows.value))
+
 function fmtCompact(n) {
   const v = Number(n || 0)
   if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B'
@@ -688,58 +693,60 @@ const timelineRows = computed(() => {
         … +{{ timelineEvents.length - 200 }} {{ t('battle.timeline.more') }}
       </div>
 
-      <!-- [DEBUG] Megiddo Flame 第一次施放 snapshot -->
-      <section v-if="result" class="bp-ignite-debug">
-        <header class="bp-ignite-debug__head">
-          <span class="bp-ignite-debug__tag">[DEBUG]</span>
-          <span>Megiddo Flame (1st cast)</span>
+      <!-- [DEBUG] Ignite 觸發機率追蹤 — 每個火屬來源技能的 proc 次數 / 機率 / 傷害 -->
+      <section v-if="result" class="bp-proc-debug bp-proc-debug--ignite">
+        <header class="bp-proc-debug__head">
+          <span class="bp-proc-debug__tag">[DEBUG]</span>
+          <span>Ignite 觸發</span>
         </header>
-        <div v-if="!megiddoFirstCast" class="bp-ignite-debug__empty">
-          尚未施放
+        <div class="bp-proc-debug__summary">
+          <span class="bp-proc-debug__sum-rate">
+            合計 <b>{{ igniteProcTotal.procs }}</b> / {{ igniteProcTotal.rolls }}
+            <small>({{ igniteProcTotal.rate.toFixed(1) }}%)</small>
+          </span>
+          <span class="bp-proc-debug__sum-dmg">{{ fmtCompact(igniteProcTotal.dmg) }}</span>
         </div>
-        <ul v-else class="bp-ignite-debug__list">
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">施放時間</span>
-            <span class="bp-ignite-debug__nums">
-              <b>{{ (megiddoFirstCast.tCast / 1000).toFixed(2) }}</b>s
-              <small>Lv.{{ megiddoFirstCast.skillLevel }} · {{ megiddoFirstCast.hitsRaw }} hits</small>
+        <div v-if="igniteProcRows.length === 0" class="bp-proc-debug__empty">
+          尚未觸發
+        </div>
+        <ul v-else class="bp-proc-debug__list">
+          <li v-for="r in igniteProcRows" :key="r.id" class="bp-proc-debug__row">
+            <span class="bp-proc-debug__dot" :style="{ background: r.color }" />
+            <span class="bp-proc-debug__name">{{ r.name }}</span>
+            <span class="bp-proc-debug__nums">
+              <b>{{ r.procs }}</b> / {{ r.rolls }}
+              <small>({{ r.rate.toFixed(1) }}%)</small>
             </span>
+            <span class="bp-proc-debug__dmg">{{ fmtCompact(r.dmg) }}</span>
           </li>
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">首顆 FD 100%</span>
-            <span class="bp-ignite-debug__nums">
-              <b>{{ fmtCompact(megiddoFirstCast.firstOrbHit) }}</b>
-              <small>× {{ megiddoFirstCast.hitsFirstOrb }} hits</small>
+        </ul>
+      </section>
+
+      <!-- [DEBUG] Meteor Shower 觸發機率追蹤 — 每個主擊來源技能的 proc 次數 / 機率 / 傷害 -->
+      <section v-if="result" class="bp-proc-debug bp-proc-debug--meteor">
+        <header class="bp-proc-debug__head">
+          <span class="bp-proc-debug__tag">[DEBUG]</span>
+          <span>Meteor Shower 觸發</span>
+        </header>
+        <div class="bp-proc-debug__summary">
+          <span class="bp-proc-debug__sum-rate">
+            合計 <b>{{ meteorProcTotal.procs }}</b> / {{ meteorProcTotal.rolls }}
+            <small>({{ meteorProcTotal.rate.toFixed(1) }}%)</small>
+          </span>
+          <span class="bp-proc-debug__sum-dmg">{{ fmtCompact(meteorProcTotal.dmg) }}</span>
+        </div>
+        <div v-if="meteorProcRows.length === 0" class="bp-proc-debug__empty">
+          尚未觸發
+        </div>
+        <ul v-else class="bp-proc-debug__list">
+          <li v-for="r in meteorProcRows" :key="r.id" class="bp-proc-debug__row">
+            <span class="bp-proc-debug__dot" :style="{ background: r.color }" />
+            <span class="bp-proc-debug__name">{{ r.name }}</span>
+            <span class="bp-proc-debug__nums">
+              <b>{{ r.procs }}</b> / {{ r.rolls }}
+              <small>({{ r.rate.toFixed(1) }}%)</small>
             </span>
-            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.firstOrbHit * megiddoFirstCast.hitsFirstOrb) }}</span>
-          </li>
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">後續 FD {{ (megiddoFirstCast.subFdMult * 100).toFixed(0) }}%</span>
-            <span class="bp-ignite-debug__nums">
-              <b>{{ fmtCompact(megiddoFirstCast.subOrbHit) }}</b>
-              <small>× {{ megiddoFirstCast.hitsSubOrbs }} hits ({{ megiddoFirstCast.orbTotal - 1 }} 顆)</small>
-            </span>
-            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.subOrbHit * megiddoFirstCast.hitsSubOrbs) }}</span>
-          </li>
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">主擊合計</span>
-            <span class="bp-ignite-debug__nums">—</span>
-            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.mainTotalEst) }}</span>
-          </li>
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">DoT / tick</span>
-            <span class="bp-ignite-debug__nums">
-              <b>{{ fmtCompact(megiddoFirstCast.dotTickDmg) }}</b>
-              <small>× {{ megiddoFirstCast.dotTickCount }} ticks ({{ megiddoFirstCast.dotDurationSec }}s)</small>
-            </span>
-            <span class="bp-ignite-debug__dmg">{{ fmtCompact(megiddoFirstCast.dotTotal) }}</span>
-          </li>
-          <li class="bp-ignite-debug__row">
-            <span class="bp-ignite-debug__name">總合計</span>
-            <span class="bp-ignite-debug__nums">—</span>
-            <span class="bp-ignite-debug__dmg">
-              <b>{{ fmtCompact(megiddoFirstCast.mainTotalEst + megiddoFirstCast.dotTotal) }}</b>
-            </span>
+            <span class="bp-proc-debug__dmg">{{ fmtCompact(r.dmg) }}</span>
           </li>
         </ul>
       </section>
@@ -1073,8 +1080,11 @@ const timelineRows = computed(() => {
   padding: 4px;
 }
 
-/* [DEBUG] Ignite 觸發統計 — 時間軸下方暫時面板 (同 Meteor Shower debug 之前的樣式) */
-.bp-ignite-debug {
+/* [DEBUG] 觸發機率追蹤面板 — Ignite / Meteor Shower 共用樣式;
+   accent 色以 CSS 變數覆寫,各變體改 --accent / --accent-soft 即可 */
+.bp-proc-debug {
+  --accent: #ff6a2a;
+  --accent-soft: #ff9a6e;
   margin-top: 4px;
   padding: 6px 8px 8px;
   background: rgba(255, 106, 42, 0.06);
@@ -1084,26 +1094,32 @@ const timelineRows = computed(() => {
   flex-direction: column;
   gap: 6px;
 }
-.bp-ignite-debug__head {
+.bp-proc-debug--meteor {
+  --accent: #5aa9ff;
+  --accent-soft: #8ecbff;
+  background: rgba(90, 169, 255, 0.06);
+  border-color: rgba(90, 169, 255, 0.45);
+}
+.bp-proc-debug__head {
   display: flex;
   align-items: baseline;
   gap: 6px;
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: #ff9a6e;
+  color: var(--accent-soft);
   text-transform: uppercase;
 }
-.bp-ignite-debug__tag {
+.bp-proc-debug__tag {
   font-size: 0.62rem;
-  color: #ff6a2a;
-  background: rgba(255, 106, 42, 0.16);
-  border: 1px solid rgba(255, 106, 42, 0.4);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   border-radius: 3px;
   padding: 1px 4px;
   letter-spacing: 0.1em;
 }
-.bp-ignite-debug__summary {
+.bp-proc-debug__summary {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -1113,20 +1129,20 @@ const timelineRows = computed(() => {
   font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
 }
-.bp-ignite-debug__sum-rate b { color: #ffc857; font-weight: 800; }
-.bp-ignite-debug__sum-rate small { color: #8ea6b8; font-size: 0.68rem; margin-left: 2px; }
-.bp-ignite-debug__sum-dmg {
-  color: #ff9a6e;
+.bp-proc-debug__sum-rate b { color: #ffc857; font-weight: 800; }
+.bp-proc-debug__sum-rate small { color: #8ea6b8; font-size: 0.68rem; margin-left: 2px; }
+.bp-proc-debug__sum-dmg {
+  color: var(--accent-soft);
   font-weight: 800;
   font-size: 0.8rem;
 }
-.bp-ignite-debug__empty {
+.bp-proc-debug__empty {
   text-align: center;
   padding: 6px;
   font-size: 0.72rem;
   color: #8ea6b8;
 }
-.bp-ignite-debug__list {
+.bp-proc-debug__list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1134,7 +1150,7 @@ const timelineRows = computed(() => {
   flex-direction: column;
   gap: 1px;
 }
-.bp-ignite-debug__row {
+.bp-proc-debug__row {
   display: grid;
   grid-template-columns: 8px minmax(0, 1fr) auto auto;
   align-items: center;
@@ -1143,24 +1159,23 @@ const timelineRows = computed(() => {
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
 }
-.bp-ignite-debug__row:nth-child(odd) { background: rgba(255, 255, 255, 0.03); }
-.bp-ignite-debug__dot {
+.bp-proc-debug__row:nth-child(odd) { background: rgba(255, 255, 255, 0.03); }
+.bp-proc-debug__dot {
   width: 8px;
   height: 8px;
   border-radius: 2px;
   border: 1px solid #1a1f27;
 }
-.bp-ignite-debug__name {
+.bp-proc-debug__name {
   color: #e8edf2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bp-ignite-debug__nums b { color: #ffc857; font-weight: 800; }
-.bp-ignite-debug__nums small { color: #8ea6b8; font-size: 0.66rem; margin-left: 3px; }
-.bp-ignite-debug__sep { color: #8ea6b8; margin: 0 1px; }
-.bp-ignite-debug__dmg {
-  color: #ff9a6e;
+.bp-proc-debug__nums b { color: #ffc857; font-weight: 800; }
+.bp-proc-debug__nums small { color: #8ea6b8; font-size: 0.66rem; margin-left: 3px; }
+.bp-proc-debug__dmg {
+  color: var(--accent-soft);
   font-weight: 700;
   min-width: 42px;
   text-align: right;
