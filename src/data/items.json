@@ -378,6 +378,7 @@
         "thief",
         "pirate"
       ],
+      "maxStars": 8,
       "stats": {
         "atk": 1,
         "matk": 1,

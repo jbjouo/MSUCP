@@ -792,6 +792,117 @@ const TOP_120_RARE_LINE23_EXTRA = [
   { label: 'DEF: +60',           weight: 10.893247, stats: { def: 60 } },
 ]
 
+// 眼飾 Lv100+ Rare (Bonus Potential) — MSU API PartsType_ACCESSORY_EYE / equipLevel=100
+//   與上衣 Lv120 Rare 同結構,但 Movement Speed/Jump 是 +5(上衣 120 為 +6)
+const EYE_100_BONUS_RARE = [
+  { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
+  { label: 'DEX : +10',          weight: 6.382979, stats: { dex: 10 } },
+  { label: 'INT : +10',          weight: 6.382979, stats: { int: 10 } },
+  { label: 'LUK : +10',          weight: 6.382979, stats: { luk: 10 } },
+  { label: 'Max HP: +100',       weight: 6.382979, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 6.382979, stats: { mp: 100 } },
+  { label: 'Movement Speed: +5', weight: 6.382979, stats: { moveSpeed: 5 } },
+  { label: 'Jump: +5',           weight: 6.382979, stats: { jump: 5 } },
+  { label: 'ATT: +10',           weight: 4.255319, stats: { atk: 10 } },
+  { label: 'Magic ATT: +10',     weight: 4.255319, stats: { matk: 10 } },
+  { label: 'DEF: +100',          weight: 6.382979, stats: { def: 100 } },
+  { label: 'STR : +2%',          weight: 4.255319, stats: { strPct: 2 } },
+  { label: 'DEX : +2%',          weight: 4.255319, stats: { dexPct: 2 } },
+  { label: 'INT : +2%',          weight: 4.255319, stats: { intPct: 2 } },
+  { label: 'LUK : +2%',          weight: 4.255319, stats: { lukPct: 2 } },
+  { label: 'Max HP: +2%',        weight: 4.255319, stats: { hpPct: 2 } },
+  { label: 'Max MP: +2%',        weight: 4.255319, stats: { mpPct: 2 } },
+  { label: 'DEF: +2%',           weight: 4.255319, stats: { defPct: 2 } },
+  { label: 'All Stats: +3',      weight: 4.255319, stats: { allStat: 3 } },
+]
+
+// 眼飾 Lv100 Rare line 2/3 額外降級池
+const EYE_100_BONUS_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +50',        weight: 10.893247, stats: { hp: 50 } },
+  { label: 'Max MP: +50',        weight: 10.893247, stats: { mp: 50 } },
+  { label: 'Movement Speed: +3', weight: 10.893247, stats: { moveSpeed: 3 } },
+  { label: 'Jump: +3',           weight: 10.893247, stats: { jump: 3 } },
+  { label: 'ATT: +2',            weight: 7.262164, stats: { atk: 2 } },
+  { label: 'Magic ATT: +2',      weight: 7.262164, stats: { matk: 2 } },
+  { label: 'DEF: +50',           weight: 10.893247, stats: { def: 50 } },
+]
+
+// 眼飾 Lv100+ Epic (Bonus Potential)
+const EYE_100_BONUS_EPIC = [
+  { label: 'STR : +14',          weight: 6.000000, stats: { str: 14 } },
+  { label: 'DEX : +14',          weight: 6.000000, stats: { dex: 14 } },
+  { label: 'INT : +14',          weight: 6.000000, stats: { int: 14 } },
+  { label: 'LUK : +14',          weight: 6.000000, stats: { luk: 14 } },
+  { label: 'Max HP: +150',       weight: 6.000000, stats: { hp: 150 } },
+  { label: 'Max MP: +150',       weight: 6.000000, stats: { mp: 150 } },
+  { label: 'Movement Speed: +6', weight: 6.000000, stats: { moveSpeed: 6 } },
+  { label: 'Jump: +6',           weight: 6.000000, stats: { jump: 6 } },
+  { label: 'ATT: +11',           weight: 4.000000, stats: { atk: 11 } },
+  { label: 'Magic ATT: +11',     weight: 4.000000, stats: { matk: 11 } },
+  { label: 'DEF: +120',          weight: 6.000000, stats: { def: 120 } },
+  { label: 'STR : +4%',          weight: 4.000000, stats: { strPct: 4 } },
+  { label: 'DEX : +4%',          weight: 4.000000, stats: { dexPct: 4 } },
+  { label: 'INT : +4%',          weight: 4.000000, stats: { intPct: 4 } },
+  { label: 'LUK : +4%',          weight: 4.000000, stats: { lukPct: 4 } },
+  { label: 'Max HP: +5%',        weight: 6.000000, stats: { hpPct: 5 } },
+  { label: 'Max MP: +5%',        weight: 6.000000, stats: { mpPct: 5 } },
+  { label: 'DEF: +4%',           weight: 6.000000, stats: { defPct: 4 } },
+  { label: 'All Stats: +2%',     weight: 4.000000, stats: { allStatPct: 2 } },
+]
+
+// 眼飾 Lv100+ Unique (Bonus Potential)
+const EYE_100_BONUS_UNIQUE = [
+  { label: 'STR : +16',                          weight: 6.122449, stats: { str: 16 } },
+  { label: 'DEX : +16',                          weight: 6.122449, stats: { dex: 16 } },
+  { label: 'INT : +16',                          weight: 6.122449, stats: { int: 16 } },
+  { label: 'LUK : +16',                          weight: 6.122449, stats: { luk: 16 } },
+  { label: 'Max HP: +200',                       weight: 6.122449, stats: { hp: 200 } },
+  { label: 'Max MP: +200',                       weight: 6.122449, stats: { mp: 200 } },
+  { label: 'ATT: +12',                           weight: 4.081633, stats: { atk: 12 } },
+  { label: 'Magic ATT: +12',                     weight: 4.081633, stats: { matk: 12 } },
+  { label: 'STR : +5%',                          weight: 4.081633, stats: { strPct: 5 } },
+  { label: 'DEX : +5%',                          weight: 4.081633, stats: { dexPct: 5 } },
+  { label: 'INT : +5%',                          weight: 4.081633, stats: { intPct: 5 } },
+  { label: 'LUK : +5%',                          weight: 4.081633, stats: { lukPct: 5 } },
+  { label: 'Max HP: +7%',                        weight: 6.122449, stats: { hpPct: 7 } },
+  { label: 'Max MP: +7%',                        weight: 6.122449, stats: { mpPct: 7 } },
+  { label: 'All Stats: +4%',                     weight: 4.081633, stats: { allStatPct: 4 } },
+  { label: 'STR per 10 Character Levels: +1',    weight: 4.081633, stats: { strPerLv10: 1 } },
+  { label: 'DEX per 10 Character Levels: +1',    weight: 4.081633, stats: { dexPerLv10: 1 } },
+  { label: 'INT per 10 Character Levels: +1',    weight: 4.081633, stats: { intPerLv10: 1 } },
+  { label: 'LUK per 10 Character Levels: +1',    weight: 4.081633, stats: { lukPerLv10: 1 } },
+  { label: 'HP Recovery Items and Skills: +20%', weight: 6.122449 },
+]
+
+// 眼飾 Lv100+ Legendary (Bonus Potential)
+const EYE_100_BONUS_LEGENDARY = [
+  { label: 'STR : +18',                          weight: 5.769231, stats: { str: 18 } },
+  { label: 'DEX : +18',                          weight: 5.769231, stats: { dex: 18 } },
+  { label: 'INT : +18',                          weight: 5.769231, stats: { int: 18 } },
+  { label: 'LUK : +18',                          weight: 5.769231, stats: { luk: 18 } },
+  { label: 'Max HP: +250',                       weight: 5.769231, stats: { hp: 250 } },
+  { label: 'Max MP: +250',                       weight: 5.769231, stats: { mp: 250 } },
+  { label: 'ATT: +14',                           weight: 3.846154, stats: { atk: 14 } },
+  { label: 'Magic ATT: +14',                     weight: 3.846154, stats: { matk: 14 } },
+  { label: 'STR : +7%',                          weight: 3.846154, stats: { strPct: 7 } },
+  { label: 'DEX : +7%',                          weight: 3.846154, stats: { dexPct: 7 } },
+  { label: 'INT : +7%',                          weight: 3.846154, stats: { intPct: 7 } },
+  { label: 'LUK : +7%',                          weight: 3.846154, stats: { lukPct: 7 } },
+  { label: 'Max HP: +10%',                       weight: 5.769231, stats: { hpPct: 10 } },
+  { label: 'Max MP: +10%',                       weight: 5.769231, stats: { mpPct: 10 } },
+  { label: 'All Stats: +5%',                     weight: 3.846154, stats: { allStatPct: 5 } },
+  { label: 'STR per 10 Character Levels: +2',    weight: 3.846154, stats: { strPerLv10: 2 } },
+  { label: 'DEX per 10 Character Levels: +2',    weight: 3.846154, stats: { dexPerLv10: 2 } },
+  { label: 'INT per 10 Character Levels: +2',    weight: 3.846154, stats: { intPerLv10: 2 } },
+  { label: 'LUK per 10 Character Levels: +2',    weight: 3.846154, stats: { lukPerLv10: 2 } },
+  { label: 'Skill MP Cost: -10%',                weight: 5.769231 },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 5.769231 },
+]
+
 export const BONUS_POTENTIAL_POOLS = {
   weapon: {
     100: {
@@ -946,6 +1057,16 @@ export const BONUS_POTENTIAL_POOLS = {
       unique:    TOP_120_UNIQUE,
       legendary: TOP_120_LEGENDARY,
       rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
+    },
+  },
+  // 眼飾 Lv100+ 附加潛能 — MSU API PartsType_ACCESSORY_EYE 獨立池
+  eye: {
+    100: {
+      rare:      EYE_100_BONUS_RARE,
+      epic:      EYE_100_BONUS_EPIC,
+      unique:    EYE_100_BONUS_UNIQUE,
+      legendary: EYE_100_BONUS_LEGENDARY,
+      rareLine23Extra: EYE_100_BONUS_RARE_LINE23_EXTRA,
     },
   },
   // 帽子 Lv120+ 附加潛能 — RARE/EPIC/UNIQUE 與上衣同,LEGENDARY 獨立 (多 Skill Cooldown)

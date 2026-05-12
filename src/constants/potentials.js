@@ -131,6 +131,62 @@ const EMBLEM_100_LEGENDARY = [
   { label: 'DEF Ignored: +40%',                weight:  5.714286, stats: { ignoreDef: 40 } },
 ]
 
+// 眼飾 Lv100+ Rare — MSU API PartsType_ACCESSORY_EYE / equipLevel=100
+const EYE_100_RARE = [
+  { label: 'STR : +12',          weight: 7.500000, stats: { str: 12 } },
+  { label: 'DEX : +12',          weight: 7.500000, stats: { dex: 12 } },
+  { label: 'INT : +12',          weight: 7.500000, stats: { int: 12 } },
+  { label: 'LUK : +12',          weight: 7.500000, stats: { luk: 12 } },
+  { label: 'Max HP: +100',       weight: 7.500000, stats: { hp: 100 } },
+  { label: 'Max MP: +100',       weight: 7.500000, stats: { mp: 100 } },
+  { label: 'DEF: +100',          weight: 5.000000, stats: { def: 100 } },
+  { label: 'STR : +3%',          weight: 7.500000, stats: { strPct: 3 } },
+  { label: 'DEX : +3%',          weight: 7.500000, stats: { dexPct: 3 } },
+  { label: 'INT : +3%',          weight: 7.500000, stats: { intPct: 3 } },
+  { label: 'LUK : +3%',          weight: 7.500000, stats: { lukPct: 3 } },
+  { label: 'Max HP: +3%',        weight: 5.000000, stats: { hpPct: 3 } },
+  { label: 'Max MP: +3%',        weight: 5.000000, stats: { mpPct: 3 } },
+  { label: 'DEF: +3%',           weight: 5.000000, stats: { defPct: 3 } },
+  { label: 'All Stats: +5',      weight: 5.000000, stats: { allStat: 5 } },
+]
+
+// 眼飾 Lv100+ Epic
+const EYE_100_EPIC = [
+  { label: 'STR : +6%',          weight: 14.285715, stats: { strPct: 6 } },
+  { label: 'DEX : +6%',          weight: 14.285715, stats: { dexPct: 6 } },
+  { label: 'INT : +6%',          weight: 14.285715, stats: { intPct: 6 } },
+  { label: 'LUK : +6%',          weight: 14.285715, stats: { lukPct: 6 } },
+  { label: 'Max HP: +6%',        weight: 14.285715, stats: { hpPct: 6 } },
+  { label: 'Max MP: +6%',        weight: 14.285715, stats: { mpPct: 6 } },
+  { label: 'DEF: +6%',           weight:  8.571429, stats: { defPct: 6 } },
+  { label: 'All Stats: +3%',     weight:  5.714286, stats: { allStatPct: 3 } },
+]
+
+// 眼飾 Lv100+ Unique
+const EYE_100_UNIQUE = [
+  { label: 'STR : +9%',                          weight: 12.500000, stats: { strPct: 9 } },
+  { label: 'DEX : +9%',                          weight: 12.500000, stats: { dexPct: 9 } },
+  { label: 'INT : +9%',                          weight: 12.500000, stats: { intPct: 9 } },
+  { label: 'LUK : +9%',                          weight: 12.500000, stats: { lukPct: 9 } },
+  { label: 'Max HP: +9%',                        weight: 15.000001, stats: { hpPct: 9 } },
+  { label: 'Max MP: +9%',                        weight: 15.000001, stats: { mpPct: 9 } },
+  { label: 'All Stats: +6%',                     weight: 10.000000, stats: { allStatPct: 6 } },
+  { label: 'HP Recovery Items and Skills: +30%', weight: 10.000000 },
+]
+
+// 眼飾 Lv100+ Legendary
+const EYE_100_LEGENDARY = [
+  { label: 'STR : +12%',          weight: 12.121212, stats: { strPct: 12 } },
+  { label: 'DEX : +12%',          weight: 12.121212, stats: { dexPct: 12 } },
+  { label: 'INT : +12%',          weight: 12.121212, stats: { intPct: 12 } },
+  { label: 'LUK : +12%',          weight: 12.121212, stats: { lukPct: 12 } },
+  { label: 'Max HP: +12%',        weight: 12.121212, stats: { hpPct: 12 } },
+  { label: 'Max MP: +12%',        weight: 12.121212, stats: { mpPct: 12 } },
+  { label: 'All Stats: +9%',      weight:  9.090909, stats: { allStatPct: 9 } },
+  { label: 'Skill MP Cost: -10%', weight:  9.090909 },
+  { label: 'Skill MP Cost: -20%', weight:  9.090909 },
+]
+
 // 武器 Lv120+ Rare
 const WEAPON_120_RARE = [
   { label: 'STR : +12',              weight: 6.122449, stats: { str: 12 } },
@@ -780,8 +836,14 @@ export const POTENTIAL_POOLS = {
       legendary: EMBLEM_100_LEGENDARY,
     },
   },
-  // 眼飾 Lv120+ 潛能池與戒指 Lv120 完全相同 → 共用 (MSU API 驗證)
+  // 眼飾 Lv100+ 為獨立潛能池 (MSU API),Lv120+ 與戒指相同 → 共用
   eye: {
+    100: {
+      rare:      EYE_100_RARE,
+      epic:      EYE_100_EPIC,
+      unique:    EYE_100_UNIQUE,
+      legendary: EYE_100_LEGENDARY,
+    },
     120: {
       rare:      RING_120_RARE,
       epic:      RING_120_EPIC,
