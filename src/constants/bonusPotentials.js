@@ -775,6 +775,23 @@ const TOP_120_LEGENDARY = [
   { label: 'HP Recovery Items and Skills: +30%', weight: 5.882353 },
 ]
 
+// 上衣 / 下身 / 帽子 Lv120 Rare line 2/3 額外降級池
+//   來源:MSU API CubeType_BONUS_POTENTIAL / GradeType_RARE / TOP / Lv120,line 2 與 line 3 共用
+//   與武器 LINE23_EXTRA 結構相同,但 ATT/Magic ATT 為 +3 (武器為 +6)
+const TOP_120_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +60',        weight: 10.893247, stats: { hp: 60 } },
+  { label: 'Max MP: +60',        weight: 10.893247, stats: { mp: 60 } },
+  { label: 'Movement Speed: +4', weight: 10.893247, stats: { moveSpeed: 4 } },
+  { label: 'Jump: +4',           weight: 10.893247, stats: { jump: 4 } },
+  { label: 'ATT: +3',            weight: 7.262164, stats: { atk: 3 } },
+  { label: 'Magic ATT: +3',      weight: 7.262164, stats: { matk: 3 } },
+  { label: 'DEF: +60',           weight: 10.893247, stats: { def: 60 } },
+]
+
 export const BONUS_POTENTIAL_POOLS = {
   weapon: {
     100: {
@@ -918,6 +935,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      TOP_120_EPIC,
       unique:    TOP_120_UNIQUE,
       legendary: TOP_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   // 下身 Lv120+ 附加潛能與上衣 Lv120 完全相同 → 共用資料
@@ -927,6 +945,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      TOP_120_EPIC,
       unique:    TOP_120_UNIQUE,
       legendary: TOP_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   // 帽子 Lv120+ 附加潛能 — RARE/EPIC/UNIQUE 與上衣同,LEGENDARY 獨立 (多 Skill Cooldown)
@@ -936,6 +955,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      TOP_120_EPIC,
       unique:    TOP_120_UNIQUE,
       legendary: HAT_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
 }
