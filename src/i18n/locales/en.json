@@ -622,6 +622,7 @@
     "autoSaved": "Saved automatically",
     "sidebar": {
       "toggle": "Menu",
+      "menu": "Menu",
       "basic": "Basic Info",
       "linkSkill": "Link Skill",
       "collection": "Collection",

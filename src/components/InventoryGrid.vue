@@ -83,7 +83,7 @@ function onEdit(e, entry) {
     </header>
     <div
       class="bag-grid"
-      :style="{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }"
+      :style="{ '--bag-cols': columns }"
     >
       <div
         v-for="(cell, idx) in cells"
@@ -200,6 +200,16 @@ function onEdit(e, entry) {
   display: grid;
   gap: 4px;
   flex: 1;
+  grid-template-columns: repeat(var(--bag-cols, 8), minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .bag-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .bag-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .bag-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 .bag-cell-wrap {

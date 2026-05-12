@@ -1,29 +1,12 @@
 <script setup>
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 import { SUPPORTED_LOCALES, setLocale } from '../i18n'
-import { routes } from '../router'
-import { useCharacter } from '../composables/useCharacter.js'
 import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
 
 const { t, locale } = useI18n()
-const route = useRoute()
-const { state } = useCharacter()
 const { toggleSidebar } = useCharacterSidebar()
 
 const iconUrl = `${import.meta.env.BASE_URL}new-icon.png`
-
-const BATTLE_JOBS = new Set(['archmageFP'])
-
-const navItems = computed(() =>
-  routes
-    .filter((r) => r.meta?.navKey)
-    .filter((r) => r.meta.navKey !== 'battle' || BATTLE_JOBS.has(state.job))
-    .map((r) => ({ to: r.path, key: r.meta.navKey })),
-)
-
-const showSidebarToggle = computed(() => route.path.startsWith('/character'))
 
 function onLocaleChange(e) {
   setLocale(e.target.value)
@@ -34,7 +17,6 @@ function onLocaleChange(e) {
   <header class="topbar">
     <div class="topbar__inner">
       <button
-        v-if="showSidebarToggle"
         type="button"
         class="topbar__menu"
         :aria-label="t('character.sidebar.toggle')"
@@ -49,17 +31,7 @@ function onLocaleChange(e) {
         <span class="brand__title">{{ t('app.title') }}</span>
       </div>
 
-      <nav class="nav">
-        <router-link
-          v-for="item in navItems"
-          :key="item.key"
-          :to="item.to"
-          class="nav__item"
-          active-class="is-active"
-        >
-          {{ t(`nav.${item.key}`) }}
-        </router-link>
-      </nav>
+      <div class="topbar__spacer"></div>
 
       <div class="lang">
         <label :for="'lang-select'" class="lang__label">
@@ -94,6 +66,9 @@ function onLocaleChange(e) {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+.topbar__spacer {
+  flex: 1;
 }
 
 .topbar__menu {
@@ -136,34 +111,6 @@ function onLocaleChange(e) {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
-.nav {
-  display: flex;
-  gap: 0.25rem;
-  flex: 1;
-  flex-wrap: wrap;
-}
-.nav__item {
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  text-decoration: none;
-  color: #d6dce6;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  border: 1px solid transparent;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-.nav__item:hover {
-  color: #ffc857;
-  background: rgba(255, 255, 255, 0.06);
-}
-.nav__item.is-active {
-  color: #ffc857;
-  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
-  border-color: #141a22;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 .lang {
   display: flex;
   align-items: center;
@@ -185,17 +132,5 @@ function onLocaleChange(e) {
 .lang__select:focus {
   outline: none;
   border-color: #ffc857;
-}
-
-@media (max-width: 720px) {
-  .topbar__inner {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  .nav {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-  }
 }
 </style>

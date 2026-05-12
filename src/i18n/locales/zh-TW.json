@@ -622,6 +622,7 @@
     "autoSaved": "已自動儲存",
     "sidebar": {
       "toggle": "目錄",
+      "menu": "目錄",
       "basic": "基本資料",
       "linkSkill": "Link Skill",
       "collection": "圖鑑",

@@ -1504,15 +1504,14 @@ function onPanelOut(e) {
 .cp-page {
   padding: 0.5rem 0 2rem;
   display: flex;
-  justify-content: center;
   align-items: flex-start;
   gap: 12px;
   flex-wrap: wrap;
 }
 
 .panel {
-  width: 100%;
-  max-width: 560px;
+  flex: 1;
+  min-width: 320px;
   background: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);
   border: 1px solid #3d4554;
   border-radius: 14px;

@@ -169,7 +169,7 @@ onUnmounted(() => {
 
 .equip-page__body {
   display: grid;
-  grid-template-columns: minmax(420px, 600px) 1fr;
+  grid-template-columns: 4fr 6fr;
   gap: 1rem;
   align-items: start;
 }

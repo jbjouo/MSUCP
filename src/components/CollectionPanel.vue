@@ -316,9 +316,14 @@ function fmtDelta(stat, level) {
 .coll-cap { color: #8ea6b8; font-size: 0.7rem; flex-shrink: 0; white-space: nowrap; }
 
 @media (max-width: 720px) {
-  .coll-row { grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 1.3fr) minmax(0, 0.5fr); font-size: 0.76rem; gap: 2px; }
+  .coll-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 0.9fr) minmax(0, 0.5fr);
+    font-size: 0.76rem;
+    gap: 2px;
+  }
   .coll-row--head { font-size: 0.66rem; }
-  .coll-btn { width: 18px; height: 18px; }
-  .coll-input { width: 32px; }
+  .coll-btn { display: none; }
+  .coll-input { width: 40px; min-width: 40px; }
+  .coll-cap { font-size: 0.65rem; }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCharacter } from '../composables/useCharacter.js'
 import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
@@ -66,86 +66,12 @@ async function onFileSelected(e) {
   }
 }
 
-// ── 側邊欄 ───────────────────────────
-const {
-  sidebarOpen,
-  isMobile,
-  activeSection,
-  updateViewport,
-  toggleSidebar,
-  setActiveSection,
-} = useCharacterSidebar()
-
-const sidebarItems = [
-  { key: 'basic', labelKey: 'character.sidebar.basic' },
-  { key: 'linkSkill', labelKey: 'character.sidebar.linkSkill' },
-  { key: 'collection', labelKey: 'character.sidebar.collection' },
-  { key: 'legion', labelKey: 'character.sidebar.legion' },
-  { key: 'skill', labelKey: 'character.sidebar.skill' },
-]
-
-function selectSection(key) {
-  setActiveSection(key)
-  if (isMobile.value) sidebarOpen.value = false
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-function syncBodyClass() {
-  const shouldOffset = sidebarOpen.value && !isMobile.value
-  document.body.classList.toggle('has-char-sidebar', shouldOffset)
-}
-
-watch([sidebarOpen, isMobile], syncBodyClass)
-
-onMounted(() => {
-  updateViewport()
-  syncBodyClass()
-  window.addEventListener('resize', updateViewport)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateViewport)
-  document.body.classList.remove('has-char-sidebar')
-})
+// 分頁切換狀態(由全站 sidebar 控制)
+const { activeSection } = useCharacterSidebar()
 </script>
 
 <template>
   <section class="char-page">
-    <!-- 側邊欄 -->
-    <aside
-      class="char-sidebar"
-      :class="{ 'char-sidebar--open': sidebarOpen, 'char-sidebar--mobile': isMobile }"
-      :aria-hidden="!sidebarOpen"
-    >
-      <div class="char-sidebar__head">
-        <span class="char-sidebar__title">{{ t('character.sidebar.toggle') }}</span>
-        <button
-          v-if="isMobile"
-          type="button"
-          class="char-sidebar__close"
-          aria-label="Close menu"
-          @click="toggleSidebar"
-        >×</button>
-      </div>
-      <nav class="char-sidebar__nav">
-        <button
-          v-for="item in sidebarItems"
-          :key="item.key"
-          type="button"
-          class="char-sidebar__item"
-          :class="{ 'char-sidebar__item--active': activeSection === item.key }"
-          @click="selectSection(item.key)"
-        >{{ t(item.labelKey) }}</button>
-      </nav>
-    </aside>
-
-    <!-- 行動裝置 backdrop -->
-    <div
-      v-if="isMobile && sidebarOpen"
-      class="char-sidebar__backdrop"
-      @click="toggleSidebar"
-    ></div>
-
-    <!-- 主要內容 -->
     <div class="char-page__main">
       <header class="char-page__head">
         <h1>{{ t('pages.character.title') }}</h1>
@@ -282,18 +208,6 @@ onBeforeUnmount(() => {
   </section>
 </template>
 
-<!-- 非 scoped:只有在視窗夠寬時才讓主內容讓位;topbar 永遠滿版不縮 -->
-<style>
-.layout__main {
-  transition: margin-left 220ms ease;
-}
-@media (min-width: 1280px) {
-  body.has-char-sidebar .layout__main {
-    margin-left: 220px;
-  }
-}
-</style>
-
 <style scoped>
 .char-page {
   position: relative;
@@ -314,96 +228,6 @@ onBeforeUnmount(() => {
   scroll-margin-top: 72px;
 }
 
-/* ── Sidebar (full-height fixed) ─────────────────────────── */
-.char-sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 220px;
-  z-index: 15;
-  padding: 64px 10px 16px;
-  background: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);
-  border-right: 1px solid #3d4554;
-  box-shadow:
-    8px 0 22px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  color: #f1f3f7;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 220ms ease;
-}
-.char-sidebar--open {
-  transform: translateX(0);
-}
-.char-sidebar__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px 4px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-}
-.char-sidebar__title {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  color: #ffc857;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.char-sidebar__close {
-  background: none;
-  border: none;
-  color: #f1f3f7;
-  font-size: 1.4rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0 4px;
-}
-.char-sidebar__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.char-sidebar__item {
-  text-align: left;
-  background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
-  color: #e8edf2;
-  border: 1px solid #2f3642;
-  border-radius: 6px;
-  padding: 0.5rem 0.7rem;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: filter 120ms ease, border-color 120ms ease, color 120ms ease;
-}
-.char-sidebar__item:hover {
-  filter: brightness(1.12);
-  border-color: #ffc857;
-}
-.char-sidebar__item--active {
-  border-color: #ffc857;
-  color: #ffc857;
-  box-shadow: inset 0 0 0 1px rgba(255, 200, 87, 0.25);
-}
-
-.char-sidebar--mobile {
-  width: 78vw;
-  max-width: 280px;
-  z-index: 50;
-}
-.char-sidebar__backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 49;
-}
-
-/* ── 主內容 ─────────────────────────── */
 .char-page__split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -412,12 +236,6 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 900px) {
   .char-page__split { grid-template-columns: 1fr; }
-  .char-page {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .char-page--with-sidebar {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .char-page__head {
