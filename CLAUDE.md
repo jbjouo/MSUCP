@@ -371,8 +371,22 @@ branch / 職業 / 主屬 / `linkSkill?`:
 
 ## Git
 
-- remote:`https://github.com/jbjouo/MSUCP.git`
+- 原始碼 remote:`https://github.com/jbjouo/MSUCP.git`(`origin`)
 - main 為主分支;小修直 commit to main;新功能可開 `feat/xxx` + PR
+
+### 正式環境部署
+
+- 正式站 repo:`https://github.com/wasaizanla/msucp.git`(另一個帳號,GitHub Pages 來源)
+- **只有在使用者明確說要「部署 / deploy / 上正式 / 推到正式環境」時才 push 到這裡**。一般 commit、bug fix、功能開發都**不要**主動部署
+- 部署流程(**一律用絕對路徑 `git -C` 操作 dist,絕對不要 `cd dist`**,避免 cwd 歧義誤刪專案 `.git`):
+  1. `npx vite build`
+  2. `cp <root>/dist/index.html <root>/dist/404.html`(SPA 深連結 fallback)
+  3. `git -C <root>/dist init -b main -q`
+  4. `git -C <root>/dist -c user.email=... -c user.name=... add -A && commit -m "deploy: ..."`
+  5. `git -C <root>/dist -c credential.helper=store push -f https://wasaizanla@github.com/wasaizanla/msucp.git main`
+  6. `rm -rf <root>/dist/.git`
+- credential 已存在 `~/.git-credentials`(macOS 上需用 `wasaizanla@github.com` URL 形式才會吃 store 而非 osxkeychain 的 `jbjouo`)
+- 部署相關設定(必須維持):`vite.config.js` 的 `base: '/msucp/'`、`src/router/index.js` 的 `createWebHistory(import.meta.env.BASE_URL)`、`public/.nojekyll`
 
 ## localStorage key 清單
 

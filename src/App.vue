@@ -20,13 +20,13 @@ import TopBar from './components/TopBar.vue'
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 .layout__main {
   flex: 1;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
+  min-width: 0;
   padding: 1.5rem 1.25rem 3rem;
+  box-sizing: border-box;
 }
 
 .fade-enter-active,

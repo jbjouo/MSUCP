@@ -23,6 +23,13 @@ import { ITEM_SETS, countActiveSet } from '../constants/itemSets.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
 import { findBonusPotentialOptionForLine } from '../constants/bonusPotentials.js'
 import { LEGION_TIER_LABELS } from '../constants/legion.js'
+import {
+  weaponBonusTierIndex,
+  jobCpReferenceWeapon,
+  universalBowReference,
+  referenceBonusAttAtTier,
+} from '../constants/bonusStatsTiers.js'
+import { computeStarStats } from '../constants/starForce.js'
 import { clean, add, sub, mul, applyPct, combineIgnorePct, floor, sumBy } from '../utils/numerics.js'
 
 // ─── 冷卻公式 ─────────────────────────────────────────────────────────────
@@ -206,8 +213,20 @@ export function useCpDamage() {
     return s
   })
 
+  // 取得當前 reactive equipped state 解析後的 entry 陣列
+  function currentEquippedEntries() {
+    const arr = []
+    for (const uid of Object.values(equipState.equipped)) {
+      const e = resolveEntry(uid)
+      if (e) arr.push(e)
+    }
+    return arr
+  }
+
   // 每個 statKey → { flat: [{label,value,fixed,cpExclude}], pct: [{label,value,cpExclude}] }
-  const breakdowns = computed(() => {
+  // 純函式:傳入已解析的 equipped entries 陣列。其餘來源仍從外層 reactive composables 讀取。
+  // 讓 hover 時可用假設 loadout 試算 CP 差值。
+  function breakdownsForEntries(equippedEntries) {
     const out = {}
     const ensure = (k) => (out[k] ||= { flat: [], pct: [] })
     const addFlat = (k, label, v, fixed = false, cpExclude = false) => {
@@ -231,8 +250,7 @@ export function useCpDamage() {
 
     // 2) 裝備 (base + star + bonus + potentials)
     const charLv10 = Math.floor((charState.level || 0) / 10)
-    for (const uid of Object.values(equipState.equipped)) {
-      const entry = resolveEntry(uid)
+    for (const entry of equippedEntries) {
       if (!entry) continue
       const name = entry.item.name || ''
       const itemFlatBag = {}
@@ -314,8 +332,7 @@ export function useCpDamage() {
 
     // 裝備套裝
     const equippedItems = []
-    for (const uid of Object.values(equipState.equipped)) {
-      const ent = resolveEntry(uid)
+    for (const ent of equippedEntries) {
       if (ent?.item?.id) equippedItems.push(ent.item)
     }
     for (const set of ITEM_SETS) {
@@ -349,8 +366,7 @@ export function useCpDamage() {
 
     // 技能 (被動 + toggle)
     const myJobKey = currentJob.value?.key || null
-    const weaponUid = equipState.equipped.weapon
-    const weaponEntry = weaponUid ? resolveEntry(weaponUid) : null
+    const weaponEntry = equippedEntries.find((e) => e?.item?.type === 'weapon') || null
     const skillCtx = {
       jobKey: myJobKey,
       weaponSubType: weaponEntry?.item?.subType || null,
@@ -497,7 +513,9 @@ export function useCpDamage() {
       }
     }
     return out
-  })
+  }
+
+  const breakdowns = computed(() => breakdownsForEntries(currentEquippedEntries()))
 
   function breakdownFor(key) {
     const b = breakdowns.value[key] || { flat: [], pct: [] }
@@ -555,34 +573,39 @@ export function useCpDamage() {
 
   function statTotal(key) { return breakdownFor(key).final }
 
-  function flatTotalForCp(key) {
-    const b = breakdowns.value[key] || { flat: [], pct: [] }
+  // 帶 bd 參數版本,可給 hover 試算用;一般 reactive 用無參包裝
+  function flatTotalForCpFrom(bd, key) {
+    const b = bd[key] || { flat: [], pct: [] }
     return sumBy(b.flat.filter((x) => !x.cpExclude), (x) => x.value)
   }
-  function pctTotalForCp(key) {
-    const b = breakdowns.value[key] || { flat: [], pct: [] }
+  function flatTotalForCp(key) { return flatTotalForCpFrom(breakdowns.value, key) }
+
+  function pctTotalForCpFrom(bd, key) {
+    const b = bd[key] || { flat: [], pct: [] }
     let pct = sumBy(b.pct.filter((x) => !x.cpExclude), (x) => x.value)
     if (key === 'atk') {
-      pct = add(pct, sumBy((breakdowns.value.atkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
+      pct = add(pct, sumBy((bd.atkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
     }
     if (key === 'matk') {
-      pct = add(pct, sumBy((breakdowns.value.matkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
+      pct = add(pct, sumBy((bd.matkPct?.pct || []).filter((x) => !x.cpExclude), (x) => x.value))
     }
     return pct
   }
-  function statTotalForCp(key) {
-    const b = breakdowns.value[key] || { flat: [], pct: [] }
+  function pctTotalForCp(key) { return pctTotalForCpFrom(breakdowns.value, key) }
+
+  function statTotalForCpFrom(bd, key) {
+    const b = bd[key] || { flat: [], pct: [] }
     const flat = b.flat.filter((x) => !x.cpExclude)
     const pct = b.pct.filter((x) => !x.cpExclude)
     if (['str', 'dex', 'int', 'luk'].includes(key)) {
-      const extras = (breakdowns.value[`${key}Pct`]?.pct || []).filter((x) => !x.cpExclude)
-      const all = (breakdowns.value.allStatPct?.pct || []).filter((x) => !x.cpExclude)
+      const extras = (bd[`${key}Pct`]?.pct || []).filter((x) => !x.cpExclude)
+      const all = (bd.allStatPct?.pct || []).filter((x) => !x.cpExclude)
       pct.push(...extras, ...all)
-      const allFlat = (breakdowns.value.allStat?.flat || []).filter((x) => !x.cpExclude)
+      const allFlat = (bd.allStat?.flat || []).filter((x) => !x.cpExclude)
       flat.push(...allFlat)
     }
-    if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []).filter((x) => !x.cpExclude))
-    if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []).filter((x) => !x.cpExclude))
+    if (key === 'atk') pct.push(...(bd.atkPct?.pct || []).filter((x) => !x.cpExclude))
+    if (key === 'matk') pct.push(...(bd.matkPct?.pct || []).filter((x) => !x.cpExclude))
     const flatTotal = sumBy(flat, (x) => x.value)
     const pctTotal = sumBy(pct, (x) => x.value)
     const fixedFlatTotal = sumBy(flat, (x) => (x.fixed ? x.value : 0))
@@ -590,6 +613,7 @@ export function useCpDamage() {
     if (PCT_KEYS.has(key)) return add(pctTotal, flatTotal)
     return add(floor(applyPct(normalFlatTotal, pctTotal)), fixedFlatTotal)
   }
+  function statTotalForCp(key) { return statTotalForCpFrom(breakdowns.value, key) }
 
   // ─── ATT STATS (含實際傷害 bossMax/Min/Avg) ────────────────────────────
   const attStatsInfo = computed(() => {
@@ -656,24 +680,82 @@ export function useCpDamage() {
   })
 
   // ─── CP ZONES / COMBAT POWER ───────────────────────────────────────────
-  const cpZones = computed(() => {
+  // 武器差值計算(回傳完整 contribs)
+  //   actualW    — 我方武器實際 ATT/MATK 貢獻(base + star + T 星火)
+  //   canonicalW — 職業 canonical 武器(法師=wand)模板於同 stars/T 的 ATT/MATK
+  //   bowW       — 通用 Bow 模板於同 stars/T 的 ATK
+  //   weaponDelta = canonicalW − bowW(顯示用,跨武器固定:法師永遠 wand 模板 vs bow)
+  //   cpEffectiveDelta = actualW − bowW(實際從 flatAtt 扣的量,讓 wand/staff CP 相同)
+  //
+  // CP Z2 計算:Z2_for_cp = flatAtt − cpEffectiveDelta = flatAtt − actualW + bowW
+  //   等同於「把使用者武器替換成 bow」— wand vs staff base 差被吸收掉,CP 相同。
+  // 面板顯示 z2 = flatAtt(完整),不受影響。
+  function computeWeaponContribsForCp(equippedEntries, attKey) {
+    const entry = equippedEntries.find((e) => e?.item?.type === 'weapon')
+    const item = entry?.item
+    if (!item || item.type !== 'weapon') return null
+    const canonical = jobCpReferenceWeapon(charState.job, item.level)
+    if (!canonical) return null
+    const bow = universalBowReference(item.level)
+    if (!bow) return null
+    const stars = entry.stars || 0
+    const bonusVal = Number(entry.bonusStats?.[attKey]) || 0
+    const tierIdx = weaponBonusTierIndex(item, attKey, bonusVal)
+    // 我方武器實際貢獻(以 attKey 為主)
+    const actualBase = Number(item.stats?.[attKey]) || 0
+    const actualStarBonus = Number(entry.starStats?.[attKey]) || 0
+    const actualW = actualBase + actualStarBonus + bonusVal
+    // canonical 模板
+    const fakeCanonical = {
+      type: 'weapon', subType: canonical.subType, level: canonical.level,
+      classes: [], stats: canonical.stats, attackSpeed: 4,
+    }
+    const canonicalStarBonus = Number(computeStarStats(fakeCanonical, stars)?.[canonical.attKey]) || 0
+    const canonicalBonusVal = referenceBonusAttAtTier(canonical, tierIdx)
+    const canonicalW = canonical.base + canonicalStarBonus + canonicalBonusVal
+    // bow 通用基準
+    const fakeBow = {
+      type: 'weapon', subType: bow.subType, level: bow.level,
+      classes: [], stats: bow.stats, attackSpeed: 4,
+    }
+    const bowStarBonus = Number(computeStarStats(fakeBow, stars)?.[bow.attKey]) || 0
+    const bowBonusVal = referenceBonusAttAtTier(bow, tierIdx)
+    const bowW = bow.base + bowStarBonus + bowBonusVal
+    return {
+      actualW,
+      canonicalW,
+      bowW,
+      weaponDelta: sub(canonicalW, bowW),
+      cpEffectiveDelta: sub(actualW, bowW),
+    }
+  }
+
+  function cpZonesForEntries(equippedEntries, bd) {
     const primaryKey = primaryStat.value
     const secondaryKey = SECONDARY_STAT[primaryKey] || 'dex'
-    const primary = statTotalForCp(primaryKey)
-    const secondary = statTotalForCp(secondaryKey)
+    const primary = statTotalForCpFrom(bd, primaryKey)
+    const secondary = statTotalForCpFrom(bd, secondaryKey)
     const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
     const attKey = meta.usesMatk ? 'matk' : 'atk'
-    const flatAtt = flatTotalForCp(attKey)
-    const pctAtt = pctTotalForCp(attKey)
-    const critDmg = statTotalForCp('critDmg')
-    const dmgPct = statTotalForCp('dmgPct')
-    const bossDmg = statTotalForCp('bossDmg')
+    const flatAtt = flatTotalForCpFrom(bd, attKey)
+    const pctAtt = pctTotalForCpFrom(bd, attKey)
+    const critDmg = statTotalForCpFrom(bd, 'critDmg')
+    const dmgPct = statTotalForCpFrom(bd, 'dmgPct')
+    const bossDmg = statTotalForCpFrom(bd, 'bossDmg')
     const attMul = clean(1 + pctAtt / 100)
-    const z2A = clean(Math.round(mul(flatAtt, attMul) * 100) / 100)
-    const z2B = floor(mul(sub(flatAtt, WEAPON_COEFFICIENT_DELTA), attMul))
+    // 武器替換:Zone 2 ATT/MATK 以「職業 canonical 武器」(法師=wand) 模板取代使用者武器
+    //   replacement = canonicalW − actualW   (替換量)
+    //   Zone 2 (CP) = flatAtt + replacement = flatAtt − actualW + canonicalW
+    //   delta = canonicalW − bowW (給 Z2×Z3 用,顯示為「武器差值」)
+    const contribs = computeWeaponContribsForCp(equippedEntries, attKey)
+    const replacement = contribs ? sub(contribs.canonicalW, contribs.actualW) : 0
+    const delta = contribs?.weaponDelta || 0
+    const flatAttForCp = clean(flatAtt + replacement)
+    const z2A = clean(Math.round(mul(flatAttForCp, attMul) * 100) / 100)
+    const z2B = floor(mul(sub(flatAttForCp, delta), attMul))
     const z2Diff = sub(z2A, z2B)
     const z1 = clean((4 * primary + secondary) / 100)
-    const z2 = flatAtt
+    const z2 = flatAttForCp
     const z3 = attMul
     const z4 = clean((135 + critDmg) / 100)
     const z5 = clean((100 + dmgPct + bossDmg) / 100)
@@ -682,11 +764,26 @@ export function useCpDamage() {
     return {
       z1, z2, z3, z4, z5, z6, z2z3,
       attKey,
-      inputs: { primary, secondary, flatAtt, pctAtt, critDmg, dmgPct, bossDmg, z2A, z2B, z2Diff },
+      inputs: {
+        primary, secondary, flatAtt, flatAttForCp, pctAtt, critDmg, dmgPct, bossDmg,
+        z2A, z2B, z2Diff,
+        weaponDelta: delta,                        // canonical − bow(顯示用)
+        actualW: contribs?.actualW || 0,
+        canonicalW: contribs?.canonicalW || 0,
+        bowW: contribs?.bowW || 0,
+      },
       total: mul(z1, z2z3, z4, z5, z6),
     }
-  })
+  }
+  const cpZones = computed(() => cpZonesForEntries(currentEquippedEntries(), breakdowns.value))
   const combatPower = computed(() => floor(cpZones.value.total))
+
+  // Hover 試算用:傳入假設的 equipped entries,回傳該 loadout 下的 CP 整數值
+  function combatPowerForEntries(equippedEntries) {
+    const bd = breakdownsForEntries(equippedEntries)
+    const zones = cpZonesForEntries(equippedEntries, bd)
+    return floor(zones.total)
+  }
 
   return {
     // 常數 / 資訊
@@ -711,5 +808,6 @@ export function useCpDamage() {
     attStatsInfo,
     cpZones,
     combatPower,
+    combatPowerForEntries,
   }
 }

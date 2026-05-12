@@ -96,6 +96,8 @@ export const FLAME_HAZE = {
 }
 
 // ─── Mist Eruption ──────────────────────────────────────────────────────────
+// 保留原本的自身爆炸傷害(Poison Mist 模式:2 爆炸 × 10 擊 × 125%+,DoT 層數決定 FD 加成);
+// 另外 cloudDetonate 會在同一次施放中「額外」引爆 Poison Nova 雲(傷害記到 Poison Nova)。
 export const MIST_ERUPTION = {
   id: 'mist_eruption',
   name: 'Mist Eruption',
@@ -128,12 +130,25 @@ export const MIST_ERUPTION = {
     role: 'attack',
     castDelayBySpeed: { 7: 780, 8: 720 },
     priority: 80,
-    requiresField: 'poison_mist',
     onHitResetCooldown: ['flame_haze'],
     cooldown: {
       priorityRedSec: 2,
       priorityThreshold: 5,
       externalPctUsesBaseAsFlat: true,
+    },
+    // 純引爆觸發 — 爆炸傷害公式完全讀 sourceSkill(Poison Nova)的 detonation config
+    //   使用 Poison Nova 的 damage% / VM / ignoreDef / element / 等級(含 CO)
+    //   Mist Eruption 自身的 damage / hits / VM 不參與爆炸傷害計算
+    cloudDetonate: {
+      sourceSkillId: 'poison_nova',
+    },
+    // 排程等待規則 — 避免提早引爆:
+    //   若 Poison Nova 尚未施放(或其 CD 剩 ≤ cdBelowMs)→ Mist Eruption 延後(每輪 +100ms)
+    //   若 Poison Nova 剛施放 < delayAfterCastMs → Mist Eruption nextCastAt 推到 lastCast + delay
+    waitForSkillCast: {
+      skillId: 'poison_nova',
+      cdBelowMs: 1000,
+      delayAfterCastMs: 2000,
     },
   },
 }

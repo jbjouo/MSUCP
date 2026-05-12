@@ -9,7 +9,7 @@ import EntryEditor from '../components/EntryEditor.vue'
 import { useEquipment, requestPersistentStorage } from '../composables/useEquipment.js'
 
 const { t } = useI18n()
-const { state, equipEntry, unequipSlot, resetAll } = useEquipment()
+const { state, equipEntry, unequipSlot } = useEquipment()
 
 const selectedSlot = ref(null)
 // hoveredEntry 可以是 { uid, item, stars } 或是 { item } (來自 catalog picker,尚未擁有)
@@ -83,7 +83,6 @@ onUnmounted(() => {
         <button v-if="selectedSlot" class="btn btn--ghost" @click="clearSelection">
           {{ t('equipment.action.clearSelection') }}
         </button>
-        <button class="btn" @click="resetAll">{{ t('equipment.action.reset') }}</button>
       </div>
     </header>
 
@@ -170,7 +169,7 @@ onUnmounted(() => {
 
 .equip-page__body {
   display: grid;
-  grid-template-columns: minmax(320px, 440px) 1fr;
+  grid-template-columns: minmax(420px, 600px) 1fr;
   gap: 1rem;
   align-items: start;
 }

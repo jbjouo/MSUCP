@@ -10,7 +10,7 @@ import {
 } from '../constants/innerPotential.js'
 
 const { t } = useI18n()
-const { state, setOption, setValue, reset } = useInnerPotential()
+const { state, setOption, setValue } = useInnerPotential()
 
 const options = computed(() =>
   INNER_POTENTIAL_OPTIONS.map((o) => ({
@@ -44,9 +44,6 @@ function fieldLabelKey(statKey) {
   <section class="ip-panel">
     <header class="ip-panel__head">
       <span>{{ t('innerPotential.title') }}</span>
-      <button class="ip-panel__reset" type="button" @click="reset">
-        {{ t('innerPotential.reset') }}
-      </button>
     </header>
 
     <div class="ip-lines">
@@ -126,19 +123,6 @@ function fieldLabelKey(statKey) {
   font-size: 0.92rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.ip-panel__reset {
-  padding: 0.25rem 0.65rem;
-  background: transparent;
-  color: #c9d2dd;
-  border: 1px solid #2f3642;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.ip-panel__reset:hover { color: #ffc857; border-color: #ffc857; }
-
 .ip-lines {
   display: flex;
   flex-direction: column;

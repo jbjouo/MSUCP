@@ -10,7 +10,6 @@ const {
   canDecrement,
   increment,
   decrement,
-  resetAll,
   totalPoints,
   usedPoints,
   remainingPoints,
@@ -42,9 +41,6 @@ function currentValueText(stat) {
   <section class="hs-panel">
     <header class="hs-panel__head">
       <span>{{ t('hyperStat.title') }}</span>
-      <button class="hs-panel__reset" type="button" @click="resetAll">
-        {{ t('hyperStat.reset') }}
-      </button>
     </header>
 
     <div class="hs-panel__body">
@@ -123,22 +119,6 @@ function currentValueText(stat) {
   color: #ffc857;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.hs-panel__reset {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 3px 10px;
-  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
-  color: #e8edf2;
-  border: 1px solid #141a22;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.hs-panel__reset:hover { filter: brightness(1.15); }
-
 .hs-panel__body {
   background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
   border: 1px solid #2f3642;

@@ -11,7 +11,6 @@ const {
   totalArc,
   totalMainStat,
   setLevel,
-  reset,
   MAX_LEVEL,
 } = useArcane()
 const { primaryStat } = useCharacter()
@@ -23,9 +22,6 @@ const primaryLabel = computed(() => t(`equipment.stats.${primaryStat.value}`))
   <section class="arc-panel">
     <header class="arc-panel__head">
       <span>{{ t('arcane.title') }}</span>
-      <button class="arc-panel__reset" type="button" @click="reset">
-        {{ t('arcane.reset') }}
-      </button>
     </header>
 
     <!-- 總覽 (ARC / 主屬性) -->
@@ -103,19 +99,6 @@ const primaryLabel = computed(() => t(`equipment.stats.${primaryStat.value}`))
   font-size: 0.92rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.arc-panel__reset {
-  padding: 0.25rem 0.65rem;
-  background: transparent;
-  color: #c9d2dd;
-  border: 1px solid #2f3642;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.arc-panel__reset:hover { color: #ffc857; border-color: #ffc857; }
-
 .arc-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;

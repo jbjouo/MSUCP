@@ -11,7 +11,7 @@
 //
 // Teleport Mastery 在 3 轉(見 3rd.js)。
 
-import { LOCAL_ICON } from '../../_shared/helpers.js'
+import { LOCAL_ICON, ASSET } from '../../_shared/helpers.js'
 
 const ICON = (name) => LOCAL_ICON(name, 'archmage-fp')
 
@@ -84,7 +84,7 @@ export const ARCHMAGE_FP_2ND_SKILLS = [
     name: 'Meditation',
     nameKey: 'skills.archmageFP.meditation.name',
     descriptionKey: 'skills.archmageFP.meditation.description',
-    icon: '/skills/meditation.png',
+    icon: ASSET('skills/meditation.png'),
     imageUrl: ICON('Meditation'),
     jobs: ['archmageFP'],
     advancement: 2,

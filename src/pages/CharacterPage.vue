@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCharacter } from '../composables/useCharacter.js'
+import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
 import LinkSkillPanel from '../components/LinkSkillPanel.vue'
 import CollectionPanel from '../components/CollectionPanel.vue'
 import LegionPanel from '../components/LegionPanel.vue'
@@ -16,14 +17,12 @@ import {
   importData,
   downloadJSON,
   readFileAsJSON,
-  loadSeedFile,
 } from '../composables/useDataIO.js'
 
 const { t } = useI18n()
 const {
   state,
   setField,
-  reset,
   currentJob,
   primaryStat,
   LEVEL_MIN,
@@ -66,134 +65,345 @@ async function onFileSelected(e) {
     e.target.value = ''
   }
 }
-async function onLoadSeed() {
-  if (!confirm(t('character.io.confirmSeed'))) return
-  try {
-    const payload = await loadSeedFile()
-    importData(payload)
-  } catch (err) {
-    alert(`${t('character.io.seedFailed')}\n${err.message || err}`)
-  }
+
+// ── 側邊欄 ───────────────────────────
+const {
+  sidebarOpen,
+  isMobile,
+  activeSection,
+  updateViewport,
+  toggleSidebar,
+  setActiveSection,
+} = useCharacterSidebar()
+
+const sidebarItems = [
+  { key: 'basic', labelKey: 'character.sidebar.basic' },
+  { key: 'linkSkill', labelKey: 'character.sidebar.linkSkill' },
+  { key: 'collection', labelKey: 'character.sidebar.collection' },
+  { key: 'legion', labelKey: 'character.sidebar.legion' },
+  { key: 'skill', labelKey: 'character.sidebar.skill' },
+]
+
+function selectSection(key) {
+  setActiveSection(key)
+  if (isMobile.value) sidebarOpen.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+function syncBodyClass() {
+  const shouldOffset = sidebarOpen.value && !isMobile.value
+  document.body.classList.toggle('has-char-sidebar', shouldOffset)
+}
+
+watch([sidebarOpen, isMobile], syncBodyClass)
+
+onMounted(() => {
+  updateViewport()
+  syncBodyClass()
+  window.addEventListener('resize', updateViewport)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateViewport)
+  document.body.classList.remove('has-char-sidebar')
+})
 </script>
 
 <template>
   <section class="char-page">
-    <header class="char-page__head">
-      <h1>{{ t('pages.character.title') }}</h1>
-      <div class="char-page__actions">
-        <span v-if="ioStatus" class="char-page__status">{{ ioStatus }}</span>
-        <button class="btn" type="button" @click="onExport">{{ t('character.io.export') }}</button>
-        <button class="btn" type="button" @click="triggerImport">{{ t('character.io.import') }}</button>
-        <button class="btn btn--ghost" type="button" @click="onLoadSeed">{{ t('character.io.loadSeed') }}</button>
-        <button class="btn btn--ghost" type="button" @click="reset">{{ t('character.action.reset') }}</button>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="application/json,.json"
-          class="char-page__file"
-          @change="onFileSelected"
-        />
+    <!-- 側邊欄 -->
+    <aside
+      class="char-sidebar"
+      :class="{ 'char-sidebar--open': sidebarOpen, 'char-sidebar--mobile': isMobile }"
+      :aria-hidden="!sidebarOpen"
+    >
+      <div class="char-sidebar__head">
+        <span class="char-sidebar__title">{{ t('character.sidebar.toggle') }}</span>
+        <button
+          v-if="isMobile"
+          type="button"
+          class="char-sidebar__close"
+          aria-label="Close menu"
+          @click="toggleSidebar"
+        >×</button>
       </div>
-    </header>
-
-    <!-- 總覽卡 (上方) -->
-    <aside class="summary-card">
-      <div class="summary-card__meta">
-        <span class="chip">Lv. {{ state.level }}</span>
-        <span class="chip">
-          {{ currentJob ? t(`character.jobs.${state.job}`) : t('character.jobs.beginner') }}
-        </span>
-        <span class="chip chip--stat">
-          {{ t('character.primary') }}:
-          {{ t(`equipment.stats.${primaryStat}`) }}
-        </span>
-      </div>
+      <nav class="char-sidebar__nav">
+        <button
+          v-for="item in sidebarItems"
+          :key="item.key"
+          type="button"
+          class="char-sidebar__item"
+          :class="{ 'char-sidebar__item--active': activeSection === item.key }"
+          @click="selectSection(item.key)"
+        >{{ t(item.labelKey) }}</button>
+      </nav>
     </aside>
 
-    <!-- 表單 -->
-    <form class="form" @submit.prevent>
-      <div class="form__grid">
-        <div class="form__row">
-          <label class="form__label">{{ t('character.fields.level') }}</label>
+    <!-- 行動裝置 backdrop -->
+    <div
+      v-if="isMobile && sidebarOpen"
+      class="char-sidebar__backdrop"
+      @click="toggleSidebar"
+    ></div>
+
+    <!-- 主要內容 -->
+    <div class="char-page__main">
+      <header class="char-page__head">
+        <h1>{{ t('pages.character.title') }}</h1>
+        <div class="char-page__actions">
+          <span v-if="ioStatus" class="char-page__status">{{ ioStatus }}</span>
+          <button class="btn" type="button" @click="onExport">{{ t('character.io.export') }}</button>
+          <button class="btn" type="button" @click="triggerImport">{{ t('character.io.import') }}</button>
           <input
-            type="number"
-            class="form__input"
-            :value="state.level"
-            :min="LEVEL_MIN"
-            :max="LEVEL_MAX"
-            @input="(e) => onField('level', e)"
+            ref="fileInput"
+            type="file"
+            accept="application/json,.json"
+            class="char-page__file"
+            @change="onFileSelected"
           />
-          <small class="form__hint">{{ LEVEL_MIN }}–{{ LEVEL_MAX }}</small>
+        </div>
+      </header>
+
+      <!-- 基本資料 -->
+      <div
+        v-show="activeSection === 'basic'"
+        id="section-basic"
+        class="char-page__section"
+      >
+        <!-- 總覽卡 -->
+        <aside class="summary-card">
+          <div class="summary-card__meta">
+            <span class="chip">Lv. {{ state.level }}</span>
+            <span class="chip">
+              {{ currentJob ? t(`character.jobs.${state.job}`) : t('character.jobs.beginner') }}
+            </span>
+            <span class="chip chip--stat">
+              {{ t('character.primary') }}:
+              {{ t(`equipment.stats.${primaryStat}`) }}
+            </span>
+          </div>
+        </aside>
+
+        <!-- 表單 -->
+        <form class="form" @submit.prevent>
+          <div class="form__grid">
+            <div class="form__row">
+              <label class="form__label">{{ t('character.fields.level') }}</label>
+              <input
+                type="number"
+                class="form__input"
+                :value="state.level"
+                :min="LEVEL_MIN"
+                :max="LEVEL_MAX"
+                @input="(e) => onField('level', e)"
+              />
+              <small class="form__hint">{{ LEVEL_MIN }}–{{ LEVEL_MAX }}</small>
+            </div>
+
+            <div class="form__row">
+              <label class="form__label">{{ t('character.fields.branch') }}</label>
+              <select
+                class="form__input"
+                :value="state.branch"
+                @change="(e) => onField('branch', e)"
+              >
+                <option v-for="b in branchOptions" :key="b" :value="b">
+                  {{ t(`character.branches.${b}`) }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form__row">
+              <label class="form__label">{{ t('character.fields.job') }}</label>
+              <select
+                class="form__input"
+                :value="state.job"
+                @change="(e) => onField('job', e)"
+              >
+                <option v-for="j in jobOptions" :key="j.key" :value="j.key">
+                  {{ t(`character.jobs.${j.key}`) }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <p class="form__saved">{{ t('character.autoSaved') }}</p>
+        </form>
+
+        <!-- Hyper Stat + 內潛 -->
+        <div class="char-page__split">
+          <HyperStatPanel />
+          <InnerPotentialPanel />
         </div>
 
-        <div class="form__row">
-          <label class="form__label">{{ t('character.fields.branch') }}</label>
-          <select
-            class="form__input"
-            :value="state.branch"
-            @change="(e) => onField('branch', e)"
-          >
-            <option v-for="b in branchOptions" :key="b" :value="b">
-              {{ t(`character.branches.${b}`) }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form__row">
-          <label class="form__label">{{ t('character.fields.job') }}</label>
-          <select
-            class="form__input"
-            :value="state.job"
-            @change="(e) => onField('job', e)"
-          >
-            <option v-for="j in jobOptions" :key="j.key" :value="j.key">
-              {{ t(`character.jobs.${j.key}`) }}
-            </option>
-          </select>
+        <!-- ARC + 寵物 -->
+        <div class="char-page__split">
+          <ArcanePanel />
+          <PetPanel />
         </div>
       </div>
 
-      <p class="form__saved">{{ t('character.autoSaved') }}</p>
-    </form>
+      <!-- Link Skill -->
+      <div
+        v-show="activeSection === 'linkSkill'"
+        id="section-linkSkill"
+        class="char-page__section"
+      >
+        <LinkSkillPanel />
+      </div>
 
-    <!-- Link Skill 系統 -->
-    <LinkSkillPanel />
+      <!-- 圖鑑 -->
+      <div
+        v-show="activeSection === 'collection'"
+        id="section-collection"
+        class="char-page__section"
+      >
+        <CollectionPanel />
+      </div>
 
-    <!-- 聯盟戰地 (獨立一整塊) -->
-    <LegionPanel />
+      <!-- 聯盟系統 -->
+      <div
+        v-show="activeSection === 'legion'"
+        id="section-legion"
+        class="char-page__section"
+      >
+        <LegionPanel />
+      </div>
 
-    <!-- 圖鑑 + Hyper Stat (左右分割) -->
-    <div class="char-page__split">
-      <CollectionPanel />
-      <HyperStatPanel />
+      <!-- 技能 -->
+      <div
+        v-show="activeSection === 'skill'"
+        id="section-skill"
+        class="char-page__section"
+      >
+        <VMatrixPanel />
+        <HyperSkillPanel />
+      </div>
     </div>
-
-    <!-- ARC 系統 + 寵物 (左右 5:5) -->
-    <div class="char-page__split">
-      <ArcanePanel />
-      <PetPanel />
-    </div>
-
-    <!-- 內潛 (獨立一整行) -->
-    <InnerPotentialPanel />
-
-    <!-- V 矩陣 (獨立一整行) -->
-    <VMatrixPanel />
-
-    <!-- 超技能 (5 點配點) -->
-    <HyperSkillPanel />
   </section>
 </template>
 
+<!-- 非 scoped:只有在視窗夠寬時才讓主內容讓位;topbar 永遠滿版不縮 -->
+<style>
+.layout__main {
+  transition: margin-left 220ms ease;
+}
+@media (min-width: 1280px) {
+  body.has-char-sidebar .layout__main {
+    margin-left: 220px;
+  }
+}
+</style>
+
 <style scoped>
 .char-page {
+  position: relative;
   padding: 0.5rem 0 2rem;
+}
+
+.char-page__main {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
+.char-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-margin-top: 72px;
+}
+
+/* ── Sidebar (full-height fixed) ─────────────────────────── */
+.char-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 220px;
+  z-index: 15;
+  padding: 64px 10px 16px;
+  background: linear-gradient(180deg, #8b96a8 0%, #6b7689 100%);
+  border-right: 1px solid #3d4554;
+  box-shadow:
+    8px 0 22px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #f1f3f7;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 220ms ease;
+}
+.char-sidebar--open {
+  transform: translateX(0);
+}
+.char-sidebar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+.char-sidebar__title {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: #ffc857;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.char-sidebar__close {
+  background: none;
+  border: none;
+  color: #f1f3f7;
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.char-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.char-sidebar__item {
+  text-align: left;
+  background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
+  color: #e8edf2;
+  border: 1px solid #2f3642;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: filter 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.char-sidebar__item:hover {
+  filter: brightness(1.12);
+  border-color: #ffc857;
+}
+.char-sidebar__item--active {
+  border-color: #ffc857;
+  color: #ffc857;
+  box-shadow: inset 0 0 0 1px rgba(255, 200, 87, 0.25);
+}
+
+.char-sidebar--mobile {
+  width: 78vw;
+  max-width: 280px;
+  z-index: 50;
+}
+.char-sidebar__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 49;
+}
+
+/* ── 主內容 ─────────────────────────── */
 .char-page__split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -202,11 +412,14 @@ async function onLoadSeed() {
 }
 @media (max-width: 900px) {
   .char-page__split { grid-template-columns: 1fr; }
+  .char-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .char-page--with-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
-.char-page__reserved {
-  /* 右側保留區 — 供未來面板填入,目前維持空白 */
-  min-height: 1px;
-}
+
 .char-page__head {
   display: flex;
   align-items: center;
@@ -232,6 +445,7 @@ async function onLoadSeed() {
   letter-spacing: 0.08em;
   color: #ffc857;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  flex: 1;
 }
 
 .summary-card,

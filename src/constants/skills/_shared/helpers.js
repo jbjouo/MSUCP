@@ -91,7 +91,11 @@ export function skillIgnitePcts(skill, level) {
 // 共用 icon 產生器 (maplestorywiki yetidb) — 線上 fallback
 export const YETIDB_ICON = (name) => `https://media.maplestorywiki.net/yetidb/Skill_${name}.png`
 
+// public/ 資源 URL — 自動 prepend vite 的 BASE_URL,讓部署到子路徑也能正確載入
+// (BASE_URL 預設 '/';正式部署在 wasaizanla.github.io/msucp/ 時為 '/msucp/')
+export const ASSET = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\/+/, '')}`
+
 // 本地 icon 產生器 — 從 public/skills/<scope>/Skill_<name>.png 載入
 // scope: 'archmage-fp' | 'common' | 其他職業資料夾
 // 這些檔名對應 wiki 原始檔名(含括號、單引號等),瀏覽器會自動 URL-encode
-export const LOCAL_ICON = (name, scope = 'common') => `/skills/${scope}/Skill_${name}.png`
+export const LOCAL_ICON = (name, scope = 'common') => ASSET(`skills/${scope}/Skill_${name}.png`)

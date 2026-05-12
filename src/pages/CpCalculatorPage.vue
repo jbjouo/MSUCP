@@ -20,6 +20,13 @@ import { usePet } from '../composables/usePet.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
+import {
+  weaponBonusTierIndex,
+  jobCpReferenceWeapon,
+  universalBowReference,
+  referenceBonusAttAtTier,
+} from '../constants/bonusStatsTiers.js'
+import { computeStarStats } from '../constants/starForce.js'
 
 const { t, te } = useI18n()
 
@@ -199,9 +206,50 @@ const totals = computed(() => {
   }
 })
 
-// 武器係數差值 — 同等級 / 同星等 / 同星火裝備之間的攻擊力差,Zone 2 差值法用到
-// (之後改為依武器類型動態計算;目前固定 69)
-const WEAPON_COEFFICIENT_DELTA = 69
+// 武器替換 + 差值 — Zone 2 ATT/MATK 以「職業 canonical」(法師=wand) 模板取代使用者武器
+//   actualW    = 我方武器實際 ATT/MATK 貢獻(base + star + T 星火)
+//   canonicalW = canonical 模板(同 stars/T)的 ATT/MATK
+//   bowW       = 通用 Bow 模板(同 stars/T)的 ATK
+//   weaponDelta = canonicalW − bowW       (顯示用,Z2×Z3 套用)
+//   replacement = canonicalW − actualW    (Zone 2 加總:flatAtt + replacement)
+//   面板實際傷害 / ATT STATS 不受影響(走 statTotal 直接讀)
+function computeWeaponContribsForCp(attKey) {
+  const weaponUid = equipState.equipped?.weapon
+  if (!weaponUid) return null
+  const entry = resolveEntry(weaponUid)
+  const item = entry?.item
+  if (!item || item.type !== 'weapon') return null
+  const canonical = jobCpReferenceWeapon(charState.job, item.level)
+  if (!canonical) return null
+  const bow = universalBowReference(item.level)
+  if (!bow) return null
+  const stars = entry.stars || 0
+  const bonusVal = Number(entry.bonusStats?.[attKey]) || 0
+  const tierIdx = weaponBonusTierIndex(item, attKey, bonusVal)
+  const actualBase = Number(item.stats?.[attKey]) || 0
+  const actualStarBonus = Number(entry.starStats?.[attKey]) || 0
+  const actualW = actualBase + actualStarBonus + bonusVal
+  const fakeCanonical = {
+    type: 'weapon', subType: canonical.subType, level: canonical.level,
+    classes: [], stats: canonical.stats, attackSpeed: 4,
+  }
+  const canonicalStarBonus = Number(computeStarStats(fakeCanonical, stars)?.[canonical.attKey]) || 0
+  const canonicalBonusVal = referenceBonusAttAtTier(canonical, tierIdx)
+  const canonicalW = canonical.base + canonicalStarBonus + canonicalBonusVal
+  const fakeBow = {
+    type: 'weapon', subType: bow.subType, level: bow.level,
+    classes: [], stats: bow.stats, attackSpeed: 4,
+  }
+  const bowStarBonus = Number(computeStarStats(fakeBow, stars)?.[bow.attKey]) || 0
+  const bowBonusVal = referenceBonusAttAtTier(bow, tierIdx)
+  const bowW = bow.base + bowStarBonus + bowBonusVal
+  return {
+    actualW,
+    canonicalW,
+    bowW,
+    weaponDelta: canonicalW - bowW,
+  }
+}
 
 // CP 公式 — 共 6 個乘區,Zone 6 暫以 1 替代:
 //   Zone 1 : (4 × 主屬 + 副屬) / 100
@@ -234,12 +282,17 @@ const cpZones = computed(() => {
   const bossDmg = statTotalForCp('bossDmg')
 
   const attMul = 1 + pctAtt / 100
-  const z2A = Math.round(flatAtt * attMul * 100) / 100
-  const z2B = Math.floor((flatAtt - WEAPON_COEFFICIENT_DELTA) * attMul)
+  // 武器替換 — Zone 2 用 canonical 模板取代實際武器
+  const contribs = computeWeaponContribsForCp(attKey)
+  const replacement = contribs ? (contribs.canonicalW - contribs.actualW) : 0
+  const delta = contribs?.weaponDelta || 0
+  const flatAttForCp = flatAtt + replacement
+  const z2A = Math.round(flatAttForCp * attMul * 100) / 100
+  const z2B = Math.floor((flatAttForCp - delta) * attMul)
   const z2Diff = z2A - z2B
 
   const z1 = (4 * primary + secondary) / 100
-  const z2 = flatAtt
+  const z2 = flatAttForCp
   const z3 = attMul
   const z4 = (135 + critDmg) / 100
   const z5 = (100 + dmgPct + bossDmg) / 100
@@ -249,7 +302,14 @@ const cpZones = computed(() => {
   return {
     z1, z2, z3, z4, z5, z6, z2z3,
     attKey,
-    inputs: { primary, secondary, flatAtt, pctAtt, critDmg, dmgPct, bossDmg, z2A, z2B, z2Diff },
+    inputs: {
+      primary, secondary, flatAtt, flatAttForCp, pctAtt, critDmg, dmgPct, bossDmg,
+      z2A, z2B, z2Diff,
+      weaponDelta: delta,
+      actualW: contribs?.actualW || 0,
+      canonicalW: contribs?.canonicalW || 0,
+      bowW: contribs?.bowW || 0,
+    },
     total: z1 * z2z3 * z4 * z5 * z6,
   }
 })
@@ -1012,7 +1072,7 @@ function onPanelOut(e) {
             </li>
             <li class="cp-zones__row">
               <span class="cp-zones__label">Zone 2</span>
-              <span class="cp-zones__formula">{{ cpZones.attKey.toUpperCase() }} {{ fmtNum(cpZones.inputs.flatAtt) }}</span>
+              <span class="cp-zones__formula">{{ cpZones.attKey.toUpperCase() }} {{ fmtNum(cpZones.inputs.flatAttForCp) }}({{ cpZones.attKey.toUpperCase() }} 完整 {{ fmtNum(cpZones.inputs.flatAtt) }} − 我方武器 {{ fmtNum(cpZones.inputs.actualW) }} + canonical 模板 {{ fmtNum(cpZones.inputs.canonicalW) }})</span>
               <span class="cp-zones__val">{{ cpZones.z2.toFixed(2) }}</span>
             </li>
             <li class="cp-zones__row">
@@ -1021,8 +1081,13 @@ function onPanelOut(e) {
               <span class="cp-zones__val">{{ cpZones.z3.toFixed(4) }}</span>
             </li>
             <li class="cp-zones__row">
+              <span class="cp-zones__label">武器差值</span>
+              <span class="cp-zones__formula">canonical − bow(僅攻擊力差,未乘 ATT%)</span>
+              <span class="cp-zones__val">{{ (cpZones.inputs.weaponDelta || 0).toFixed(2) }}</span>
+            </li>
+            <li class="cp-zones__row">
               <span class="cp-zones__label">Z2×Z3</span>
-              <span class="cp-zones__formula">{{ (cpZones.z2 * cpZones.z3).toFixed(2) }} − {{ cpZones.inputs.z2Diff.toFixed(2) }} (差值)</span>
+              <span class="cp-zones__formula">{{ (cpZones.z2 * cpZones.z3).toFixed(2) }} − {{ cpZones.inputs.z2Diff.toFixed(2) }} (差值×Z3)</span>
               <span class="cp-zones__val">{{ cpZones.z2z3.toFixed(2) }}</span>
             </li>
             <li class="cp-zones__row">

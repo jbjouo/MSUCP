@@ -12,6 +12,7 @@
 //     vmatrix.js / battleBuffs.js / buffs.js / battleSim.js) 只保留 re-export 殼
 //   - 所有技能 entry 新增 `advancement` 欄位 (0~6 或 'hyper');既有邏輯若沒讀這個欄位就不會受影響
 
+import { ASSET } from './_shared/helpers.js'
 import {
   ALL_JOBS_TOGGLE_SKILLS,
   ALL_JOBS_BUFFS,
@@ -74,7 +75,7 @@ const THIEFS_CUNNING_BATTLE_BUFF = LINK_SKILLS.thiefs_cunning
       source: 'linkCycle',
       nameKey: 'linkSkill.skills.thiefs_cunning.name',
       descriptionKey: 'linkSkill.skills.thiefs_cunning.flavor',
-      imageUrl: '/skills/link/thiefs_cunning.png',
+      imageUrl: ASSET('skills/link/thiefs_cunning.png'),
       advancement: 0,
       kind: 'link',
       triggerOn: 'debuffApplied',
@@ -90,7 +91,7 @@ const BATTLE_BUFFS_UNORDERED = [
   ...THIEFS_CUNNING_BATTLE_BUFF,
 ]
 
-const BATTLE_BUFF_ORDER = ['empirical_knowledge', 'fervent_drain', 'arcane_aim', 'infinity', 'thiefs_cunning']
+const BATTLE_BUFF_ORDER = ['empirical_knowledge', 'fervent_drain', 'arcane_aim', 'infinity', 'mana_overload', 'thiefs_cunning']
 export const COMBINED_BATTLE_BUFFS = BATTLE_BUFFS_UNORDERED
   .slice()
   .sort((a, b) => {

@@ -5,7 +5,7 @@ import { useVMatrix } from '../composables/useVMatrix.js'
 import { maxLevelOf, vmatrixNameKey, vmatrixDescriptionKey } from '../constants/vmatrix.js'
 
 const { t } = useI18n()
-const { state, setLevel, reset, visibleSkills: jobSkills, MAX_LEVEL } = useVMatrix()
+const { state, setLevel, visibleSkills: jobSkills, MAX_LEVEL } = useVMatrix()
 
 // V 矩陣面板:顯示所有帶 vmatrix 欄位的技能(不論 kind='boost' 或 'skill')
 const visibleSkills = computed(() =>
@@ -17,9 +17,6 @@ const visibleSkills = computed(() =>
   <section class="vm-panel">
     <header class="vm-panel__head">
       <span>{{ t('vmatrix.title') }}</span>
-      <button class="vm-panel__reset" type="button" @click="reset">
-        {{ t('vmatrix.reset') }}
-      </button>
     </header>
 
     <div class="vm-grid">
@@ -81,19 +78,6 @@ const visibleSkills = computed(() =>
   font-size: 0.92rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.vm-panel__reset {
-  padding: 0.25rem 0.65rem;
-  background: transparent;
-  color: #c9d2dd;
-  border: 1px solid #2f3642;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.vm-panel__reset:hover { color: #ffc857; border-color: #ffc857; }
-
 .vm-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));

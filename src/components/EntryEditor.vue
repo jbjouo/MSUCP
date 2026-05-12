@@ -12,6 +12,7 @@ import {
   getBonusPotentialOptionsForLine,
   itemHasBonusPotentialPool,
 } from '../constants/bonusPotentials.js'
+import { weaponBonusTiersFor } from '../constants/bonusStatsTiers.js'
 import StarBar from './StarBar.vue'
 
 // Bonus Stats 欄位設定 (分三群組)
@@ -174,6 +175,12 @@ function setBonusField(key, value) {
   draft.value.bonusStats[key] = v
 }
 
+// 武器 ATT/MATK 星火 — 若可查表,以下拉選單顯示(等級 0~7)
+// 回傳:null → 顯示自由輸入;array → 對應 7 個等級值
+function bonusTiersForField(key) {
+  return weaponBonusTiersFor(item.value, key)
+}
+
 function onConfirm() {
   if (!entry.value) return emit('close')
   setStars(entry.value.uid, draft.value.stars)
@@ -305,7 +312,23 @@ function onKey(e) {
                   <label v-for="f in g.fields" :key="f.key" class="bs-field">
                     <span class="bs-field__label">{{ f.label }}</span>
                     <div class="bs-field__input-wrap">
+                      <!-- 武器 ATT/MATK:可查表 → 下拉選單 (0 + 等級1~7) -->
+                      <select
+                        v-if="bonusTiersForField(f.key)"
+                        class="bs-field__select"
+                        :value="draft.bonusStats[f.key]"
+                        @change="setBonusField(f.key, $event.target.value)"
+                      >
+                        <option :value="0">{{ t('equipment.editor.bsTier.none') }}</option>
+                        <option
+                          v-for="(v, i) in bonusTiersForField(f.key)"
+                          :key="i"
+                          :value="v"
+                        >{{ t('equipment.editor.bsTier.level', { n: i + 1 }) }} (+{{ v }})</option>
+                      </select>
+                      <!-- 其他欄位 / 不適用查表 → 自由輸入 -->
                       <input
+                        v-else
                         type="number"
                         class="bs-field__input"
                         :class="{ 'bs-field__input--pct': f.percent }"
@@ -702,6 +725,17 @@ function onKey(e) {
   text-align: right;
 }
 .bs-field__input:focus { outline: none; border-color: #7ee8fa; }
+.bs-field__select {
+  background: #141a2e;
+  color: #e9edf5;
+  border: 1px solid #2a3152;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  width: 130px;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+.bs-field__select:focus { outline: none; border-color: #7ee8fa; }
 .bs-field__unit {
   position: absolute;
   right: 0.5rem;

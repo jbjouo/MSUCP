@@ -44,6 +44,104 @@
       "imageUrl": "https://api-static.msu.io/itemimages/icon/1372177.png"
     },
     {
+      "id": "wpn_fafnir_wind_chaser",
+      "name": "Fafnir Wind Chaser",
+      "nameEn": "Fafnir Wind Chaser",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 150,
+      "req": {
+        "dex": 450
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 160,
+        "str": 40,
+        "dex": 40,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1452205.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_staff",
+      "name": "Arcane Umbra Staff",
+      "nameEn": "Arcane Umbra Staff",
+      "type": "weapon",
+      "subType": "staff",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 2,
+      "stats": {
+        "atk": 218,
+        "matk": 353,
+        "int": 100,
+        "luk": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1382265.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_wand",
+      "name": "Arcane Umbra Wand",
+      "nameEn": "Arcane Umbra Wand",
+      "type": "weapon",
+      "subType": "wand",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 206,
+        "matk": 347,
+        "int": 100,
+        "luk": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1372228.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_bow",
+      "name": "Arcane Umbra Bow",
+      "nameEn": "Arcane Umbra Bow",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 200,
+      "req": {
+        "dex": 600
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 276,
+        "str": 100,
+        "dex": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1452257.png"
+    },
+    {
       "id": "ring_guardian_angel",
       "name": "Guardian Angel Ring",
       "nameEn": "Guardian Angel Ring",
@@ -531,6 +629,31 @@
         "luk": 5
       },
       "imageUrl": "https://api-static.msu.io/itemimages/icon/1012478.png"
+    },
+    {
+      "id": "face_berserked",
+      "name": "Berserked",
+      "nameEn": "Berserked",
+      "type": "face",
+      "level": 160,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "def": 200,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1012632.png"
     },
     {
       "id": "hat_chaos_vellums_helm",

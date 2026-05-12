@@ -143,9 +143,44 @@ let rng = null
 let nextCastAt = {}
 let burnState = {}       // { [skillId]: { nextTickAt, expireAt, intervalMs } }
 let fieldState = {}      // { [skillId]: { expireAt } } — 場地技能持續時間(例:Poison Mist)
+// 最近一次施放時間 — 供 waitForSkillCast / cloudDetonate 等跨技能排程規則使用
+//   { [skillId]: tCast (ms) };-Infinity 表示本場戰鬥未曾施放
+let lastCastAt = {}
+// 最近一次 cloudDetonate 引爆時間 — 供「雲是否已消耗」判斷
+//   { [sourceSkillId]: tLastDetonate }
+//   場上是否仍有雲:lastCastAt[src] != null && cloudDetonatedAt[src] < lastCastAt[src]
+let cloudDetonatedAt = {}
 // 延遲命中的火球 — 施放時 schedule,tick 到期才觸發傷害 / useCount / Meteor Shower / Ignite
 //   [{ skillId, fireAt, orbIndex, fd, attacksPerOrb }]
 let pendingOrbHits = []
+
+// Poison Nova 毒雲衰減公式:t<grace → 0(不可引爆) / t≥grace → max(0, initial − floor((t−grace)/decay))
+//   讀 skill.sim.clouds 設定 (initialCount / detonateGraceMs / decayIntervalMs)
+//   若 cloudDetonatedAt[src] >= lastCastAt[src] → 雲已被引爆消耗,返回 0
+function cloudCountOf(sourceSkillId, tNow) {
+  const src = SKILL_BY_ID[sourceSkillId]
+  const cfg = src?.sim?.clouds
+  if (!cfg) return 0
+  const lastCast = lastCastAt[sourceSkillId]
+  if (lastCast == null || lastCast === -Infinity) return 0
+  const lastDetonate = cloudDetonatedAt[sourceSkillId]
+  if (lastDetonate != null && lastDetonate >= lastCast) return 0
+  const elapsedSinceCast = tNow - lastCast
+  const grace = cfg.detonateGraceMs || 0
+  if (elapsedSinceCast < grace) return 0
+  const decay = Math.max(1, cfg.decayIntervalMs || 300)
+  const n = (cfg.initialCount || 0) - Math.floor((elapsedSinceCast - grace) / decay)
+  return Math.max(0, n)
+}
+
+// 場上是否仍有特定來源技能的雲(未被引爆消耗)
+function hasActiveCloudsOf(sourceSkillId) {
+  const lastCast = lastCastAt[sourceSkillId]
+  if (lastCast == null || lastCast === -Infinity) return false
+  const lastDetonate = cloudDetonatedAt[sourceSkillId]
+  if (lastDetonate != null && lastDetonate >= lastCast) return false
+  return true
+}
 
 // burnState 異動後立刻同步到 useDotTracker
 // — 同一 tick 內後續的 emitCast / 冷卻檢查 / Fervent Drain 疊層都能讀到當下數字
@@ -185,12 +220,16 @@ function dotEnemyMult(enemy) {
 }
 
 
-// 計算技能在「戰鬥命令(Combat Orders)+1」狀態下的實際等級
-//   skill.combatOrdersEligible = true 且 useCpToggles().isBuffActive('combat_orders')
-//   → 回傳 state.skillLevels[id] (或 baseLevel) + 1
-//   其他情況回傳原始等級。
-//   覆蓋範圍:火毒 4 轉技能 — Flame Sweep / Flame Haze / Mist Eruption / Meteor Shower / Ifrit
+// 計算技能當前的實際等級
+//   5 轉 V 技能(vmatrix.kind === 'skill')→ 直接使用角色頁 V 矩陣面板的等級
+//     Combat Orders 只作用於特定 4 轉技能,不覆蓋 5 轉 V 技能
+//   其他技能 → state.skillLevels[id](或 baseLevel);若 combatOrdersEligible 且啟用則 +1
+//   Combat Orders 套用範圍:部分 4 轉技能(目前:Flame Sweep / Flame Haze / Mist Eruption / Meteor Shower / Ifrit)
 function effSkillLevel(skill) {
+  if (skill?.vmatrix?.kind === 'skill') {
+    // V 矩陣 skill core — 等級完全由角色頁設定(0..maxLevel)
+    return vmatrixLevelOf(skill.id)
+  }
   const base = state.skillLevels[skill.id] || skill.baseLevel
   if (!skill?.combatOrdersEligible) return base
   let active = false
@@ -391,16 +430,18 @@ function processIgniteWalls(elapsed, enemy, att) {
 }
 
 // Meteor Shower — Final Attack proc 判定
-//   觸發來源:任何有主擊的技能(hitsPerCast > 0),除 Meteor Shower 自身
-//     → 包含 type='attack' (主動) / 'aura' (Inferno Aura / Ifrit) / 'derived' (Poison Mist)
-//     → 排除 type='passive' (Meteor Shower 自身,避免自串)
-//   爆炸型技能(Mist Eruption)每次施放 = explosions.count 次 roll(與 useCount 一致)
+//   觸發來源:僅「主動施放」的主擊技能 (hitsPerCast > 0 且 sim.role === 'attack')
+//     → 排除 'passive' (Meteor Shower 自身,避免自串)
+//     → 排除 'derived' (Poison Mist 等衍生命中不觸發)
+//     → 排除 'aura'   (Inferno Aura / Ifrit 固定間隔自動觸發的場地/召喚命中不觸發)
+//   每次施放固定 1 次 roll(爆炸型如 Mist Eruption 也只算 1 次,不依爆炸數倍增)
 function meteorTriggerRolls(skill, meteor) {
   if (!skill || !meteor) return 0
   if (skill.id === meteor.id) return 0
-  if (skill.sim?.role === 'passive') return 0
+  const role = skill.sim?.role
+  if (role === 'passive' || role === 'derived' || role === 'aura') return 0
   if (!skill.hitsPerCast) return 0
-  return Math.max(0, skillExplosionCount(skill))
+  return 1
 }
 
 // Meteor Shower — 執行 N 次 proc roll,成功則以 Meteor Shower 主擊管線追加 1 擊
@@ -476,12 +517,60 @@ function emitHit(stats, dmg) {
 function emitCast(skill, tCast, elemMult, enemy, att) {
   const res = state.result
   res.events.push({ time: tCast, skillId: skill.id, type: 'cast' })
+  // 記錄最近一次施放時間 — 供 waitForSkillCast / cloudDetonate 等跨技能規則使用
+  lastCastAt[skill.id] = tCast
+  // Poison Nova 排程追蹤 — 開啟 `window.__POISON_NOVA_DEBUG = true` 後
+  //   每次 emitCast 輸出一行到 console,★ 標記 Poison Nova 自身、✦ 標記引爆 (Mist Eruption)
+  //   其它技能以空白標記,方便 Ctrl+F 掃描;可看前後技能的時間點、animDelay 範圍、雲數
+  if (typeof window !== 'undefined' && window.__POISON_NOVA_DEBUG) {
+    const animDelay = skill.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 0
+    const animEnd = tCast + animDelay
+    const role = skill.sim?.role
+    const tag = skill.id === 'poison_nova'
+      ? '★ POISON_NOVA '
+      : skill.sim?.cloudDetonate
+        ? '✦ DETONATE   '
+        : role === 'aura'
+          ? '  (aura)     '
+          : role === 'derived'
+            ? '  (derived)  '
+            : '             '
+    let extras = ''
+    if (skill.id === 'poison_nova') {
+      const cfg = skill.sim?.clouds || {}
+      const grace = cfg.detonateGraceMs || 0
+      extras = `grace_end=${tCast + grace}ms (+${grace})  init=${cfg.initialCount || 0}  decay=${cfg.decayIntervalMs || 0}ms`
+    } else if (skill.sim?.cloudDetonate) {
+      const srcId = skill.sim.cloudDetonate.sourceSkillId
+      const N = cloudCountOf(srcId, tCast)
+      const srcLast = lastCastAt[srcId]
+      const dt = srcLast != null && Number.isFinite(srcLast) ? (tCast - srcLast) : null
+      extras = `src=${srcId} N=${N}${dt != null ? ` (Δ${dt}ms since src)` : ' (src not cast)'}`
+    }
+    // eslint-disable-next-line no-console
+    console.log(
+      `[PN] t=${String(Math.floor(tCast)).padStart(6)}ms  anim=${String(animDelay).padStart(4)}→${String(animEnd).padStart(6)}  ${tag}  ${skill.id.padEnd(18)}  ${extras}`,
+    )
+  }
   const stats = res.perSkill[skill.id]
   const orbs = skill.sim?.orbs
-  // 延遲火球型 (例:DoT Punisher) — 施放瞬間不算傷害 / useCount / Meteor Shower / Ignite,
+  // 延遲火球型 (例:DoT Punisher / Megiddo Flame) — 施放瞬間不算傷害 / useCount / Meteor Shower / Ignite,
   //   全部延後到每顆 orb 的 fireAt 觸發 (見 processOrbHits)。
   //   依然保留:timeline cast 事件 / rollTriggers / burn 登記 / onHitSpawn / onHitResetCooldown / fieldState
-  const hasDelayedOrbs = !!(orbs?.hitDelayRange && orbs?.attacksPerOrb)
+  //
+  // 兩種模式:
+  //   uniform: orbs.hitDelayRange       → 每顆在 [min,max] ms 內均勻隨機 (DoT Punisher)
+  //   cascade: orbs.initialCount/splitPerOrb/initialDelayMs/splitDelayMs → 世代分裂 (Megiddo Flame)
+  const hasUniformDelayedOrbs = !!(orbs?.hitDelayRange && orbs?.attacksPerOrb)
+  const hasCascadingOrbs = !!(
+    orbs?.attacksPerOrb
+    && orbs?.initialCount
+    && orbs?.splitPerOrb
+    && orbs?.initialDelayMs != null
+    && orbs?.splitDelayMs != null
+    && orbs?.maxTotal
+  )
+  const hasDelayedOrbs = hasUniformDelayedOrbs || hasCascadingOrbs
   // 爆炸型技能(Mist Eruption):每次爆炸視為一次使用 (useCount += 爆炸數)
   //   一般技能 skillExplosionCount 回傳 1,等同 +1
   //   延遲火球型 (DoT Punisher) 在 processOrbHits per-orb 累加,施放瞬間不加
@@ -500,33 +589,61 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   if (orbs?.attacksPerOrb) {
     const perOrb = orbs.attacksPerOrb
     const subFd = orbs.subsequentFdMult ?? 1
-    // 火球數:固定 (Megiddo) 或 基礎 + DoT 層數 × k (DoT Punisher);上限 maxTotal
-    const activeDots = useDotTracker().state.activeDotCount
-    const baseCount = orbs.baseCount != null ? orbs.baseCount : (orbs.maxTotal || 0)
-    const perDotStack = orbs.perDotStack || 0
-    const dynamicCount = baseCount + perDotStack * activeDots
-    const totalOrbs = orbs.maxTotal ? Math.min(orbs.maxTotal, dynamicCount) : dynamicCount
-    if (hasDelayedOrbs) {
-      // 延遲命中:每顆 orb 在 tCast + uniformRandom(hitDelayRange) 觸發
-      const [minMs, maxMs] = orbs.hitDelayRange
-      const span = Math.max(0, maxMs - minMs)
-      for (let o = 0; o < totalOrbs; o++) {
-        const fd = (o === 0) ? 1 : subFd
-        const delay = minMs + rng() * span
-        pendingOrbHits.push({
-          skillId: skill.id,
-          fireAt: tCast + delay,
-          orbIndex: o,
-          fd,
-          attacksPerOrb: perOrb,
-        })
+    if (hasCascadingOrbs) {
+      // 世代分裂(Megiddo Flame):首波 initialCount 顆於 tCast + initialDelayMs 命中;
+      //   每顆命中後分裂 splitPerOrb 顆,於 splitDelayMs 後命中;累計達 maxTotal 停。
+      const maxTotal = orbs.maxTotal
+      let orbIndex = 0
+      let currentGenCount = orbs.initialCount
+      let t = tCast + orbs.initialDelayMs
+      while (orbIndex < maxTotal) {
+        const toSpawn = Math.min(currentGenCount, maxTotal - orbIndex)
+        for (let g = 0; g < toSpawn; g++) {
+          const fd = (orbIndex === 0) ? 1 : subFd
+          pendingOrbHits.push({
+            skillId: skill.id,
+            fireAt: t,
+            orbIndex,
+            fd,
+            attacksPerOrb: perOrb,
+          })
+          orbIndex++
+        }
+        if (orbIndex >= maxTotal) break
+        // 下一代 orb 數 = 當代命中數 × splitPerOrb
+        currentGenCount = toSpawn * orbs.splitPerOrb
+        if (currentGenCount <= 0) break
+        t += orbs.splitDelayMs
       }
     } else {
-      // 同 tick 全部命中 (Megiddo Flame 原行為)
-      for (let o = 0; o < totalOrbs; o++) {
-        const fd = (o === 0) ? 1 : subFd
-        for (let h = 0; h < perOrb; h++) {
-          emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * fd)
+      // 火球數:基礎 + DoT 層數 × k (DoT Punisher);上限 maxTotal
+      const activeDots = useDotTracker().state.activeDotCount
+      const baseCount = orbs.baseCount != null ? orbs.baseCount : (orbs.maxTotal || 0)
+      const perDotStack = orbs.perDotStack || 0
+      const dynamicCount = baseCount + perDotStack * activeDots
+      const totalOrbs = orbs.maxTotal ? Math.min(orbs.maxTotal, dynamicCount) : dynamicCount
+      if (hasUniformDelayedOrbs) {
+        // 延遲命中:每顆 orb 在 tCast + uniformRandom(hitDelayRange) 觸發
+        const [minMs, maxMs] = orbs.hitDelayRange
+        const span = Math.max(0, maxMs - minMs)
+        for (let o = 0; o < totalOrbs; o++) {
+          const fd = (o === 0) ? 1 : subFd
+          const delay = minMs + rng() * span
+          pendingOrbHits.push({
+            skillId: skill.id,
+            fireAt: tCast + delay,
+            orbIndex: o,
+            fd,
+            attacksPerOrb: perOrb,
+          })
+        }
+      } else {
+        // 同 tick 全部命中
+        for (let o = 0; o < totalOrbs; o++) {
+          const fd = (o === 0) ? 1 : subFd
+          for (let h = 0; h < perOrb; h++) {
+            emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * fd)
+          }
         }
       }
     }
@@ -534,6 +651,37 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     for (let h = 0; h < hits; h++) {
       // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
       emitHit(stats, mainHitDmg(skill, elemMult, enemy, att))
+    }
+  }
+  // 額外 — 引爆來源技能(sourceSkill)的雲/場地,產生獨立傷害流(例:Mist Eruption → Poison Nova 雲)
+  //   傷害公式完全讀 sourceSkill(VM / ignoreDef / element / 等級等)— 引爆技能自身不參與此公式
+  //   雲數 N = cloudCountOf(sourceSkillId, tCast);前 fdThresholdCount 發 FD 1.0,其餘 FD fdAfterThreshold
+  //   emitHit / useCount 寫入 sourceSkill stats;爆炸部分不觸發追打 / Ignite(見末尾 block)
+  if (skill.sim?.cloudDetonate) {
+    const cd = skill.sim.cloudDetonate
+    const srcSkill = SKILL_BY_ID[cd.sourceSkillId]
+    const det = srcSkill?.detonation
+    if (srcSkill && det) {
+      const N = cloudCountOf(cd.sourceSkillId, tCast)
+      const srcStats = res.perSkill[cd.sourceSkillId]
+      const perExplosionHits = Math.max(0, det.hitsPerCast || 0)
+      const fdRest = det.fdAfterThreshold ?? 0.5
+      const threshold = det.fdThresholdCount ?? 3
+      const srcLv = effSkillLevel(srcSkill)
+      const srcDelta = Math.max(0, srcLv - (srcSkill.baseLevel || 0))
+      const detPct = (det.damage?.base || 0) + srcDelta * (det.damage?.perLevel || 0)
+      const detElemMult = elemMultFor(srcSkill, enemy)
+      if (srcStats && N > 0 && detPct > 0 && perExplosionHits > 0) {
+        for (let e = 0; e < N; e++) {
+          const fd = e < threshold ? 1 : fdRest
+          for (let h = 0; h < perExplosionHits; h++) {
+            emitHit(srcStats, mainHitDmg(srcSkill, detElemMult, enemy, att, detPct) * fd)
+          }
+          srcStats.useCount += 1
+        }
+        // 標記該來源的雲已被引爆消耗 — 阻止同一批雲被重複計算
+        cloudDetonatedAt[cd.sourceSkillId] = tCast
+      }
     }
   }
   // Mist Eruption 等技能命中時重置指定技能 CD (例:→ Flame Haze)
@@ -623,8 +771,9 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
 
   // Meteor Shower 被動 Final Attack — 一般技能於施放瞬間 roll;延遲火球型於每顆 orb 的 fireAt roll
   //   來源只要有 hitsPerCast 就會 roll;僅排除 Meteor Shower 自身 (type='passive')
-  //   爆炸型技能(Mist Eruption)一次施放產生 explosionsN 次 roll(與 useCount 一致)
   //   成功則以 Meteor Shower 自身的傷害管線(含其屬性 / VM / buff / defMult)追加 1 擊
+  //   註:cloudDetonate 的「額外雲引爆」不另外觸發追打(只 emitHit 到 sourceSkill),
+  //       但引爆技能本身的主 hit 仍照常 roll 一次。
   if (!hasDelayedOrbs) {
     const meteor = SKILL_BY_ID['meteor_shower']
     rollMeteorShowerTriggers(skill, meteorTriggerRolls(skill, meteor), tCast, enemy, att)
@@ -733,6 +882,8 @@ function tick() {
     buffDurationPct,
     cooldownReductionPct: att?.cooldownReductionPct || 0,
     cooldownReductionSec: att?.cooldownReductionSec || 0,
+    // 角色頁 V 矩陣面板設定的等級 — 供 useBattleBuffs 解析 useVmatrixLevel 的 buff (例:Mana Overload)
+    getVmatrixLevel: vmatrixLevelOf,
   })
 
   let changed = false
@@ -776,6 +927,29 @@ function tick() {
       const fs = fieldState[requiresField]
       if (!fs || elapsed >= fs.expireAt) {
         nextCastAt[skill.id] = elapsed + 200
+        continue
+      }
+    }
+    // waitForSkillCast — 等待另一支技能的施放節奏
+    //   若目標技能 CD 剩 ≤ cdBelowMs(含 ready / 尚未施放過),推後 100ms 重試
+    //   若目標技能剛施放 < delayAfterCastMs,推到 lastCast + delay
+    const waitCfg = skill.sim?.waitForSkillCast
+    if (waitCfg) {
+      const targetId = waitCfg.skillId
+      const cdBelowMs = waitCfg.cdBelowMs ?? 0
+      const delayMs = waitCfg.delayAfterCastMs ?? 0
+      const targetCdEnd = cooldownEndAt[targetId] ?? 0
+      const targetCdRem = targetCdEnd - elapsed  // >0 表示還在 CD 中
+      const targetLastCast = lastCastAt[targetId]
+      const hasTargetCast = targetLastCast != null && Number.isFinite(targetLastCast)
+      if (!hasTargetCast || targetCdRem <= cdBelowMs) {
+        // 目標尚未施放 或 CD 即將歸零 — 等待其施放完成後再評估
+        nextCastAt[skill.id] = elapsed + 100
+        continue
+      }
+      if (hasTargetCast && elapsed < targetLastCast + delayMs) {
+        // 目標剛施放 — 推到 lastCast + delay
+        nextCastAt[skill.id] = targetLastCast + delayMs
         continue
       }
     }
@@ -824,6 +998,31 @@ function tick() {
       if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
       const cur = nextCastAt[other.id]
       if (cur != null && cur < lockUntil) nextCastAt[other.id] = lockUntil
+    }
+    // 雲守衛:如果本次 animEnd 落在 grace end 前 0~200ms 內,
+    //   本次允許施放,但把「所有非引爆的主動技能」(含剛施放的自己)推到 graceEnd 之後 —
+    //   讓出 Mist Eruption 的引爆時點(否則 CD 短 / 無 CD 的技能會在 animEnd 後又被 pick)
+    //   僅對非 cloudDetonate 技能的 cast 生效
+    if (!skill.sim?.cloudDetonate) {
+      for (const srcId of Object.keys(lastCastAt)) {
+        if (!hasActiveCloudsOf(srcId)) continue
+        const srcSkill = SKILL_BY_ID[srcId]
+        const pnCloudsCfg = srcSkill?.sim?.clouds
+        if (!pnCloudsCfg) continue
+        const graceEnd = lastCastAt[srcId] + (pnCloudsCfg.detonateGraceMs || 0)
+        const timeUntilGrace = graceEnd - lockUntil
+        if (timeUntilGrace > 0 && timeUntilGrace < 200) {
+          const holdUntil = graceEnd + Math.floor(rng() * 40)
+          for (const other of SIM_SKILLS) {
+            if (other.sim?.cloudDetonate) continue  // 引爆技能保留其 waitForSkillCast 排程
+            const otherRole = other.sim?.role
+            if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
+            const cur = nextCastAt[other.id]
+            if (cur != null && cur < holdUntil) nextCastAt[other.id] = holdUntil
+          }
+          break
+        }
+      }
     }
   }
   if (processOrbHits(elapsed, enemy, att)) changed = true
@@ -891,6 +1090,8 @@ export function useBattleSim() {
     fieldState = {}
     igniteWalls = []
     pendingOrbHits = []
+    lastCastAt = {}
+    cloudDetonatedAt = {}
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
     // 開場排程:

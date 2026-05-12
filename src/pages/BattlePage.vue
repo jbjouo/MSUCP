@@ -113,7 +113,7 @@ function fmtCompact(n) {
 
 const singleCastResult = ref(null)
 function runTestCast() {
-  singleCastResult.value = simulateSingleCast('flame_sweep')
+  singleCastResult.value = simulateSingleCast('poison_nova')
 }
 function clearTestCast() { singleCastResult.value = null }
 

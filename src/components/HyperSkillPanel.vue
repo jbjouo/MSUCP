@@ -14,7 +14,6 @@ const {
   canPick,
   meetsLevel,
   toggle,
-  resetAll,
 } = useHyperSkills()
 const { state: charState } = useCharacter()
 
@@ -26,9 +25,6 @@ const hasOptions = computed(() => groups.value.some((g) => g.skills.length))
   <section v-if="hasOptions" class="hyskill-panel">
     <header class="hyskill-panel__head">
       <span>{{ t('hyperSkill.title') }}</span>
-      <button class="hyskill-panel__reset" type="button" @click="resetAll">
-        {{ t('hyperSkill.reset') }}
-      </button>
     </header>
 
     <div class="hyskill-panel__groups">
@@ -118,22 +114,6 @@ const hasOptions = computed(() => groups.value.some((g) => g.skills.length))
   color: #ffc857;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.hyskill-panel__reset {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 3px 10px;
-  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
-  color: #e8edf2;
-  border: 1px solid #141a22;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.hyskill-panel__reset:hover { filter: brightness(1.15); }
-
 .hyskill-panel__groups {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

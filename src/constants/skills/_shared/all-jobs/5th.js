@@ -12,7 +12,7 @@
 // kind:技能本質(passive / buff / toggle / attack / summon / link / utility)
 // cp:  CP 計算機裡扮演的角色(可能與 kind 不同,例如 Will of the Alliance kind=passive 但 cp.role=toggle)
 
-import { LOCAL_ICON } from '../helpers.js'
+import { LOCAL_ICON, ASSET } from '../helpers.js'
 
 const ICON = (name) => LOCAL_ICON(name, 'common')
 
@@ -23,7 +23,7 @@ export const ALL_JOBS_5TH_SKILLS = [
     name: 'Decent Sharp Eyes',
     nameKey: 'skills.common.decent_sharp_eyes.name',
     descriptionKey: 'skills.common.decent_sharp_eyes.description',
-    icon: '/skills/decent_sharp_eyes.png',
+    icon: ASSET('skills/decent_sharp_eyes.png'),
     imageUrl: ICON('Sharp_Eyes'),
     advancement: 5,
     kind: 'buff',
@@ -43,7 +43,7 @@ export const ALL_JOBS_5TH_SKILLS = [
     name: 'Combat Orders',
     nameKey: 'skills.common.combat_orders.name',
     descriptionKey: 'skills.common.combat_orders.description',
-    icon: '/skills/combat_orders.png',
+    icon: ASSET('skills/combat_orders.png'),
     advancement: 5,
     kind: 'buff',
     mastery: 1,

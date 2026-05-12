@@ -1,13 +1,29 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { SUPPORTED_LOCALES, setLocale } from '../i18n'
 import { routes } from '../router'
+import { useCharacter } from '../composables/useCharacter.js'
+import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
 
 const { t, locale } = useI18n()
+const route = useRoute()
+const { state } = useCharacter()
+const { toggleSidebar } = useCharacterSidebar()
 
-const navItems = routes
-  .filter((r) => r.meta?.navKey)
-  .map((r) => ({ to: r.path, key: r.meta.navKey }))
+const iconUrl = `${import.meta.env.BASE_URL}new-icon.png`
+
+const BATTLE_JOBS = new Set(['archmageFP'])
+
+const navItems = computed(() =>
+  routes
+    .filter((r) => r.meta?.navKey)
+    .filter((r) => r.meta.navKey !== 'battle' || BATTLE_JOBS.has(state.job))
+    .map((r) => ({ to: r.path, key: r.meta.navKey })),
+)
+
+const showSidebarToggle = computed(() => route.path.startsWith('/character'))
 
 function onLocaleChange(e) {
   setLocale(e.target.value)
@@ -17,8 +33,19 @@ function onLocaleChange(e) {
 <template>
   <header class="topbar">
     <div class="topbar__inner">
+      <button
+        v-if="showSidebarToggle"
+        type="button"
+        class="topbar__menu"
+        :aria-label="t('character.sidebar.toggle')"
+        @click="toggleSidebar"
+      >☰</button>
       <div class="brand">
-        <span class="brand__mark">MSU</span>
+        <img
+          :src="iconUrl"
+          alt="MSUCP"
+          class="brand__mark"
+        />
         <span class="brand__title">{{ t('app.title') }}</span>
       </div>
 
@@ -63,12 +90,30 @@ function onLocaleChange(e) {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 .topbar__inner {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 0.65rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+
+.topbar__menu {
+  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
+  border: 1px solid #141a22;
+  color: #ffc857;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 120ms ease, border-color 120ms ease;
+}
+.topbar__menu:hover {
+  filter: brightness(1.18);
+  border-color: #ffc857;
 }
 
 .brand {
@@ -78,18 +123,10 @@ function onLocaleChange(e) {
   min-width: 0;
 }
 .brand__mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
-  border: 1px solid #141a22;
-  color: #ffc857;
-  font-weight: 800;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+  display: block;
+  object-fit: contain;
 }
 .brand__title {
   font-weight: 700;

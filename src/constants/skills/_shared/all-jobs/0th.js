@@ -11,6 +11,8 @@
 //
 // 同一支技能若在不同系統有不同角色,各寫各的子物件,互不干擾。
 
+import { ASSET } from '../helpers.js'
+
 export const ALL_JOBS_0TH_SKILLS = [
   // ── Will of the Alliance ─────────────────────────────────────────────────
   // 本質是 passive(取得後永遠生效),但因取得條件特殊(聯盟活動) → 玩家有/無不一致,
@@ -20,7 +22,7 @@ export const ALL_JOBS_0TH_SKILLS = [
     name: 'Will of the Alliance',
     nameKey: 'skills.common.will_of_the_alliance.name',
     descriptionKey: 'skills.common.will_of_the_alliance.description',
-    icon: '/skills/will_of_the_alliance.png',
+    icon: ASSET('skills/will_of_the_alliance.png'),
     advancement: 0,
     kind: 'passive',
     stats: { str: 5, dex: 5, int: 5, luk: 5, atk: 5, matk: 5 },
@@ -33,7 +35,7 @@ export const ALL_JOBS_0TH_SKILLS = [
     name: 'Blessing of the Fairy',
     nameKey: 'skills.common.blessing_of_the_fairy.name',
     descriptionKey: 'skills.common.blessing_of_the_fairy.description',
-    icon: '/skills/blessing_of_the_fairy.png',
+    icon: ASSET('skills/blessing_of_the_fairy.png'),
     advancement: 0,
     kind: 'passive',
     stats: { atk: 20, matk: 20 },
@@ -45,7 +47,7 @@ export const ALL_JOBS_0TH_SKILLS = [
     name: "Empress's Blessing",
     nameKey: 'skills.common.empress_blessing.name',
     descriptionKey: 'skills.common.empress_blessing.description',
-    icon: '/skills/empress_blessing.png',
+    icon: ASSET('skills/empress_blessing.png'),
     advancement: 0,
     kind: 'passive',
     stats: { atk: 30, matk: 30 },
@@ -59,7 +61,7 @@ export const ALL_JOBS_0TH_SKILLS = [
     name: "Hero's Echo",
     nameKey: 'skills.common.heros_echo.name',
     descriptionKey: 'skills.common.heros_echo.description',
-    icon: '/skills/heros_echo.png',
+    icon: ASSET('skills/heros_echo.png'),
     advancement: 0,
     kind: 'buff',
     maxLevel: 1,

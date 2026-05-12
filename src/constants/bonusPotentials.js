@@ -226,6 +226,24 @@ const WEAPON_120_LEGENDARY = [
   { label: 'Boss Damage: +18%',      weight: 2.564103, stats: { bossDmg: 18 } },
 ]
 
+// 武器 Lv120 Rare line 2/3 額外降級池
+//   來源:MSU API CubeType_BONUS_POTENTIAL / GradeType_RARE / WEAPON / Lv120,line 2 與 line 3 共用
+//   Line 1 只吃 WEAPON_120_RARE;Line 2/3 才會出現這些「半階」值
+//   Lv200 武器走 Lv120 fallback → 同樣套用
+const WEAPON_120_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +60',        weight: 10.893247, stats: { hp: 60 } },
+  { label: 'Max MP: +60',        weight: 10.893247, stats: { mp: 60 } },
+  { label: 'Movement Speed: +4', weight: 10.893247, stats: { moveSpeed: 4 } },
+  { label: 'Jump: +4',           weight: 10.893247, stats: { jump: 4 } },
+  { label: 'DEF: +60',           weight: 10.893247, stats: { def: 60 } },
+  { label: 'ATT: +6',            weight: 7.262164, stats: { atk: 6 } },
+  { label: 'Magic ATT: +6',      weight: 7.262164, stats: { matk: 6 } },
+]
+
 // 戒指 Lv100+ Rare
 const RING_100_RARE = [
   { label: 'STR : +10',          weight: 6.382979, stats: { str: 10 } },
@@ -770,6 +788,8 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      WEAPON_120_EPIC,
       unique:    WEAPON_120_UNIQUE,
       legendary: WEAPON_120_LEGENDARY,
+      // line 2/3 額外降級選項 — Rare 沒有「下一階」可疊,改用此特殊池(MSU API line 2 規則)
+      rareLine23Extra: WEAPON_120_RARE_LINE23_EXTRA,
     },
   },
   ring: {
@@ -958,7 +978,15 @@ export function getBonusPotentialOptionsForLine(item, tier, lineIndex) {
   const tierIdx = POTENTIAL_TIERS.indexOf(tier)
   if (tierIdx === -1) return []
   const base = pool[tier] || []
-  if (lineIndex === 0 || tierIdx === 0) return base
+  if (lineIndex === 0) return base
+  // line 2/3:
+  //   - tier > rare:疊加「下一階」主池
+  //   - tier === rare:無下一階可疊,但 MSU API 在 Rare 的 line 2/3 會多出一組「半階」降級值
+  //                    若該分類在該等級有定義 rareLine23Extra,套用之
+  if (tierIdx === 0) {
+    const extra = pool.rareLine23Extra || []
+    return [...base, ...extra]
+  }
   const lower = POTENTIAL_TIERS[tierIdx - 1]
   const lowerList = pool[lower] || []
   return [...base, ...lowerList]

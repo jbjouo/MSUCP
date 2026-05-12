@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "MSU Toolkit",
+    "title": "MSUCP",
     "subtitle": "MapleStory N utilities"
   },
   "nav": {
@@ -196,6 +196,10 @@
         "name": "DoT Punisher",
         "description": "V skill: summons flame orbs based on the number of DoT stacks on enemies."
       },
+      "poison_nova": {
+        "name": "Poison Nova",
+        "description": "Releases a poisonous cloud that spreads in all directions, hitting nearby enemies 12 times plus a 10s DoT (Lv25 500%/600%; Lv30 550%/660%). Spawns 11 clouds; 2s after cast, Mist Eruption can detonate them — after the grace window, 1 cloud decays every 0.3s. Detonation explosion count equals the current cloud count; first 3 at 100% FD, 4th+ at 50% FD. Unaffected by attack reflection. Cooldown 25s."
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA Origin: ultimate fire/poison fusion attack."
@@ -288,6 +292,10 @@
     "blessed_maple_goddesses": {
       "name": "Blessed of the Maple Goddesses",
       "description": "Title granting all-stat +20, ATT / MATK +10, Boss Damage +10%, Ignore Defense +10%, Critical Rate +15%, Buff Duration +15%."
+    },
+    "mulung_600y_inner_power": {
+      "name": "One with 600 Years of Inner Power",
+      "description": "Title granted to the 1st-ranked character of each job in Mu Lung Dojo — all-stat +15, ATT / MATK +9, Max HP / MP +400, Boss Damage +10%."
     }
   },
   "hyperSkill": {
@@ -356,6 +364,10 @@
     "infinity": {
       "name": "Infinity",
       "description": "Auto-activated 450ms after battle starts. Grants Final Damage +70% (Lv30) / +71% (Lv31), additively increased by +3% every 5s until the buff ends. Duration 40s (+1s per level); scaled by Buff Duration%. Cooldown 180s (not affected by cooldown reset)."
+    },
+    "mana_overload": {
+      "name": "Mana Overload",
+      "description": "Toggle skill modeled as a permanent independent Final Damage multiplier. +7% at Lv25 / +8% at Lv30 (multiplied with other FD sources). Always on in the battle simulator — no duration or cooldown shown."
     }
   },
   "language": {
@@ -484,6 +496,10 @@
         "attack": "Attack",
         "percent": "Percent Modifiers"
       },
+      "bsTier": {
+        "none": "None",
+        "level": "Tier {n}"
+      },
       "bonusStatsPlaceholder": "Bonus Stats editor — coming soon",
       "potentialPlaceholder": "Potential editor — coming soon",
       "ptTier": {
@@ -594,7 +610,8 @@
       "weaponType": "Weapon Type",
       "potential": "Potential",
       "bonusPotential": "Bonus Potential",
-      "speedUnit": "Level"
+      "speedUnit": "Level",
+      "cpDelta": "Combat Power Δ"
     },
     "selectedHint": "Selected {slot}. Click an inventory item to equip. Click the slot again to cancel or unequip."
   },
@@ -603,18 +620,23 @@
     "primary": "Primary",
     "world": "World",
     "autoSaved": "Saved automatically",
+    "sidebar": {
+      "toggle": "Menu",
+      "basic": "Basic Info",
+      "linkSkill": "Link Skill",
+      "collection": "Collection",
+      "legion": "Legion",
+      "skill": "Skills"
+    },
     "action": {
       "reset": "Reset"
     },
     "io": {
       "export": "Export",
       "import": "Import",
-      "loadSeed": "Load Test Data",
       "exported": "Exported",
       "confirmImport": "This will REPLACE all current data (equipment / legion / collection / hyper stat / etc.). Continue?",
-      "confirmSeed": "This will REPLACE all current data with bundled test data. Continue?",
-      "importFailed": "Import failed:",
-      "seedFailed": "Load test data failed:"
+      "importFailed": "Import failed:"
     },
     "fields": {
       "name": "Character name",
@@ -801,6 +823,8 @@
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
       "unreliable_memory_desc": "Transforms into a chosen V skill. In this sim it mirrors Infinity — after Infinity ends, triggers once with the same duration / tick schedule.",
+      "mana_overload": "Mana Overload",
+      "mana_overload_desc": "Toggle 5th-job skill — permanent independent Final Damage multiplier in the battle sim. +7% at Master Lv25, +8% at Lv30 (≈ +0.2% per level). VM level 0 still runs at the Lv25 baseline; raising VM past 25 is required to push past +7%.",
       "flame_sweep_core": {
         "description": "Skill-specific V Matrix — affects Flame Sweep only: +2% final damage per level; at Lv40+, +20% ignore defense (separate row, not added with Hyper ignore)."
       },

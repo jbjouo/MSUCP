@@ -56,11 +56,16 @@ export const INFERNO_AURA = {
 //   同敵人被多顆擊中時,後續火球 FD -55%(僅 45%)。
 //   DoT:700%/秒 × 30 秒。
 //
-// sim 簡化(時間上):11 顆火球的命中時序(0.5~1s 初始 / 0.2s 分裂)合併到施放 tick 一次結算;
-//                   DoT 自動由 burn 機制處理(同 id 再施加 → refresh expireAt)。
-// sim FD 遞減:每擊獨立計算 mainHitDmg(各自有 crit/variance),
-//   第 1 顆 orb 的 4 擊 FD 100%;第 2~11 顆的 40 擊 FD × subsequentFdMult(0.45)
-//   → 總 44 個真實 hit 分兩組套倍率
+// sim 分波命中(與 DoT Punisher 類似,所有 orb 都走 pendingOrbHits):
+//   施放 → 500ms 首波 3 顆命中;每顆命中後分裂 1 顆,於 300ms 後命中;
+//   若尚未到 maxTotal=11,上一代 命中後再分裂,直到累計 11 顆為止。
+//   生代序列(3 → 3 → 3 → 2):
+//     t+500ms  orb 0..2   (首顆 FD 100%,同波其餘 FD 45%)
+//     t+800ms  orb 3..5
+//     t+1100ms orb 6..8
+//     t+1400ms orb 9..10  (達到 11 上限)
+//   每顆 orb 獨立:4 擊 × mainHitDmg × FD / useCount +1 / Meteor Shower 1 roll / Ignite 1 roll
+// DoT 自動由 burn 機制處理(同 id 再施加 → refresh expireAt)。
 export const MEGIDDO_FLAME = {
   id: 'megiddo_flame',
   name: 'Megiddo Flame',
@@ -90,14 +95,15 @@ export const MEGIDDO_FLAME = {
     role: 'attack',
     castDelayBySpeed: { 7: 750, 8: 690 },
     priority: 90,          // 僅次於 Flame Haze (100),優先於 Mist Eruption (80)
-    // 火球機制 metadata — sim 目前僅以等效 hits 攤平;實作分波 hit 時可讀此欄位
+    // 分波火球機制(與 DoT Punisher 類似,走 pendingOrbHits 獨立命中)
     orbs: {
-      initial: 3,
-      maxTotal: 11,
-      attacksPerOrb: 4,
-      subsequentFdMult: 0.45,
-      initialDelayRangeMs: [500, 1000],
-      splitDelayMs: 200,
+      initialCount: 3,         // 首波 3 顆
+      splitPerOrb: 1,          // 每顆命中分裂 1 顆
+      maxTotal: 11,            // 總上限(含首波)
+      attacksPerOrb: 4,        // 每顆 4 擊
+      subsequentFdMult: 0.45,  // 首顆 FD 100%,其餘 45%
+      initialDelayMs: 500,     // 施放 → 首波命中
+      splitDelayMs: 300,       // 世代間延遲(命中 → 下一代命中)
     },
   },
 }

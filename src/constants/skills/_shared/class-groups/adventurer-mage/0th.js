@@ -4,12 +4,14 @@
 // Link Skill 的資料單一事實源仍在 src/data/linkSkills.js;此處 skill entry 只描述
 // 「同樣這支技能在 CP/Battle 系統裡的角色」— 不複製等級表、不改動 link 系統規則。
 
+import { ASSET } from '../../helpers.js'
+
 export const ADVENTURER_MAGE_0TH_SKILLS = [
   {
     id: 'empirical_knowledge',
     nameKey: 'linkSkill.skills.empirical_knowledge.name',
     descriptionKey: 'linkSkill.skills.empirical_knowledge.flavor',
-    imageUrl: '/skills/link/empirical_knowledge.png',
+    imageUrl: ASSET('skills/link/empirical_knowledge.png'),
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
     advancement: 0,
     kind: 'link',

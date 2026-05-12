@@ -40,7 +40,7 @@ export const DOT_PUNISHER = {
   damage: { base: 850, perLevel: 15 },  // Lv30 = 850%;+15%/Lv (Lv1=415 / Lv25=775)
   burn: { base: 290, perLevel: 3, durationSec: 8, tickIntervalSec: 1 },
   cooldown: 25,
-  combatOrdersEligible: true,
+  // Combat Orders 只作用於特定 4 轉技能,DoT Punisher 不在其中 → 不加 combatOrdersEligible
   vmatrix: { kind: 'skill', maxLevel: 30 },
   sim: {
     role: 'attack',
@@ -57,9 +57,57 @@ export const DOT_PUNISHER = {
   },
 }
 
+// ─── Poison Nova (class-specific V) ─────────────────────────────────────────
+// Wiki: 12 hits × 500% (Lv25) / 550% (Lv30);DoT 600%/1s × 10s → 660%/1s
+// 施放時產生 11 個毒雲(不進入 fieldState;由 sim 以 lastCastAt 推算);
+//   t<2s:無法引爆 / t≥2s:雲數 = max(0, 11 − floor((t−2s)/0.3s))
+// 引爆由 Mist Eruption 執行:爆炸次數 = 當下雲數 N;前 3 發 FD 100% / 第 4+ 發 FD 50%
+// 主擊每次施放 → Meteor Shower 1 次 roll(role:'attack' 既有規則)
+export const POISON_NOVA = {
+  id: 'poison_nova',
+  name: 'Poison Nova',
+  nameKey: 'skills.archmageFP.poison_nova.name',
+  descriptionKey: 'skills.archmageFP.poison_nova.description',
+  imageUrl: ICON('Poison_Nova'),
+  color: '#8ff05a',
+  jobs: ['archmageFP'],
+  advancement: 5,
+  kind: 'attack',
+  element: 'poison',
+  baseLevel: 30,
+  hitsPerCast: 12,
+  maxEnemies: 1,
+  mpCost: 500,
+  damage: { base: 550, perLevel: 10 },   // Lv25=500 · Lv30=550
+  burn: { base: 660, perLevel: 12, durationSec: 10, tickIntervalSec: 1 },
+  cooldown: 25,
+  // Combat Orders 只作用於特定 4 轉技能,Poison Nova 不在其中 → 不加 combatOrdersEligible
+  vmatrix: { kind: 'skill', maxLevel: 30 },
+  // 引爆傷害參數(Mist Eruption 觸發時使用 Poison Nova 本體的所有屬性)
+  //   damage% 依 Poison Nova 自身等級計算(Lv25 450% / Lv30 495%,+9/lv)
+  //   所有乘區(VM / ignoreDef / element / mastery / CO 等級加成)一律走 Poison Nova
+  detonation: {
+    damage: { base: 495, perLevel: 9 },   // Lv25=450 · Lv30=495
+    hitsPerCast: 12,                       // 每發爆炸 12 擊
+    fdThresholdCount: 3,                   // 前 3 發 FD 1.0
+    fdAfterThreshold: 0.5,                 // 第 4+ 發 FD 0.5
+  },
+  sim: {
+    role: 'attack',
+    castDelayBySpeed: { 7: 620, 8: 570 },
+    priority: 88,                          // Flame Haze 100 > Megiddo 90 > Poison Nova 88 > DoT Punisher 85 > Mist Eruption 80
+    clouds: {
+      initialCount: 11,
+      detonateGraceMs: 2000,               // 施放後 2s 才可引爆
+      decayIntervalMs: 300,                // grace 之後每 0.3s -1 顆
+    },
+  },
+}
+
 // ─── 5 轉所有火毒技能 ───────────────────────────────────────────────────────
 export const ARCHMAGE_FP_5TH_SKILLS = [
   DOT_PUNISHER,
+  POISON_NOVA,
 ]
 
 // 子分類 — 全部從主列表 filter derive

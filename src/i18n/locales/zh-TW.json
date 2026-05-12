@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "MSU 工具箱",
+    "title": "MSUCP",
     "subtitle": "新楓之谷 N 輔助工具"
   },
   "nav": {
@@ -196,6 +196,10 @@
         "name": "DoT Punisher",
         "description": "V 技能:依敵人身上 DoT 層數召喚火焰球攻擊。"
       },
+      "poison_nova": {
+        "name": "Poison Nova",
+        "description": "釋放向四面八方擴散的毒雲,同時造成 12 擊主擊傷害與 10 秒 DoT(Lv25 500%/600%;Lv30 550%/660%)。施放時產生 11 個毒雲,2 秒後可由 Mist Eruption 引爆;之後每 0.3 秒雲數 −1。引爆時以當下雲數為爆炸數,前 3 發 FD 100%、第 4 發起 FD 50%。不受反射影響。CD 25 秒。"
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA 起源技能:終極火毒融合攻擊。"
@@ -288,6 +292,10 @@
     "blessed_maple_goddesses": {
       "name": "Blessed of the Maple Goddesses",
       "description": "稱號:全屬性 +20、ATT / MATK +10、Boss 傷害 +10%、無視防禦 +10%、爆擊率 +15%、Buff 持續 +15%。"
+    },
+    "mulung_600y_inner_power": {
+      "name": "One with 600 Years of Inner Power",
+      "description": "稱號(武陵道場職業第一名):全屬性 +15、ATT / MATK +9、最大 HP / MP +400、Boss 傷害 +10%。"
     }
   },
   "hyperSkill": {
@@ -356,6 +364,10 @@
     "infinity": {
       "name": "Infinity",
       "description": "戰鬥開始 450ms 後自動施放。起始 Final Damage +70%(Lv30)/ +71%(Lv31),每 5 秒再相加 +3% 直到 buff 結束。持續 40 秒(每級 +1s),受 Buff Duration% 放大。冷卻 180 秒(不受冷卻重置影響)"
+    },
+    "mana_overload": {
+      "name": "Mana Overload",
+      "description": "切換型技能,常駐獨立終傷乘區。Lv25 +7% / Lv30 +8% 最終傷害(與其他終傷來源互乘)。戰鬥模擬預設常駐啟動,不顯示剩餘時間與冷卻"
     }
   },
   "language": {
@@ -484,6 +496,10 @@
         "attack": "攻擊",
         "percent": "百分比加成"
       },
+      "bsTier": {
+        "none": "無",
+        "level": "等級{n}"
+      },
       "bonusStatsPlaceholder": "Bonus Stats 編輯 — 建置中",
       "potentialPlaceholder": "潛能編輯 — 建置中",
       "ptTier": {
@@ -594,7 +610,8 @@
       "weaponType": "Weapon Type",
       "potential": "Potential",
       "bonusPotential": "Bonus Potential",
-      "speedUnit": "Level"
+      "speedUnit": "Level",
+      "cpDelta": "Combat Power 增加量"
     },
     "selectedHint": "已選擇 {slot} 槽位,點背包物品以裝備。再次點該槽可取消或卸下。"
   },
@@ -603,18 +620,23 @@
     "primary": "主屬性",
     "world": "伺服器",
     "autoSaved": "已自動儲存",
+    "sidebar": {
+      "toggle": "目錄",
+      "basic": "基本資料",
+      "linkSkill": "Link Skill",
+      "collection": "圖鑑",
+      "legion": "聯盟系統",
+      "skill": "技能"
+    },
     "action": {
       "reset": "重設"
     },
     "io": {
       "export": "匯出資料",
       "import": "匯入檔案",
-      "loadSeed": "載入測試資料",
       "exported": "已匯出",
       "confirmImport": "這會覆蓋目前所有資料(裝備 / 戰地 / 圖鑑 / Hyper Stat …),確定嗎?",
-      "confirmSeed": "這會以內建測試資料覆蓋目前所有資料,確定嗎?",
-      "importFailed": "匯入失敗:",
-      "seedFailed": "載入測試資料失敗:"
+      "importFailed": "匯入失敗:"
     },
     "fields": {
       "name": "角色名稱",
@@ -801,6 +823,8 @@
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
       "unreliable_memory_desc": "選擇一個 V 技能並複製其效果。本 sim 固定鏡像 Infinity —— Infinity 結束後自動觸發一次,持續時間 / tick 機制完全相同。",
+      "mana_overload": "Mana Overload",
+      "mana_overload_desc": "切換型 5 轉技能 —— 戰鬥模擬中常駐獨立終傷乘區。Master Lv25 → +7%、Lv30 → +8% 最終傷害(每級約 +0.2%)。VM 等級為 0 時仍以 Lv25 基線運作,升級才會突破 7%。",
       "flame_sweep_core": {
         "description": "技能專屬 V 矩陣 — 僅作用於 Flame Sweep:每等級 +2% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
       },

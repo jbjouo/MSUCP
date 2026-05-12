@@ -4,8 +4,12 @@ import { useI18n } from 'vue-i18n'
 import StarBar from './StarBar.vue'
 import { setsForItem, countActiveSet } from '../constants/itemSets.js'
 import { ITEMS_BY_ID, useEquipment } from '../composables/useEquipment.js'
+import { useCpDamage } from '../composables/useCpDamage.js'
+import { computeStarStats } from '../constants/starForce.js'
+import { slotsAcceptingType } from '../constants/equipmentSlots.js'
 
 const { state: equipState, resolveEntry } = useEquipment()
+const { combatPower, combatPowerForEntries } = useCpDamage()
 // 當前穿在身上的 item id 集合 (供套裝面板判斷點亮狀態用)
 const equippedIds = computed(() => {
   const s = new Set()
@@ -148,6 +152,69 @@ const statRows = computed(() => {
 
 const imgUrl = computed(() => item.value?.imageUrl || item.value?.icon || null)
 
+// ── CP 差值 (hover 試算) ─────────────────────────────────────────────
+// 把 hover entry 套進「目標槽」後重算 CP,顯示與當前 CP 的差。
+// - 已穿在身上的 entry → 目標 = 自己當前的槽 → delta = 0(不顯示)
+// - 背包 / 圖鑑 hover → 用 resolveTargetSlot 找預設目標(空槽優先,否則第一個可接受的槽)
+// - 圖鑑 hover 沒有 uid / starStats,合成空白 entry
+function normalizeForCp(raw) {
+  if (!raw?.item) return null
+  return {
+    item: raw.item,
+    stars: raw.stars || 0,
+    starStats: raw.starStats || computeStarStats(raw.item, raw.stars || 0),
+    bonusStats: raw.bonusStats || null,
+    potential: raw.potential || null,
+    bonusPotential: raw.bonusPotential || null,
+  }
+}
+
+function findEquippedSlotForUid(uid) {
+  if (!uid) return null
+  for (const [slotKey, equippedUid] of Object.entries(equipState.equipped)) {
+    if (equippedUid === uid) return slotKey
+  }
+  return null
+}
+
+// 目標槽選擇:優先選擇「已裝備同類型」的槽 → 才能做替換比較。
+// 沒有同類型已裝備時(全空)才退回第一個可接受的槽 → 顯示「加裝」的全 CP 加成。
+// 多槽類型(戒指/項鍊):有 1 個已裝備就會比那個;全裝滿就比 slot[0]。
+function pickCompareSlot(item) {
+  const slots = slotsAcceptingType(item.type)
+  if (!slots.length) return null
+  const occupied = slots.find((s) => equipState.equipped[s.key])
+  return occupied || slots[0]
+}
+
+const cpDelta = computed(() => {
+  const raw = props.entry
+  const normalized = normalizeForCp(raw)
+  if (!normalized) return null
+  // 已穿在身上 → swap 為 no-op
+  if (raw?.uid && findEquippedSlotForUid(raw.uid)) return 0
+  const targetSlot = pickCompareSlot(normalized.item)
+  if (!targetSlot) return null
+  // 收集當前所有 equipped entries,以 slotKey → entry 對應
+  const byKey = {}
+  for (const [slotKey, uid] of Object.entries(equipState.equipped)) {
+    const e = resolveEntry(uid)
+    if (e) byKey[slotKey] = e
+  }
+  // 假設 loadout:把目標槽換成 hover 的 entry
+  byKey[targetSlot.key] = normalized
+  const hypEntries = Object.values(byKey)
+  const hypCp = combatPowerForEntries(hypEntries)
+  return hypCp - combatPower.value
+})
+
+function fmtDelta(n) {
+  if (n == null) return ''
+  const sign = n > 0 ? '+' : n < 0 ? '-' : ''
+  const abs = Math.abs(Math.round(n))
+  return `${sign}${abs.toLocaleString('en-US')}`
+}
+
 const rootRef = ref(null)
 const pos = ref({ left: 0, top: 0 })
 const OFFSET = 16
@@ -232,6 +299,16 @@ function formatTierStats(stats) {
     role="tooltip"
   >
   <div class="tip">
+    <!-- CP 差值 (hover 試算)。已裝備的 entry delta=0 不顯示;無可換槽則隱藏 -->
+    <div
+      v-if="cpDelta !== null && cpDelta !== 0"
+      class="tip__cp-delta"
+      :class="{ 'tip__cp-delta--up': cpDelta > 0, 'tip__cp-delta--down': cpDelta < 0 }"
+    >
+      <span class="tip__cp-delta-label">{{ t('equipment.tip.cpDelta') }}</span>
+      <span class="tip__cp-delta-value">{{ fmtDelta(cpDelta) }}</span>
+    </div>
+
     <!-- 星力條 -->
     <div v-if="item.maxStars > 0" class="tip__stars">
       <StarBar :stars="stars" :max="item.maxStars" size="large" />
@@ -471,6 +548,33 @@ function formatTierStats(stats) {
   color: #e9edf5; /* 觸發:白字 */
 }
 .tip-set__tier-list li { padding: 1px 0; }
+
+/* CP 差值 banner */
+.tip__cp-delta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0.35rem 0.5rem 0.5rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid #1f2540;
+}
+.tip__cp-delta-label {
+  color: #c9cfe3;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+.tip__cp-delta-value {
+  font-weight: 900;
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+.tip__cp-delta--up    .tip__cp-delta-value { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.35); }
+.tip__cp-delta--down  .tip__cp-delta-value { color: #ff2d3a; text-shadow: 0 0 8px rgba(255, 45, 58, 0.4); }
 
 /* 星力 */
 .tip__stars {

@@ -1,7 +1,7 @@
 // 全職業共通 — 4 轉
 // Maple Warrior — 主屬 AP × X% 的可開關 buff
 
-import { LOCAL_ICON } from '../helpers.js'
+import { LOCAL_ICON, ASSET } from '../helpers.js'
 
 export const ALL_JOBS_4TH_SKILLS = [
   {
@@ -9,7 +9,7 @@ export const ALL_JOBS_4TH_SKILLS = [
     name: 'Maple Warrior',
     nameKey: 'skills.common.maple_warrior.name',
     descriptionKey: 'skills.common.maple_warrior.description',
-    icon: '/skills/maple_warrior.png',
+    icon: ASSET('skills/maple_warrior.png'),
     imageUrl: LOCAL_ICON('Maple_Warrior', 'common'),
     advancement: 4,
     kind: 'buff',

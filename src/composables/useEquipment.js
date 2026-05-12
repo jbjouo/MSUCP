@@ -379,6 +379,7 @@ export function useEquipment() {
     CATALOG,
     getItem,
     resolveEntry,
+    resolveTargetSlot,
     equipEntry,
     unequipSlot,
     addToInventory,

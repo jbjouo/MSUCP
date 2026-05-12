@@ -13,7 +13,6 @@ const {
   totalAtkBonus,
   setCount,
   toggleEquipment,
-  reset,
   PET_COUNT_MAX,
   PET_EQUIPMENT_BONUS,
   PET_EQUIPMENT_SLOTS,
@@ -31,9 +30,6 @@ const countOptions = computed(() =>
   <section class="pet-panel">
     <header class="pet-panel__head">
       <span>{{ t('pet.title') }}</span>
-      <button class="pet-panel__reset" type="button" @click="reset">
-        {{ t('pet.reset') }}
-      </button>
     </header>
 
     <!-- 總覽 (ATT / Magic ATT 合計) -->
@@ -120,19 +116,6 @@ const countOptions = computed(() =>
   font-size: 0.92rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.pet-panel__reset {
-  padding: 0.25rem 0.65rem;
-  background: transparent;
-  color: #c9d2dd;
-  border: 1px solid #2f3642;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.pet-panel__reset:hover { color: #ffc857; border-color: #ffc857; }
-
 .pet-summary {
   display: flex;
   flex-direction: column;

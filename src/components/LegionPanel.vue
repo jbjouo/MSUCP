@@ -7,7 +7,6 @@ const { t } = useI18n()
 const {
   state,
   setTier,
-  resetAll,
   LEGION_BRANCHES,
   LEGION_TIER_COUNT,
   LEGION_TIER_LABELS,
@@ -16,7 +15,6 @@ const {
 const {
   state: puzzleState,
   setLevel: setPuzzleLevel,
-  resetAll: resetPuzzle,
   PUZZLE_ENTRIES,
 } = usePuzzle()
 
@@ -84,9 +82,6 @@ function resolveStatLabel(key) {
   <section class="legion-panel">
     <header class="legion-panel__head">
       <span>{{ t('legion.title') }}</span>
-      <button class="legion-panel__reset" type="button" @click="resetAll">
-        {{ t('legion.reset') }}
-      </button>
     </header>
 
     <div class="legion-panel__body legion-panel__body--split">
@@ -130,9 +125,6 @@ function resolveStatLabel(key) {
       <section class="legion-section">
         <div class="legion-section__head legion-section__head--row">
           <span>{{ t('puzzle.title') }}</span>
-          <button class="legion-panel__reset" type="button" @click="resetPuzzle">
-            {{ t('legion.reset') }}
-          </button>
         </div>
         <div class="legion-section__content">
           <div
@@ -189,22 +181,6 @@ function resolveStatLabel(key) {
   font-size: 0.78rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
-.legion-panel__reset {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 3px 10px;
-  background: linear-gradient(180deg, #2b3441 0%, #1f2630 100%);
-  color: #e8edf2;
-  border: 1px solid #141a22;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-.legion-panel__reset:hover { filter: brightness(1.15); }
-
 .legion-panel__body { display: flex; flex-direction: column; gap: 8px; }
 .legion-panel__body--split {
   display: grid;

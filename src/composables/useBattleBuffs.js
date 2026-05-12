@@ -184,6 +184,7 @@ export function useBattleBuffs() {
       buffDurationPct = 0,
       cooldownReductionPct = 0,
       cooldownReductionSec = 0,
+      getVmatrixLevel = null,
     } = ctx
     const activated = []
     for (const buff of BATTLE_BUFFS) {
@@ -246,12 +247,19 @@ export function useBattleBuffs() {
 
       // activeToggle:level + stats 由 baseLevel + Combat Orders 計算
       //   buff.mirror 指向另一個 buff(例:Unreliable Memory → Infinity)→ 複製鏡像目標 cfg
+      //   buff.useVmatrixLevel:改從角色頁 V 矩陣面板讀等級(例:Mana Overload)→
+      //     effective = max(baseLevel, vmLevel),確保「預設常駐」;VM 升級後可突破 baseLevel
       let cfg, cfgLevel
       if (buff.mirror) {
         const mirrorBuff = BATTLE_BUFFS.find((b) => b.id === buff.mirror)
         if (!mirrorBuff) continue
         cfgLevel = (mirrorBuff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
         cfg = resolveActiveToggleStats(mirrorBuff, cfgLevel)
+      } else if (buff.useVmatrixLevel && typeof getVmatrixLevel === 'function') {
+        const base = buff.baseLevel || 1
+        const vmLv = Math.max(0, Math.floor(Number(getVmatrixLevel(buff.id)) || 0))
+        cfgLevel = Math.max(base, vmLv) + (combatOrdersActive ? 1 : 0)
+        cfg = resolveActiveToggleStats(buff, cfgLevel)
       } else {
         cfgLevel = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
         cfg = resolveActiveToggleStats(buff, cfgLevel)
@@ -420,11 +428,13 @@ export function useBattleBuffs() {
     if (buff.source === 'activeToggle') {
       const s = state.stacks[buff.id] || {}
       const isActive = s.count > 0 && nowMs < s.expireAt
-      const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
+      // permanent buff(例:Mana Overload)常駐啟動中,不顯示剩餘時間
+      const remainingMs = isActive && !buff.permanent ? Math.max(0, s.expireAt - nowMs) : 0
       const currentFdPct = isActive ? activeToggleFinalDmgPct(buff, nowMs) : 0
-      // hideCooldown / onceOnly 的 buff 不顯示 CD(例:Unreliable Memory)
+      // hideCooldown / onceOnly / permanent 的 buff 不顯示 CD(例:Unreliable Memory / Mana Overload)
       const onCooldown = !buff.hideCooldown
         && !buff.onceOnly
+        && !buff.permanent
         && !isActive
         && s.activatedAt > 0
         && s.cooldownUntil > nowMs

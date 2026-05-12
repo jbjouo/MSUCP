@@ -91,10 +91,3 @@ export function readFileAsJSON(file) {
     reader.readAsText(file, 'utf-8')
   })
 }
-
-// 從 public/ 下的 seed 檔讀取 (給「載入測試資料」用)
-export async function loadSeedFile(url = '/seed/test-data.json') {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Seed fetch failed: ${res.status}`)
-  return res.json()
-}
