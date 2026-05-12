@@ -366,6 +366,30 @@
       "imageUrl": "https://api-static.msu.io/itemimages/icon/1004423.png"
     },
     {
+      "id": "eye_aquatic_letter",
+      "name": "Aquatic Letter Eye Accessory",
+      "nameEn": "Aquatic Letter Eye Accessory",
+      "type": "eye",
+      "level": 100,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "def": 100,
+        "str": 6,
+        "dex": 6,
+        "int": 6,
+        "luk": 6
+      },
+      "imageUrl": "https://api-static.msu.io/itemimages/icon/1022231.png"
+    },
+    {
       "id": "eye_magic_eyepatch",
       "name": "Magic Eyepatch",
       "nameEn": "Magic Eyepatch",
