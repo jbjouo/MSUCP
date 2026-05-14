@@ -429,6 +429,17 @@
       "bonusExp": "Bonus EXP"
     }
   },
+  "event": {
+    "title": "EVENT",
+    "reset": "Reset",
+    "skills": {
+      "att": "ATT / MATT",
+      "bossDmg": "Boss Damage",
+      "ignoreDef": "Ignore Defense",
+      "allStat": "All Stats",
+      "buffDuration": "Buff Duration"
+    }
+  },
   "puzzle": {
     "title": "LEGION PUZZLE",
     "entries": {
@@ -627,7 +638,8 @@
       "linkSkill": "Link Skill",
       "collection": "Collection",
       "legion": "Legion",
-      "skill": "Skills"
+      "skill": "Skills",
+      "event": "Event"
     },
     "action": {
       "reset": "Reset"
@@ -1091,6 +1103,7 @@
       "legionPrefix": "Legion: {name} Tier {tier}",
       "puzzlePrefix": "Puzzle: {name} Lv.{lv}",
       "hyperPrefix": "Hyper: {name} Lv.{lv}",
+      "eventPrefix": "Event: {name} Lv.{lv}",
       "setPrefix": "Set: {name}",
       "arcanePrefix": "Arcane: {name} Lv.{lv}",
       "petCountPrefix": "Pet: {n}",

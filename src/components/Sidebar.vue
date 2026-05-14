@@ -32,6 +32,7 @@ const navTree = computed(() => {
         { key: 'collection', labelKey: 'character.sidebar.collection' },
         { key: 'legion', labelKey: 'character.sidebar.legion' },
         { key: 'skill', labelKey: 'character.sidebar.skill' },
+        { key: 'event', labelKey: 'character.sidebar.event' },
       ],
     },
     { key: 'equipment', labelKey: 'nav.equipment', path: '/equipment' },

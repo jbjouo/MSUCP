@@ -12,6 +12,7 @@ import PetPanel from '../components/PetPanel.vue'
 import InnerPotentialPanel from '../components/InnerPotentialPanel.vue'
 import VMatrixPanel from '../components/VMatrixPanel.vue'
 import HyperSkillPanel from '../components/HyperSkillPanel.vue'
+import EventPanel from '../components/EventPanel.vue'
 import {
   exportData,
   importData,
@@ -203,6 +204,15 @@ const { activeSection } = useCharacterSidebar()
       >
         <VMatrixPanel />
         <HyperSkillPanel />
+      </div>
+
+      <!-- 活動 -->
+      <div
+        v-show="activeSection === 'event'"
+        id="section-event"
+        class="char-page__section"
+      >
+        <EventPanel />
       </div>
     </div>
   </section>

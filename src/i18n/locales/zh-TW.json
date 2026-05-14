@@ -429,6 +429,17 @@
       "bonusExp": "額外經驗值"
     }
   },
+  "event": {
+    "title": "EVENT",
+    "reset": "重設",
+    "skills": {
+      "att": "ATT / MATT",
+      "bossDmg": "首領傷害",
+      "ignoreDef": "無視防禦",
+      "allStat": "全屬性",
+      "buffDuration": "增益時間"
+    }
+  },
   "puzzle": {
     "title": "聯盟拼圖",
     "entries": {
@@ -627,7 +638,8 @@
       "linkSkill": "Link Skill",
       "collection": "圖鑑",
       "legion": "聯盟系統",
-      "skill": "技能"
+      "skill": "技能",
+      "event": "活動"
     },
     "action": {
       "reset": "重設"
@@ -1091,6 +1103,7 @@
       "legionPrefix": "聯盟:{name} 階 {tier}",
       "puzzlePrefix": "拼圖:{name} Lv.{lv}",
       "hyperPrefix": "極限屬性:{name} Lv.{lv}",
+      "eventPrefix": "活動:{name} Lv.{lv}",
       "setPrefix": "套裝:{name}",
       "arcanePrefix": "秘法:{name} Lv.{lv}",
       "petCountPrefix": "寵物:{n} 隻",

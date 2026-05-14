@@ -19,6 +19,7 @@ import { useArcane } from '../composables/useArcane.js'
 import { usePet } from '../composables/usePet.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
+import { useEvent } from '../composables/useEvent.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
 import {
   weaponBonusTierIndex,
@@ -70,6 +71,7 @@ const { statContributions: hyperStatContribs } = useHyperStat()
 const { contributions: arcaneContribs } = useArcane()
 const { statContributions: abilityContribs } = useInnerPotential()
 const { statContributions: vmatrixContribs } = useVMatrix()
+const { statContributions: eventContribs } = useEvent()
 const {
   state: petState,
   countBonus: petCountBonus,
@@ -631,6 +633,16 @@ const breakdowns = computed(() => {
       } else {
         addFlat(k, label, v, !!vm.fixed, true)
       }
+    }
+  }
+
+  // 3e-event) 活動 EVENT — 同技能多 stat 一條來源,非 fixed (吃 % 加成)
+  for (const ec of eventContribs.value) {
+    const skillName = t(ec.skill.labelKey)
+    const label = t('cp.tip.eventPrefix', { name: skillName, lv: ec.level })
+    for (const [k, v] of Object.entries(ec.stats)) {
+      if (PCT_KEYS.has(k)) addPct(k, label, v)
+      else addFlat(k, label, v)
     }
   }
 

@@ -26,6 +26,7 @@ export const DATA_KEYS = [
   'msucp.cpCompare.v1',            // CP 比較欄快照
   'msucp.enemy.v1',                // 戰鬥模擬 — 目標對象設定 (type/level/defense/elementalDmg/bossArc)
   'msucp.hyperSkills.v1',          // 超技能 (5 點配點,9 擇)
+  'msucp.event.v1',                // 活動 EVENT (5 技能 × 0-5 等)
 ]
 
 // v1 → v2:導入戰鬥模擬 (msucp.enemy.v1) 、技能專屬 V 矩陣 (flame_sweep 併入 msucp.vmatrix.v1)。

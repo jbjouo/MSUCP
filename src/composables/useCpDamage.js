@@ -14,6 +14,7 @@ import { useArcane } from './useArcane.js'
 import { usePet } from './usePet.js'
 import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
+import { useEvent } from './useEvent.js'
 import { activeSkillContributions } from './useLinkSkills.js'
 import { useCpToggles } from './useCpToggles.js'
 import { BUFFS } from '../constants/buffs.js'
@@ -164,6 +165,7 @@ export function useCpDamage() {
   const { contributions: arcaneContribs } = useArcane()
   const { statContributions: abilityContribs } = useInnerPotential()
   const { statContributions: vmatrixContribs } = useVMatrix()
+  const { statContributions: eventContribs } = useEvent()
   const {
     state: petState,
     countBonus: petCountBonus,
@@ -427,6 +429,16 @@ export function useCpDamage() {
       for (const [k, v] of Object.entries(hc.stats)) {
         if (PCT_KEYS.has(k)) addPct(k, label, v)
         else addFlat(k, label, v, !!hc.fixed)
+      }
+    }
+
+    // 活動
+    for (const ec of eventContribs.value) {
+      const skillName = t(ec.skill.labelKey)
+      const label = t('cp.tip.eventPrefix', { name: skillName, lv: ec.level })
+      for (const [k, v] of Object.entries(ec.stats)) {
+        if (PCT_KEYS.has(k)) addPct(k, label, v)
+        else addFlat(k, label, v)
       }
     }
 
