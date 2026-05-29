@@ -22,12 +22,12 @@ import Sidebar from './components/Sidebar.vue'
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
 }
 .layout__main {
   flex: 1;
   min-width: 0;
   padding: 1.5rem 1.25rem 3rem;
+  margin-top: 56px;
   box-sizing: border-box;
   transition: margin-left 220ms ease;
 }

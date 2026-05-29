@@ -54,8 +54,10 @@ function onLocaleChange(e) {
 
 <style scoped>
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 20;
   background: linear-gradient(180deg, #5b6577 0%, #49525f 100%);
   border-bottom: 1px solid #3d4554;

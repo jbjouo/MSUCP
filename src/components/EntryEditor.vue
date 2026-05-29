@@ -190,10 +190,6 @@ function onConfirm() {
   emit('close')
 }
 
-function onBackdrop(e) {
-  if (e.target === e.currentTarget) emit('close')
-}
-
 function onKey(e) {
   if (e.key === 'Escape') emit('close')
   if (activeTab.value === 'stars') {
@@ -213,7 +209,6 @@ function onKey(e) {
     <div
       v-if="uid && item"
       class="editor-backdrop"
-      @click="onBackdrop"
       @keydown="onKey"
       tabindex="-1"
     >
