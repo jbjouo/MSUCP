@@ -1,12 +1,13 @@
 import { ref, watch } from 'vue'
 import { SKILLS } from '../constants/skills.js'
+import { charKey } from './useActiveCharacter.js'
 
 // CP 頁面 (以及戰鬥模擬器) 共用的「啟用中」狀態
 // 讓 useCpDamage 不依賴 CpCalculatorPage 便可計算 attStatsInfo
 
-const BUFFS_KEY = 'msucp.cpBuffs.v1'
-const SKILLS_KEY = 'msucp.cpSkills.v1'
-const TITLES_KEY = 'msucp.cpTitles.v1'
+const BUFFS_KEY = charKey('cpBuffs.v1')
+const SKILLS_KEY = charKey('cpSkills.v1')
+const TITLES_KEY = charKey('cpTitles.v1')
 
 function loadSetFromStorage(key) {
   try {

@@ -5,8 +5,9 @@
 
 import { reactive, computed } from 'vue'
 import { EVENT_SKILLS, EVENT_SKILLS_BY_ID } from '../constants/event.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.event.v1'
+const STORAGE_KEY = charKey('event.v1')
 
 function load() {
   try {

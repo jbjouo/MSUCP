@@ -5,8 +5,9 @@ import {
   arcForLevel,
   mainStatForLevel,
 } from '../constants/arcaneSymbols.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.arcane.v1'
+const STORAGE_KEY = charKey('arcane.v1')
 
 function defaultLevels() {
   const map = {}

@@ -10,8 +10,9 @@ import {
   collectionValueAt,
   collectionSetBonus,
 } from '../constants/collection.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.collection.v1'
+const STORAGE_KEY = charKey('collection.v1')
 
 // 狀態形式 (v2):{ levels: { statKey: lv }, setCount: n }
 // 向後相容 v1:直接 { statKey: lv } 的平鋪結構

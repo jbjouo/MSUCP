@@ -4,11 +4,17 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useCharacter } from '../composables/useCharacter.js'
 import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
+import { useActiveCharacter } from '../composables/useActiveCharacter.js'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { state } = useCharacter()
+const { roster } = useActiveCharacter()
+const activeCharName = computed(() => {
+  const c = roster.list.find((x) => x.id === roster.activeId)
+  return c?.name || ''
+})
 const {
   sidebarOpen,
   isMobile,
@@ -22,6 +28,7 @@ const BATTLE_JOBS = new Set(['archmageFP'])
 
 const navTree = computed(() => {
   const items = [
+    { key: 'characterManager', labelKey: 'nav.characterManager', path: '/' },
     {
       key: 'character',
       labelKey: 'nav.character',
@@ -37,6 +44,7 @@ const navTree = computed(() => {
     },
     { key: 'equipment', labelKey: 'nav.equipment', path: '/equipment' },
     { key: 'cp', labelKey: 'nav.cp', path: '/cp' },
+    { key: 'characterCompare', labelKey: 'nav.characterCompare', path: '/compare' },
   ]
   if (BATTLE_JOBS.has(state.job)) {
     items.push({ key: 'battle', labelKey: 'nav.battle', path: '/battle' })
@@ -97,7 +105,12 @@ onBeforeUnmount(() => {
     :aria-hidden="!sidebarOpen"
   >
     <div class="sidebar__head">
-      <span class="sidebar__title">{{ t('character.sidebar.menu') }}</span>
+      <div class="sidebar__head-text">
+        <span class="sidebar__title">{{ t('character.sidebar.menu') }}</span>
+        <span v-if="activeCharName" class="sidebar__active">
+          {{ t('charManager.current') }}: {{ activeCharName }}
+        </span>
+      </div>
       <button
         v-if="isMobile"
         type="button"
@@ -190,12 +203,25 @@ onBeforeUnmount(() => {
   padding: 6px 8px 4px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
 }
+.sidebar__head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 .sidebar__title {
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   color: #ffc857;
   font-weight: 700;
   text-transform: uppercase;
+}
+.sidebar__active {
+  font-size: 0.72rem;
+  color: #e8edf2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sidebar__close {
   background: none;

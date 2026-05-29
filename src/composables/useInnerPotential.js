@@ -4,8 +4,9 @@ import {
   getInnerPotentialOption,
   optionFields,
 } from '../constants/innerPotential.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.innerPotential.v1'
+const STORAGE_KEY = charKey('innerPotential.v1')
 
 function defaultLines() {
   return Array.from({ length: INNER_POTENTIAL_LINES }, () => ({ id: null, values: [] }))

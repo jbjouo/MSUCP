@@ -2,8 +2,9 @@
 
 import { reactive, computed } from 'vue'
 import { PUZZLE_ENTRIES, PUZZLE_ENTRIES_BY_ID } from '../constants/puzzle.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.puzzle.v1'
+const STORAGE_KEY = charKey('puzzle.v1')
 
 function load() {
   try {

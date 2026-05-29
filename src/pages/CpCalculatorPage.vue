@@ -21,6 +21,7 @@ import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useEvent } from '../composables/useEvent.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
+import { charKey } from '../composables/useActiveCharacter.js'
 import {
   weaponBonusTierIndex,
   jobCpReferenceWeapon,
@@ -83,7 +84,7 @@ const page = ref(1)
 const cpHelpOpen = ref(false)
 
 // ── 比較欄 (snapshots) ───────────────────────────────
-const COMPARE_KEY = 'msucp.cpCompare.v1'
+const COMPARE_KEY = charKey('cpCompare.v1')
 const compareSnaps = ref(loadCompareSnaps())
 function loadCompareSnaps() {
   try {
@@ -101,6 +102,7 @@ function saveSnapshot() {
   compareSnaps.value.unshift({
     id: Date.now(),
     timestamp: new Date().toISOString(),
+    cp: combatPower.value,
     bossMax: info.bossMax,
     bossAvg: info.bossAvg,
     bossMin: info.bossMin,
@@ -1014,6 +1016,14 @@ function onPanelOut(e) {
             >×</button>
           </div>
           <div class="cp-compare__values">
+            <div v-if="snap.cp != null" class="cp-compare__line">
+              <span class="cp-compare__label">{{ t('cp.attStats.cp') }}</span>
+              <span class="cp-compare__val">{{ fmtNum(snap.cp) }}</span>
+              <span
+                class="cp-compare__delta"
+                :class="{ 'cp-compare__delta--up': deltaPct(combatPower, snap.cp) > 0, 'cp-compare__delta--down': deltaPct(combatPower, snap.cp) < 0 }"
+              >{{ fmtDelta(deltaPct(combatPower, snap.cp)) }}</span>
+            </div>
             <div class="cp-compare__line">
               <span class="cp-compare__label">{{ t('cp.attStats.bossMax') }}</span>
               <span class="cp-compare__val">{{ fmtNum(snap.bossMax) }}</span>

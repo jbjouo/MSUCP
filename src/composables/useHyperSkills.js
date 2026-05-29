@@ -1,11 +1,12 @@
 import { reactive, computed, watch } from 'vue'
 import { HYPER_SKILLS, HYPER_SKILL_POINTS_CAP, hyperSkillGroups } from '../constants/hyperSkills.js'
 import { useCharacter } from './useCharacter.js'
+import { charKey } from './useActiveCharacter.js'
 
 // 超技能 (Hyper Skills) — 5 點配點、每技能 1 點,靠 levelReq 解鎖
 // 儲存:picked 陣列(保留順序僅作視覺,實際為 Set 語意)
 
-const KEY = 'msucp.hyperSkills.v1'
+const KEY = charKey('hyperSkills.v1')
 
 function loadState() {
   try {

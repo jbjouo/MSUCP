@@ -1,8 +1,9 @@
 import { reactive, computed, watch } from 'vue'
 import { VMATRIX_SKILLS, VMATRIX_MAX_LEVEL, passiveValueAt, skillAvailableForJob, maxLevelOf } from '../constants/vmatrix.js'
 import { useCharacter } from './useCharacter.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.vmatrix.v1'
+const STORAGE_KEY = charKey('vmatrix.v1')
 
 const SKILL_BY_ID = Object.fromEntries(VMATRIX_SKILLS.map((s) => [s.id, s]))
 

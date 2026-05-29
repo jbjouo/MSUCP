@@ -9,8 +9,9 @@ import {
   hyperCumulativeCost,
 } from '../constants/hyperStat.js'
 import { useCharacter } from './useCharacter.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.hyperStat.v1'
+const STORAGE_KEY = charKey('hyperStat.v1')
 
 function load() {
   try {

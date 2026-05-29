@@ -4,10 +4,45 @@
     "subtitle": "新楓之谷 N 輔助工具"
   },
   "nav": {
+    "characterManager": "角色管理",
     "character": "角色",
     "equipment": "裝備",
     "cp": "戰鬥力計算",
+    "characterCompare": "角色比較",
     "battle": "戰鬥模擬"
+  },
+  "charManager": {
+    "title": "角色管理",
+    "hint": "在這裡建立、切換、刪除角色。每個角色都有獨立的存檔。",
+    "create": "新增角色",
+    "promptCreate": "請輸入角色名稱",
+    "goToCurrent": "前往當前角色頁面",
+    "current": "當前",
+    "active": "使用中",
+    "select": "切換",
+    "rename": "重命名",
+    "clone": "複製",
+    "delete": "刪除",
+    "save": "儲存",
+    "cancel": "取消",
+    "confirmDelete": "確定刪除「{name}」?該角色的所有存檔將一併移除。",
+    "cannotDeleteLast": "至少需保留一個角色。",
+    "clonedTo": "已複製「{name}」",
+    "jobLabel": "職業",
+    "levelLabel": "等級",
+    "noSnapshot": "尚未儲存戰鬥力快照"
+  },
+  "charCompare": {
+    "title": "角色比較",
+    "hint": "顯示各角色「最新一筆」戰鬥力快照(於戰鬥力頁面儲存)。各項最高值以金色標示。",
+    "noChars": "目前沒有任何角色。",
+    "noSnapshot": "尚未儲存",
+    "col": {
+      "name": "角色",
+      "job": "職業",
+      "level": "等級",
+      "snapAt": "快照時間"
+    }
   },
   "battle": {
     "title": "戰鬥分析系統",
@@ -1138,7 +1173,8 @@
       "bossActual": "[實際傷害 (首領)]",
       "bossMax": "最大值",
       "bossAvg": "平均值",
-      "bossMin": "最小值"
+      "bossMin": "最小值",
+      "cp": "戰鬥力"
     },
     "buffs": {
       "mapleWarriorLabel": "增益:{name} (Lv {lv},+{pct}% AP)"

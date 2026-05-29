@@ -3,6 +3,8 @@ import EquipmentPage from '../pages/EquipmentPage.vue'
 import CpCalculatorPage from '../pages/CpCalculatorPage.vue'
 import CharacterPage from '../pages/CharacterPage.vue'
 import BattlePage from '../pages/BattlePage.vue'
+import CharacterManagerPage from '../pages/CharacterManagerPage.vue'
+import CharacterComparePage from '../pages/CharacterComparePage.vue'
 import { useCharacter } from '../composables/useCharacter.js'
 
 const BATTLE_JOBS = new Set(['archmageFP'])
@@ -10,7 +12,9 @@ const BATTLE_JOBS = new Set(['archmageFP'])
 export const routes = [
   {
     path: '/',
-    redirect: '/character',
+    name: 'characterManager',
+    component: CharacterManagerPage,
+    meta: { navKey: 'characterManager' },
   },
   {
     path: '/character',
@@ -29,6 +33,12 @@ export const routes = [
     name: 'cp',
     component: CpCalculatorPage,
     meta: { navKey: 'cp' },
+  },
+  {
+    path: '/compare',
+    name: 'characterCompare',
+    component: CharacterComparePage,
+    meta: { navKey: 'characterCompare' },
   },
   {
     path: '/battle',

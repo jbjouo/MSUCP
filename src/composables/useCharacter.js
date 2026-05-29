@@ -6,8 +6,9 @@ import {
   LEVEL_MIN,
   LEVEL_MAX,
 } from '../constants/jobs.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.character.v1'
+const STORAGE_KEY = charKey('character.v1')
 
 function defaultState() {
   return {

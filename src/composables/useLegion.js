@@ -8,8 +8,9 @@ import {
   LEGION_TIER_COUNT,
   LEGION_TIER_LABELS,
 } from '../constants/legion.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.legion.v1'
+const STORAGE_KEY = charKey('legion.v1')
 
 function load() {
   try {

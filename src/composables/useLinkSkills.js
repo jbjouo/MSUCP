@@ -13,8 +13,9 @@ import {
   getLinkSkill,
   bestLinkSkillLevelDataFor,
 } from '../data/linkSkills.js'
+import { charKey } from './useActiveCharacter.js'
 
-const APPLIED_KEY = 'msucp.linkSkills.applied.v3'
+const APPLIED_KEY = charKey('linkSkills.applied.v3')
 
 function loadApplied() {
   try {

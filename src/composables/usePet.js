@@ -5,8 +5,9 @@ import {
   PET_EQUIPMENT_SLOTS,
   petCountBonus,
 } from '../constants/pets.js'
+import { charKey } from './useActiveCharacter.js'
 
-const STORAGE_KEY = 'msucp.pet.v1'
+const STORAGE_KEY = charKey('pet.v1')
 
 function defaultState() {
   return {

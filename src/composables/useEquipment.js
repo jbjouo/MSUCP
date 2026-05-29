@@ -43,7 +43,8 @@ export function allowedBonusStatKeys(item) {
 export function supportsBonusStats(item) {
   return allowedBonusStatKeys(item).length > 0
 }
-const STORAGE_KEY = 'msucp.equipment.v3'
+import { charKey } from './useActiveCharacter.js'
+const STORAGE_KEY = charKey('equipment.v3')
 const LEGACY_KEYS = ['msucp.equipment.v1', 'msucp.equipment.v2']
 
 export const ITEMS_BY_ID = Object.fromEntries(

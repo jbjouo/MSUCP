@@ -4,10 +4,45 @@
     "subtitle": "MapleStory N utilities"
   },
   "nav": {
+    "characterManager": "Characters",
     "character": "Character",
     "equipment": "Equipment",
     "cp": "CP Calculator",
+    "characterCompare": "Compare",
     "battle": "Battle Sim"
+  },
+  "charManager": {
+    "title": "Character Manager",
+    "hint": "Create, switch, and delete characters. Each has its own save data.",
+    "create": "New Character",
+    "promptCreate": "Enter character name",
+    "goToCurrent": "Go to current character",
+    "current": "Active",
+    "active": "Active",
+    "select": "Switch",
+    "rename": "Rename",
+    "clone": "Clone",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete \"{name}\"? All of this character's save data will be removed.",
+    "cannotDeleteLast": "You must keep at least one character.",
+    "clonedTo": "Cloned \"{name}\"",
+    "jobLabel": "Job",
+    "levelLabel": "Level",
+    "noSnapshot": "No combat power snapshot yet"
+  },
+  "charCompare": {
+    "title": "Character Compare",
+    "hint": "Shows the latest combat power snapshot per character (saved on the CP page). Leader values are highlighted.",
+    "noChars": "No characters yet.",
+    "noSnapshot": "No snapshot",
+    "col": {
+      "name": "Character",
+      "job": "Job",
+      "level": "Level",
+      "snapAt": "Snapshot Time"
+    }
   },
   "battle": {
     "title": "BATTLE STATISTICS",
@@ -1138,7 +1173,8 @@
       "bossActual": "[Actual Damage (Boss)]",
       "bossMax": "Max",
       "bossAvg": "Average",
-      "bossMin": "Min"
+      "bossMin": "Min",
+      "cp": "Combat Power"
     },
     "buffs": {
       "mapleWarriorLabel": "Buff: {name} (Lv {lv}, +{pct}% AP)"
