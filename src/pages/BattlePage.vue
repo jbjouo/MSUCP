@@ -153,7 +153,7 @@ function isEntryDisabled(entry) {
 
 const singleCastResult = ref(null)
 function runTestCast() {
-  singleCastResult.value = simulateSingleCast('poison_nova')
+  singleCastResult.value = simulateSingleCast('flame_sweep')
 }
 function clearTestCast() { singleCastResult.value = null }
 
