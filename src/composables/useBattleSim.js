@@ -363,6 +363,7 @@ function burningMagicDotDurationMult() {
 //   每次觸發生成一面獨立火牆 → 之後由 processIgniteWalls tick
 function maybeProcIgnite(skill, tCast, res) {
   if (!skill) return
+  if (state.disabledSkills.has('ignite')) return
   if (skill.id === 'inferno_aura') return
   if (skill.element !== 'fire') return
   const ignite = SKILL_BY_ID['ignite']
