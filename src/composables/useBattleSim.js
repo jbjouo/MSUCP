@@ -95,6 +95,7 @@ const state = reactive({
   elapsedMs: 0,
   attackSpeed: 8,                            // 7 或 8 (依 skill.castDelayBySpeed 查表)
   skillLevels: defaultSkillLevels(),         // { [skillId]: level }
+  disabledSkills: new Set(),                 // 被停用的技能 id (含 sim skill + battle buff)
   // 給 UI 使用的「下次可施放時間」reactive 快照 — tick() 結束時同步一次
   //   remainingMs = max(0, nextCastAt[id] - elapsedMs)
   //   讀源是模組級 nextCastAt,避免每 frame 寫進 reactive 影響效能
@@ -911,6 +912,7 @@ function tick() {
     for (const s of SIM_SKILLS) {
       const role = s.sim?.role
       if (role === 'derived' || role === 'passive') continue
+      if (state.disabledSkills.has(s.id)) continue
       const t = nextCastAt[s.id]
       if (t == null || t > elapsed) continue
       const pri = s.sim?.priority || 0
@@ -1099,7 +1101,7 @@ export function useBattleSim() {
     //   derived 型(例 Poison Mist)→ 完全不排程,靠 onHitSpawn 觸發
     //   aura 型(開關持續技)→ 首次觸發在 firstHitWindowSec 內隨機,不進 priority cascade
     //   一般型                → 依 priority 遞減累加 animDelay,避免同 tick 齊發
-    const schedulable = SIM_SKILLS.filter((s) => s.sim?.role !== 'derived' && s.sim?.role !== 'passive')
+    const schedulable = SIM_SKILLS.filter((s) => s.sim?.role !== 'derived' && s.sim?.role !== 'passive' && !state.disabledSkills.has(s.id))
     const auraSkills = schedulable.filter((s) => s.sim?.aura)
     const normalSkills = schedulable.filter((s) => !s.sim?.aura)
     const ordered = [...normalSkills].sort((a, b) => (b.sim?.priority || 0) - (a.sim?.priority || 0))
@@ -1376,6 +1378,11 @@ export function useBattleSim() {
     )
   })
 
+  function toggleSkill(id) {
+    if (state.disabledSkills.has(id)) state.disabledSkills.delete(id)
+    else state.disabledSkills.add(id)
+  }
+
   return {
     state,
     skills,
@@ -1388,6 +1395,7 @@ export function useBattleSim() {
     stop,
     reset,
     simulateSingleCast,
+    toggleSkill,
     skillById: (id) => SKILL_BY_ID[id] || null,
   }
 }

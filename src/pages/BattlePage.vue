@@ -22,11 +22,12 @@ const {
   stop,
   reset,
   simulateSingleCast,
+  toggleSkill,
 } = useBattleSim()
 
 const { state: vmState } = useVMatrix()
 const { state: charStateBattle } = useCharacter()
-const { state: buffState, buffInfo } = useBattleBuffs()
+const { state: buffState, buffInfo, toggleBuff } = useBattleBuffs()
 
 // 觸發新疊層時的短暫閃光(420ms)
 const flashingBuffs = ref({})
@@ -110,6 +111,45 @@ function fmtCompact(n) {
   return String(v)
 }
 
+
+// 技能開關面板 — 依技能 kind 分類
+// 所有 SIM_SKILLS (排除 derived) + BATTLE_BUFFS 合併,去重後分三組
+const allToggleEntries = computed(() => {
+  const seen = new Set()
+  const out = []
+  for (const s of SIM_SKILLS) {
+    if (s.sim?.role === 'derived') continue
+    if (seen.has(s.id)) continue
+    seen.add(s.id)
+    out.push({ ...s, _source: 'sim' })
+  }
+  for (const b of BATTLE_BUFFS) {
+    if (!b.jobs || b.jobs.includes(charStateBattle.job)) {
+      if (seen.has(b.id)) continue
+      seen.add(b.id)
+      out.push({ ...b, _source: 'buff' })
+    }
+  }
+  return out
+})
+const PASSIVE_IDS = new Set(['empirical_knowledge', 'thiefs_cunning', 'mana_overload'])
+const skillToggleActive = computed(() =>
+  allToggleEntries.value.filter((s) => s.kind !== 'passive' && s.kind !== 'buff' && s.kind !== 'link' && !PASSIVE_IDS.has(s.id)),
+)
+const skillTogglePassive = computed(() =>
+  allToggleEntries.value.filter((s) => s.kind === 'passive' || PASSIVE_IDS.has(s.id)),
+)
+const skillToggleBuffs = computed(() =>
+  allToggleEntries.value.filter((s) => (s.kind === 'buff' || s.kind === 'link') && !PASSIVE_IDS.has(s.id)),
+)
+function onToggleEntry(entry) {
+  if (entry._source === 'buff') toggleBuff(entry.id)
+  else toggleSkill(entry.id)
+}
+function isEntryDisabled(entry) {
+  if (entry._source === 'buff') return buffState.disabledBuffs.has(entry.id)
+  return state.disabledSkills.has(entry.id)
+}
 
 const singleCastResult = ref(null)
 function runTestCast() {
@@ -320,6 +360,56 @@ const timelineRows = computed(() => {
             <div class="bp-enemy__info-row bp-enemy__info-row--danger">
               <span>{{ t('battle.enemy.damageTaken') }}</span>
               <span class="bp-enemy__info-val">{{ arcInfo.damageTaken }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 技能開關面板 -->
+      <div class="bp-skill-toggle">
+        <header class="bp-skill-toggle__head">| SKILL TOGGLE</header>
+        <div class="bp-skill-toggle__group">
+          <div class="bp-skill-toggle__label">Active</div>
+          <div class="bp-skill-toggle__grid">
+            <div
+              v-for="s in skillToggleActive"
+              :key="s.id"
+              class="bp-skill-toggle__item"
+              :class="{ 'bp-skill-toggle__item--off': isEntryDisabled(s) }"
+              :title="s.nameKey ? t(s.nameKey) : s.id"
+              @click="onToggleEntry(s)"
+            >
+              <img :src="s.imageUrl" :alt="s.nameKey ? t(s.nameKey) : s.id" loading="lazy" />
+            </div>
+          </div>
+        </div>
+        <div v-if="skillTogglePassive.length" class="bp-skill-toggle__group">
+          <div class="bp-skill-toggle__label">Passive</div>
+          <div class="bp-skill-toggle__grid">
+            <div
+              v-for="s in skillTogglePassive"
+              :key="s.id"
+              class="bp-skill-toggle__item"
+              :class="{ 'bp-skill-toggle__item--off': isEntryDisabled(s) }"
+              :title="s.nameKey ? t(s.nameKey) : s.id"
+              @click="onToggleEntry(s)"
+            >
+              <img :src="s.imageUrl" :alt="s.nameKey ? t(s.nameKey) : s.id" loading="lazy" />
+            </div>
+          </div>
+        </div>
+        <div v-if="skillToggleBuffs.length" class="bp-skill-toggle__group">
+          <div class="bp-skill-toggle__label">Buff</div>
+          <div class="bp-skill-toggle__grid">
+            <div
+              v-for="s in skillToggleBuffs"
+              :key="s.id"
+              class="bp-skill-toggle__item"
+              :class="{ 'bp-skill-toggle__item--off': isEntryDisabled(s) }"
+              :title="s.nameKey ? t(s.nameKey) : s.id"
+              @click="onToggleEntry(s)"
+            >
+              <img :src="s.imageUrl" :alt="s.nameKey ? t(s.nameKey) : s.id" loading="lazy" />
             </div>
           </div>
         </div>
@@ -1803,6 +1893,66 @@ input.bp-enemy__field { text-align: right; }
 @media (max-width: 780px) {
   .bp-enemy__body { grid-template-columns: minmax(0, 1fr); }
   .bp-enemy__fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 技能開關面板 */
+.bp-skill-toggle {
+  background: linear-gradient(180deg, #2f3642 0%, #262d38 100%);
+  border: 1px solid #1a1f27;
+  border-radius: 8px;
+  padding: 10px;
+}
+.bp-skill-toggle__head {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffc857;
+  margin-bottom: 8px;
+}
+.bp-skill-toggle__group {
+  margin-bottom: 8px;
+}
+.bp-skill-toggle__group:last-child {
+  margin-bottom: 0;
+}
+.bp-skill-toggle__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #8ea6b8;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.bp-skill-toggle__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.bp-skill-toggle__item {
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+  border: 1px solid #3d4554;
+  background: #1f2630;
+  cursor: pointer;
+  overflow: hidden;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.bp-skill-toggle__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.bp-skill-toggle__item:hover {
+  border-color: #5cd1ea;
+}
+.bp-skill-toggle__item--off {
+  opacity: 0.3;
+  border-color: #2a2f38;
+}
+.bp-skill-toggle__item--off:hover {
+  opacity: 0.6;
+  border-color: #5cd1ea;
 }
 </style>
 

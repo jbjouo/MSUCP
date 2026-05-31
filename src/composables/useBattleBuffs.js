@@ -29,6 +29,7 @@ function defaultStacks() {
 
 const state = reactive({
   stacks: defaultStacks(),
+  disabledBuffs: new Set(),
 })
 
 function applicableForJob(buff, jobKey) {
@@ -188,6 +189,7 @@ export function useBattleBuffs() {
     } = ctx
     const activated = []
     for (const buff of BATTLE_BUFFS) {
+      if (state.disabledBuffs.has(buff.id)) continue
       const isActiveToggle = buff.source === 'activeToggle'
       const isLinkCycle = buff.source === 'linkCycle'
       if (!isActiveToggle && !isLinkCycle) continue
@@ -311,6 +313,7 @@ export function useBattleBuffs() {
     syncExpire(nowMs)
     let debuffApplied = false
     for (const buff of BATTLE_BUFFS) {
+      if (state.disabledBuffs.has(buff.id)) continue
       if (!applicableForJob(buff, jobKey)) continue
       const isLinkSkill = buff.source === 'linkSkill'
       const isProcOnHit = buff.source === 'passive' && buff.passiveType === 'procOnHit'
@@ -488,6 +491,11 @@ export function useBattleBuffs() {
     }
   }
 
+  function toggleBuff(id) {
+    if (state.disabledBuffs.has(id)) state.disabledBuffs.delete(id)
+    else state.disabledBuffs.add(id)
+  }
+
   return {
     state,
     reset,
@@ -496,5 +504,6 @@ export function useBattleBuffs() {
     currentBonuses,
     dotSpecialFinalMult,
     buffInfo,
+    toggleBuff,
   }
 }
