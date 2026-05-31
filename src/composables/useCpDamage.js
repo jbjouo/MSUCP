@@ -95,7 +95,7 @@ export const PCT_KEYS = new Set([
   'critRate', 'critDmg', 'finalDmg', 'buffDuration',
   'damageTaken', 'elementalResist',
   'summonDuration', 'cooldownReduction',
-  'normalMobDmg', 'bonusExp',
+  'normalMobDmg', 'abnormalMobDmg', 'bonusExp',
 ])
 
 export const CP_SKILL_ALLOWLIST = new Set([
@@ -132,6 +132,7 @@ export const JOB_ATT_META = {
   phantom:         { weapons: ['Cane'],               weaponConst: 1.34, mastery: 95, usesMatk: false },
   luminous:        { weapons: ['Shining Rod'],        weaponConst: 1.20, mastery: 95, usesMatk: true },
   shade:           { weapons: ['Knuckle'],            weaponConst: 1.70, mastery: 95, usesMatk: false },
+  ark:             { weapons: ['Knuckle'],            weaponConst: 1.70, mastery: 95, usesMatk: false },
 }
 
 export const SECONDARY_STAT = { str: 'dex', dex: 'str', int: 'luk', luk: 'dex' }
@@ -638,6 +639,7 @@ export function useCpDamage() {
     const dmgPct = statTotal('dmgPct')
     const bossDmg = statTotal('bossDmg')
     const normalMobDmg = statTotal('normalMobDmg')
+    const abnormalMobDmg = statTotal('abnormalMobDmg')
     const finalDmg = statTotal('finalDmg')
     const ignoreDef = statTotal('ignoreDef')  // 多來源已用相乘疊加合併
     // 冷卻 — 正值表「減少量」(convention: 潛能 / 聯盟 存入負值,這裡取絕對值)
@@ -668,6 +670,7 @@ export function useCpDamage() {
       dmgPct,
       bossDmg,
       normalMobDmg,
+      abnormalMobDmg,
       finalDmg,
       ignoreDef,
       cooldownReductionSec,

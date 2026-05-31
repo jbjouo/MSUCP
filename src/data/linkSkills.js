@@ -246,6 +246,22 @@ export const LINK_SKILLS = {
       { level: 6, descKey: 'linkSkill.skills.thiefs_cunning.desc.6', stats: { damage: 18, duration: 10, cooldown: 20 } },
     ],
   },
+  solus: {
+    id: 'solus',
+    nameKey: 'linkSkill.skills.solus.name',
+    flavorKey: 'linkSkill.skills.solus.flavor',
+    icon: ASSET('skills/link/solus.png'),
+    owners: ['ark'],
+    classGroup: 'flora',
+    uniqueByJob: true,
+    specialEffect: true,
+    ownMaxLevel: 2,
+    maxTotalLevel: 2,
+    levels: [
+      { level: 1, descKey: 'linkSkill.skills.solus.desc.1', stats: { combatDuration: 5, maxStacks: 5, duration: 5, dmgPct: 1, dmgPctPerStack: 1 } },
+      { level: 2, descKey: 'linkSkill.skills.solus.desc.2', stats: { combatDuration: 5, maxStacks: 5, duration: 5, dmgPct: 1, dmgPctPerStack: 2 } },
+    ],
+  },
   empirical_knowledge: {
     id: 'empirical_knowledge',
     nameKey: 'linkSkill.skills.empirical_knowledge.name',

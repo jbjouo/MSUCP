@@ -88,8 +88,8 @@ export function skillIgnitePcts(skill, level) {
   }
 }
 
-// 共用 icon 產生器 (maplestorywiki yetidb) — 線上 fallback
-export const YETIDB_ICON = (name) => `https://media.maplestorywiki.net/yetidb/Skill_${name}.png`
+// 共用 icon 產生器 — 從 public/skills/common/ 載入 (原 yetidb 已下載到本地)
+export const YETIDB_ICON = (name) => `${import.meta.env.BASE_URL}skills/common/Skill_${name}.png`
 
 // public/ 資源 URL — 自動 prepend vite 的 BASE_URL,讓部署到子路徑也能正確載入
 // (BASE_URL 預設 '/';正式部署在 wasaizanla.github.io/msucp/ 時為 '/msucp/')

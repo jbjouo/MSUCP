@@ -41,7 +41,7 @@
         "bossDmg": 30,
         "ignoreDef": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1372177.png"
+      "imageUrl": "/msucp/images/items/1372177.png"
     },
     {
       "id": "wpn_fafnir_wind_chaser",
@@ -65,7 +65,7 @@
         "bossDmg": 30,
         "ignoreDef": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1452205.png"
+      "imageUrl": "/msucp/images/items/1452205.png"
     },
     {
       "id": "wpn_arcane_umbra_staff",
@@ -90,7 +90,7 @@
         "bossDmg": 30,
         "ignoreDef": 20
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1382265.png"
+      "imageUrl": "/msucp/images/items/1382265.png"
     },
     {
       "id": "wpn_arcane_umbra_wand",
@@ -115,7 +115,7 @@
         "bossDmg": 30,
         "ignoreDef": 20
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1372228.png"
+      "imageUrl": "/msucp/images/items/1372228.png"
     },
     {
       "id": "wpn_arcane_umbra_bow",
@@ -139,7 +139,7 @@
         "bossDmg": 30,
         "ignoreDef": 20
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1452257.png"
+      "imageUrl": "/msucp/images/items/1452257.png"
     },
     {
       "id": "ring_guardian_angel",
@@ -165,7 +165,7 @@
         "hp": 200,
         "mp": 200
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1113313.png"
+      "imageUrl": "/msucp/images/items/1113313.png"
     },
     {
       "id": "ring_neophyte",
@@ -189,7 +189,7 @@
         "int": 3,
         "luk": 3
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1113334.png"
+      "imageUrl": "/msucp/images/items/1113334.png"
     },
     {
       "id": "ring_silver_blossom",
@@ -213,7 +213,7 @@
         "int": 5,
         "luk": 5
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1113149.png"
+      "imageUrl": "/msucp/images/items/1113149.png"
     },
     {
       "id": "ring_noble_ifia",
@@ -239,7 +239,7 @@
         "hp": 200,
         "mp": 200
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1113282.png"
+      "imageUrl": "/msucp/images/items/1113282.png"
     },
     {
       "id": "pocket_pink_holy_cup",
@@ -265,7 +265,7 @@
         "hp": 50,
         "mp": 50
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1162025.png"
+      "imageUrl": "/msucp/images/items/1162025.png"
     },
     {
       "id": "belt_golden_clover",
@@ -292,7 +292,7 @@
         "mp": 150,
         "def": 150
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1132272.png"
+      "imageUrl": "/msucp/images/items/1132272.png"
     },
     {
       "id": "top_eagle_eye_dunwitch_robe",
@@ -314,7 +314,7 @@
         "def": 120,
         "ignoreDef": 5
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1042388.png"
+      "imageUrl": "/msucp/images/items/1042388.png"
     },
     {
       "id": "pendant_mechanator",
@@ -341,7 +341,7 @@
         "mp": 250,
         "def": 100
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1122254.png"
+      "imageUrl": "/msucp/images/items/1122254.png"
     },
     {
       "id": "hat_absolab_mage_crown",
@@ -363,7 +363,7 @@
         "luk": 45,
         "ignoreDef": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1004423.png"
+      "imageUrl": "/msucp/images/items/1004423.png"
     },
     {
       "id": "eye_aquatic_letter",
@@ -388,7 +388,7 @@
         "int": 6,
         "luk": 6
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1022231.png"
+      "imageUrl": "/msucp/images/items/1022231.png"
     },
     {
       "id": "eye_magic_eyepatch",
@@ -413,7 +413,7 @@
         "int": 15,
         "luk": 15
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1022278.png"
+      "imageUrl": "/msucp/images/items/1022278.png"
     },
     {
       "id": "shoulder_absolab_mage_shoulder",
@@ -438,7 +438,7 @@
         "int": 14,
         "luk": 14
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1152176.png"
+      "imageUrl": "/msucp/images/items/1152176.png"
     },
     {
       "id": "cape_absolab_mage_cape",
@@ -463,7 +463,7 @@
         "int": 15,
         "luk": 15
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1102794.png"
+      "imageUrl": "/msucp/images/items/1102794.png"
     },
     {
       "id": "shoes_absolab_mage_shoes",
@@ -486,7 +486,7 @@
         "moveSpeed": 10,
         "jump": 7
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1073032.png"
+      "imageUrl": "/msucp/images/items/1073032.png"
     },
     {
       "id": "glove_absolab_mage_gloves",
@@ -507,7 +507,7 @@
         "luk": 20,
         "def": 150
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1082637.png"
+      "imageUrl": "/msucp/images/items/1082637.png"
     },
     {
       "id": "medal_seven_day_monster_parker",
@@ -533,7 +533,7 @@
         "ignoreDef": 10
       },
       "description": "Awarded for surviving 11 rounds of Monster Park in 539+ visits. Cannot Star Force Enhance. Cannot Set/Reset Potential.",
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1142922.png"
+      "imageUrl": "/msucp/images/items/1142922.png"
     },
     {
       "id": "badge_seven_days",
@@ -559,7 +559,7 @@
         "ignoreDef": 10
       },
       "description": "Cannot Star Force Enhance. Cannot Set/Reset Potential. Cannot Set/Reset Bonus Stats.",
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1182200.png"
+      "imageUrl": "/msucp/images/items/1182200.png"
     },
     {
       "id": "emblem_gold_maple_leaf",
@@ -584,7 +584,7 @@
         "luk": 10
       },
       "description": "Can be worn by Explorer class only. Cannot Star Force Enhance. Cannot Set/Reset Bonus Stats.",
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1190301.png"
+      "imageUrl": "/msucp/images/items/1190301.png"
     },
     {
       "id": "secondary_evolving_rusty_book_epode",
@@ -603,7 +603,7 @@
         "luk": 10
       },
       "description": "Fire/Poison Arch Mage only. Cannot Star Force Enhance. Cannot Set/Reset Bonus Stats.",
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1352233.png"
+      "imageUrl": "/msucp/images/items/1352233.png"
     },
     {
       "id": "earring_dea_sidus",
@@ -628,7 +628,7 @@
         "int": 5,
         "luk": 5
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1032241.png"
+      "imageUrl": "/msucp/images/items/1032241.png"
     },
     {
       "id": "face_condensed_power_crystal",
@@ -653,7 +653,7 @@
         "int": 5,
         "luk": 5
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1012478.png"
+      "imageUrl": "/msucp/images/items/1012478.png"
     },
     {
       "id": "face_berserked",
@@ -678,7 +678,7 @@
         "int": 10,
         "luk": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1012632.png"
+      "imageUrl": "/msucp/images/items/1012632.png"
     },
     {
       "id": "hat_chaos_vellums_helm",
@@ -706,7 +706,7 @@
         "moveSpeed": 5
       },
       "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1003722.png"
+      "imageUrl": "/msucp/images/items/1003722.png"
     },
     {
       "id": "hat_royal_dunwitch",
@@ -730,7 +730,7 @@
         "mp": 360,
         "ignoreDef": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1003798.png"
+      "imageUrl": "/msucp/images/items/1003798.png"
     },
     {
       "id": "bottom_trixter_dunwitch_pants",
@@ -752,7 +752,7 @@
         "def": 120,
         "ignoreDef": 5
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1062166.png"
+      "imageUrl": "/msucp/images/items/1062166.png"
     },
     {
       "id": "pendant_dominator",
@@ -779,7 +779,7 @@
         "hpPct": 10,
         "mpPct": 10
       },
-      "imageUrl": "https://api-static.msu.io/itemimages/icon/1122150.png"
+      "imageUrl": "/msucp/images/items/1122150.png"
     }
   ]
 }

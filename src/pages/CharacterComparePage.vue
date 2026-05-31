@@ -57,6 +57,27 @@ const leaders = computed(() => {
   }
 })
 
+const activeRow = computed(() => rows.value.find((r) => r.isActive) || null)
+
+function pctDiff(val, key) {
+  const base = activeRow.value?.[key]
+  if (base == null || val == null || base === 0) return null
+  return ((val - base) / base) * 100
+}
+
+function fmtPct(val, key) {
+  const p = pctDiff(val, key)
+  if (p == null || p === 0) return ''
+  const sign = p > 0 ? '+' : ''
+  return `${sign}${p.toFixed(1)}%`
+}
+
+function pctClass(val, key) {
+  const p = pctDiff(val, key)
+  if (p == null || p === 0) return ''
+  return p > 0 ? 'compare__pct--up' : 'compare__pct--down'
+}
+
 function fmtTime(iso) {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -100,15 +121,19 @@ function fmtTime(iso) {
             <td>Lv {{ r.level }}</td>
             <td class="compare__num" :class="{ 'compare__num--leader': r.cp != null && r.cp === leaders.cp }">
               {{ fmtNum(r.cp) }}
+              <span v-if="!r.isActive && fmtPct(r.cp, 'cp')" class="compare__pct" :class="pctClass(r.cp, 'cp')">{{ fmtPct(r.cp, 'cp') }}</span>
             </td>
             <td class="compare__num" :class="{ 'compare__num--leader': r.bossMax != null && r.bossMax === leaders.bossMax }">
               {{ fmtNum(r.bossMax) }}
+              <span v-if="!r.isActive && fmtPct(r.bossMax, 'bossMax')" class="compare__pct" :class="pctClass(r.bossMax, 'bossMax')">{{ fmtPct(r.bossMax, 'bossMax') }}</span>
             </td>
             <td class="compare__num" :class="{ 'compare__num--leader': r.bossAvg != null && r.bossAvg === leaders.bossAvg }">
               {{ fmtNum(r.bossAvg) }}
+              <span v-if="!r.isActive && fmtPct(r.bossAvg, 'bossAvg')" class="compare__pct" :class="pctClass(r.bossAvg, 'bossAvg')">{{ fmtPct(r.bossAvg, 'bossAvg') }}</span>
             </td>
             <td class="compare__num" :class="{ 'compare__num--leader': r.bossMin != null && r.bossMin === leaders.bossMin }">
               {{ fmtNum(r.bossMin) }}
+              <span v-if="!r.isActive && fmtPct(r.bossMin, 'bossMin')" class="compare__pct" :class="pctClass(r.bossMin, 'bossMin')">{{ fmtPct(r.bossMin, 'bossMin') }}</span>
             </td>
             <td class="compare__time">
               <template v-if="r.hasSnap">{{ fmtTime(r.timestamp) }}</template>
@@ -206,5 +231,16 @@ function fmtTime(iso) {
 .compare__nosnap {
   color: var(--ms-text-weak);
   font-style: italic;
+}
+.compare__pct {
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 1px;
+}
+.compare__pct--up {
+  color: #5cdb5c;
+}
+.compare__pct--down {
+  color: #f06060;
 }
 </style>

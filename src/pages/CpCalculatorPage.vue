@@ -162,7 +162,7 @@ const PCT_KEYS = new Set([
   'critRate', 'critDmg', 'finalDmg', 'buffDuration',
   'damageTaken', 'elementalResist',
   'summonDuration', 'cooldownReduction',
-  'normalMobDmg', 'bonusExp',
+  'normalMobDmg', 'abnormalMobDmg', 'bonusExp',
 ])
 
 // 全裝備星數總和 (顯示在 Star Force 欄)
@@ -903,6 +903,7 @@ const JOB_ATT_META = {
   phantom:         { weapons: ['Cane'],               weaponConst: 1.34, mastery: 95, usesMatk: false },
   luminous:        { weapons: ['Shining Rod'],        weaponConst: 1.20, mastery: 95, usesMatk: true },
   shade:           { weapons: ['Knuckle'],            weaponConst: 1.70, mastery: 95, usesMatk: false },
+  ark:             { weapons: ['Knuckle'],            weaponConst: 1.70, mastery: 95, usesMatk: false },
 }
 
 // 主屬 → 副屬 對照 (用於傷害公式)
@@ -1244,7 +1245,7 @@ function onPanelOut(e) {
         <div class="stat-row">
           <div class="stat-cell">
             <span class="k">Additional Status Damage</span>
-            <span class="v">0.00%</span>
+            <span class="v">{{ fmtPct(statTotal('abnormalMobDmg')) }}</span>
           </div>
           <div class="stat-cell">
             <span class="k">Summon Duration Increase</span>

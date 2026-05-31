@@ -108,7 +108,7 @@ function loadRoster() {
 }
 
 function loadActiveId(list) {
-  const stored = localStorage.getItem(ACTIVE_KEY)
+  const stored = readJSON(ACTIVE_KEY, null)
   if (stored && list.find((c) => c.id === stored)) return stored
   return list[0]?.id || 'default'
 }

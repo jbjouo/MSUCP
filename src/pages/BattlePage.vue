@@ -550,79 +550,181 @@ const timelineRows = computed(() => {
             <div>
               <div class="bp-test__skill-name">{{ t(singleCastResult.skill.nameKey) }}</div>
               <div class="bp-test__skill-sub">
-                Lv. {{ singleCastResult.level }} · {{ singleCastResult.mults.mainPct }}% × {{ singleCastResult.skill.hitsPerCast }} hits
-                + DoT {{ singleCastResult.mults.dotPct }}% / tick × {{ singleCastResult.dotTicks.length }}
+                Lv. {{ singleCastResult.level }} · {{ singleCastResult.skillInfo.hitPct }}% × {{ singleCastResult.skillInfo.totalHits }} hits
+                <template v-if="singleCastResult.skillInfo.burnPct"> + DoT {{ singleCastResult.skillInfo.burnPct }}% × {{ singleCastResult.skillInfo.dotTickCount }} ticks</template>
               </div>
             </div>
           </div>
 
-          <!-- 輸入值 (來自 CP 計算頁) -->
-          <div class="bp-test__inputs">
-            <div class="bp-test__inputs-title">{{ t('battle.test.inputsFromCp') }}</div>
-            <div class="bp-test__grid">
-              <div><span>basic</span><b>{{ fmtNum(singleCastResult.cpInputs.basic) }}</b></div>
-              <div><span>boss min</span><b>{{ fmtNum(singleCastResult.cpInputs.bossMin) }}</b></div>
-              <div><span>boss max</span><b>{{ fmtNum(singleCastResult.cpInputs.bossMax) }}</b></div>
-              <div><span>Damage%</span><b>{{ singleCastResult.cpInputs.dmgPct?.toFixed?.(2) ?? 0 }}%</b></div>
-              <div><span>Boss Dmg%</span><b>{{ singleCastResult.cpInputs.bossDmg?.toFixed?.(2) ?? 0 }}%</b></div>
-              <div><span>Final Damage%</span><b>{{ singleCastResult.cpInputs.finalDmg?.toFixed?.(2) ?? 0 }}%</b></div>
-              <div><span>Crit Damage%</span><b>{{ singleCastResult.cpInputs.critDmg?.toFixed?.(2) ?? 0 }}%</b></div>
-              <div><span>Mastery</span><b>{{ singleCastResult.cpInputs.mastery }}%</b></div>
-            </div>
+          <!-- ① 基礎面板 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">① 基礎面板</div>
+            <table class="bp-test__table">
+              <tr><td>武器常數</td><td>{{ singleCastResult.base.weaponConst }}</td></tr>
+              <tr><td>主屬 ({{ singleCastResult.base.primaryStat?.toUpperCase() }})</td><td>{{ fmtNum(singleCastResult.base.primaryVal) }}</td></tr>
+              <tr><td>副屬</td><td>{{ fmtNum(singleCastResult.base.secondaryVal) }}</td></tr>
+              <tr><td>{{ singleCastResult.base.usesMatk ? 'MATK' : 'ATK' }}</td><td>{{ fmtNum(singleCastResult.base.attVal) }}</td></tr>
+              <tr><td>Mastery</td><td>{{ singleCastResult.base.mastery }}%</td></tr>
+              <tr class="bp-test__table-result"><td>baseRaw</td><td>{{ fmtNum(Math.round(singleCastResult.base.baseRaw)) }}</td></tr>
+            </table>
           </div>
 
-          <!-- 乘區 -->
-          <div class="bp-test__mults">
-            <div class="bp-test__inputs-title">{{ t('battle.test.multipliers') }}</div>
-            <div class="bp-test__grid bp-test__grid--4">
-              <div><span>屬性 (elemMult)</span><b>× {{ singleCastResult.mults.elemMult.toFixed(4) }}</b></div>
-              <div>
-                <span>怪物屬性耐性 / 無視</span>
-                <b>{{ singleCastResult.mults.elemResistPct }}% / {{ singleCastResult.mults.elemIgnorePct }}%</b>
-              </div>
-              <div><span>ARC 終傷</span><b>{{ singleCastResult.mults.arcFinalPct }}%</b></div>
-              <div>
-                <span>Buff Damage 疊加</span>
-                <b>+{{ singleCastResult.mults.buffDmgPct }}% → 總 Damage {{ singleCastResult.mults.totalDmgPct.toFixed(2) }}%</b>
-              </div>
-              <div>
-                <span>Buff 無視防禦</span>
-                <b>+{{ singleCastResult.mults.buffIgnoreDefPct }}%</b>
-              </div>
-              <div>
-                <span>Buff 最終傷害乘區</span>
-                <b>× {{ singleCastResult.mults.buffFinalDmgMult.toFixed(4) }} (+{{ singleCastResult.mults.buffFinalDmgPct.toFixed(2) }}%)</b>
-              </div>
-              <div>
-                <span>測試用 DoT 數</span>
-                <b>{{ singleCastResult.mults.testDotCount }}</b>
-              </div>
-              <div>
-                <span>VM Lv {{ singleCastResult.mults.vmLevel }}/{{ singleCastResult.mults.vmMaxLevel }}</span>
-                <b>終傷 +{{ singleCastResult.mults.vmFinalDmgPct }}% · 無視 +{{ singleCastResult.mults.vmIgnoreDefPct }}%</b>
-              </div>
-              <div><span>VM 終傷乘數</span><b>× {{ singleCastResult.mults.skillFinalMult.toFixed(4) }}</b></div>
-              <div><span>怪物 DEF</span><b>{{ singleCastResult.mults.enemyDef }}</b></div>
-              <div>
-                <span>合併無視 (CP × VM)</span>
-                <b>{{ singleCastResult.mults.cpIgnoreDefPct.toFixed(2) }}% → {{ singleCastResult.mults.totalIgnoreDefPct.toFixed(2) }}%</b>
-              </div>
-              <div><span>有效防禦</span><b>{{ singleCastResult.mults.effectiveDef.toFixed(2) }}</b></div>
-              <div><span>defMult</span><b>× {{ singleCastResult.mults.defMult.toFixed(4) }}</b></div>
-            </div>
+          <!-- ② Damage% 桶 (相加) -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">② Damage% 桶 (相加進同一乘區)</div>
+            <table class="bp-test__table">
+              <tr><td>CP Damage%</td><td>+{{ singleCastResult.damageBucket.cpDmgPct.toFixed(2) }}%</td></tr>
+              <tr><td>CP Boss Damage%</td><td>+{{ singleCastResult.damageBucket.cpBossDmg.toFixed(2) }}%</td></tr>
+              <tr><td>CP Additional Status Damage%</td><td>+{{ singleCastResult.damageBucket.cpAbnormalMobDmg.toFixed(2) }}%</td></tr>
+              <tr><td>Buff Damage%</td><td>+{{ singleCastResult.damageBucket.buffDmgPct.toFixed(2) }}%</td></tr>
+              <tr><td>超技能 Damage%</td><td>+{{ singleCastResult.damageBucket.hyperDamagePct.toFixed(2) }}%</td></tr>
+              <tr class="bp-test__table-result"><td>合計</td><td>{{ singleCastResult.damageBucket.total.toFixed(2) }}%</td></tr>
+            </table>
           </div>
 
-          <!-- 公式 -->
-          <div class="bp-test__formula">
-            <div class="bp-test__inputs-title">{{ t('battle.test.formula') }}</div>
-            <code class="bp-test__code bp-test__code--vm">{{ singleCastResult.formulas.vmatrix }}</code>
-            <code v-if="singleCastResult.formulas.explosion" class="bp-test__code bp-test__code--hyper">{{ singleCastResult.formulas.explosion }}</code>
-            <code v-if="singleCastResult.formulas.hyper" class="bp-test__code bp-test__code--hyper">{{ singleCastResult.formulas.hyper }}</code>
-            <code class="bp-test__code bp-test__code--buff">{{ singleCastResult.formulas.buff }}</code>
-            <code class="bp-test__code bp-test__code--rebuild">{{ singleCastResult.formulas.rebuild }}</code>
-            <code class="bp-test__code">{{ singleCastResult.formulas.main }}</code>
-            <code class="bp-test__code bp-test__code--def">{{ singleCastResult.formulas.defense }}</code>
-            <code class="bp-test__code bp-test__code--dot">{{ singleCastResult.formulas.dot }}</code>
+          <!-- ③ Final Damage (獨立乘區) -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">③ Final Damage (獨立乘區)</div>
+            <table class="bp-test__table">
+              <tr><td>面板 Final Damage%</td><td>{{ singleCastResult.finalDmg.pct.toFixed(2) }}%</td></tr>
+              <tr class="bp-test__table-result"><td>fm</td><td>× {{ singleCastResult.finalDmg.mult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ④ 爆擊區間 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">④ 爆擊區間</div>
+            <table class="bp-test__table">
+              <tr><td>Crit Damage%</td><td>{{ singleCastResult.crit.critDmg.toFixed(2) }}%</td></tr>
+              <tr><td>Crit Max 乘數</td><td>× {{ (1.5 + singleCastResult.crit.critDmg / 100).toFixed(4) }}</td></tr>
+              <tr><td>Crit Min 乘數</td><td>× {{ ((1.2 + singleCastResult.crit.critDmg / 100) * singleCastResult.crit.mastery / 100).toFixed(4) }}</td></tr>
+              <tr class="bp-test__table-result"><td>bossMin ~ bossMax</td><td>{{ fmtNum(Math.round(singleCastResult.crit.bossMinRaw)) }} ~ {{ fmtNum(Math.round(singleCastResult.crit.bossMaxRaw)) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑤ 技能本體 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑤ 技能本體</div>
+            <table class="bp-test__table">
+              <tr><td>主擊%</td><td>{{ singleCastResult.skillInfo.hitPct }}%</td></tr>
+              <tr><td>每次命中數</td><td>{{ singleCastResult.skillInfo.hitsPerCast }}<template v-if="singleCastResult.hyper.hitsPerCastBonus"> + {{ singleCastResult.hyper.hitsPerCastBonus }} (超技能)</template><template v-if="singleCastResult.skillInfo.explosionsN > 1"> × {{ singleCastResult.skillInfo.explosionsN }} (爆炸)</template> = {{ singleCastResult.skillInfo.totalHits }}</td></tr>
+              <tr v-if="singleCastResult.skillInfo.explosionFdPct"><td>爆炸終傷</td><td>+{{ singleCastResult.skillInfo.explosionFdPct }}% → × {{ singleCastResult.skillInfo.explosionMult.toFixed(4) }}</td></tr>
+              <tr v-if="singleCastResult.skillInfo.burnPct"><td>DoT%</td><td>{{ singleCastResult.skillInfo.burnPct }}%</td></tr>
+              <tr v-if="singleCastResult.skillInfo.burnPct"><td>DoT 時長</td><td>{{ singleCastResult.skillInfo.baseBurnDurationSec }}s<template v-if="singleCastResult.hyper.burnDurationBonusSec"> + {{ singleCastResult.hyper.burnDurationBonusSec }}s (超技能)</template><template v-if="singleCastResult.burningMagic.durMult !== 1"> × {{ singleCastResult.burningMagic.durMult.toFixed(1) }} (BM)</template> = {{ singleCastResult.skillInfo.burnDurationSec }}s</td></tr>
+              <tr v-if="singleCastResult.skillInfo.burnPct"><td>DoT Tick 間隔</td><td>{{ singleCastResult.skillInfo.tickInterval }}s → {{ singleCastResult.skillInfo.dotTickCount }} ticks</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑥ 超技能 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑥ 超技能</div>
+            <table class="bp-test__table">
+              <tr><td>Damage%</td><td>+{{ singleCastResult.hyper.damagePct }}%</td></tr>
+              <tr><td>DoT Damage%</td><td>+{{ singleCastResult.hyper.burnDamagePct }}%</td></tr>
+              <tr><td>命中數 Bonus</td><td>+{{ singleCastResult.hyper.hitsPerCastBonus }}</td></tr>
+              <tr><td>DoT 時長 Bonus</td><td>+{{ singleCastResult.hyper.burnDurationBonusSec }}s</td></tr>
+              <tr><td>無視防禦</td><td>+{{ singleCastResult.hyper.ignoreDefPct }}%</td></tr>
+              <tr><td>冷卻減少</td><td>-{{ singleCastResult.hyper.cooldownOwnPctRed }}%</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑦ V 矩陣 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑦ V 矩陣</div>
+            <table class="bp-test__table">
+              <tr><td>等級</td><td>Lv {{ singleCastResult.vmatrix.level }} / {{ singleCastResult.vmatrix.maxLevel }}</td></tr>
+              <tr><td>技能終傷</td><td>+{{ singleCastResult.vmatrix.finalDmgPct }}% → × {{ singleCastResult.vmatrix.skillFinalMult.toFixed(4) }}</td></tr>
+              <tr><td>額外無視防禦</td><td>+{{ singleCastResult.vmatrix.ignoreDefPct }}%</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑧ 戰鬥 Buff -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑧ 戰鬥 Buff</div>
+            <table class="bp-test__table">
+              <tr><td>Buff Damage%</td><td>+{{ singleCastResult.buff.dmgPct.toFixed(2) }}%</td></tr>
+              <tr><td>Buff 無視防禦</td><td>+{{ singleCastResult.buff.ignoreDefPct.toFixed(2) }}%</td></tr>
+              <tr><td>Buff 終傷乘區</td><td>+{{ singleCastResult.buff.finalDmgPct.toFixed(2) }}% → × {{ singleCastResult.buff.finalDmgMult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑨ 屬性 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑨ 屬性</div>
+            <table class="bp-test__table">
+              <tr><td>怪物屬性耐性</td><td>{{ singleCastResult.elem.resistPct }}%</td></tr>
+              <tr><td>角色屬性無視</td><td>{{ singleCastResult.elem.ignorePct }}%</td></tr>
+              <tr class="bp-test__table-result"><td>elemMult</td><td>× {{ singleCastResult.elem.mult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑩ ARC -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑩ ARC 終傷</div>
+            <table class="bp-test__table">
+              <tr><td>ARC 終傷%</td><td>{{ singleCastResult.arc.finalPct }}%</td></tr>
+              <tr class="bp-test__table-result"><td>arcMult</td><td>× {{ singleCastResult.arc.mult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑪ 無視防禦 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑪ 無視防禦 (相乘疊加)</div>
+            <table class="bp-test__table">
+              <tr><td>CP 面板</td><td>{{ singleCastResult.ignoreDef.cp.toFixed(2) }}%</td></tr>
+              <tr><td>V 矩陣</td><td>{{ singleCastResult.ignoreDef.vm.toFixed(2) }}%</td></tr>
+              <tr><td>Buff</td><td>{{ singleCastResult.ignoreDef.buff.toFixed(2) }}%</td></tr>
+              <tr><td>超技能</td><td>{{ singleCastResult.ignoreDef.hyper.toFixed(2) }}%</td></tr>
+              <tr><td>技能自帶</td><td>{{ singleCastResult.ignoreDef.skill.toFixed(2) }}%</td></tr>
+              <tr class="bp-test__table-result"><td>合併無視</td><td>{{ singleCastResult.ignoreDef.total.toFixed(2) }}%</td></tr>
+              <tr><td>怪物 DEF</td><td>{{ singleCastResult.ignoreDef.enemyDef }}</td></tr>
+              <tr><td>有效防禦</td><td>{{ singleCastResult.ignoreDef.effectiveDef.toFixed(2) }}</td></tr>
+              <tr class="bp-test__table-result"><td>defMult</td><td>× {{ singleCastResult.ignoreDef.defMult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑫ Burning Magic -->
+          <div v-if="singleCastResult.burningMagic.active" class="bp-test__section">
+            <div class="bp-test__section-title">⑫ Burning Magic</div>
+            <table class="bp-test__table">
+              <tr><td>狀態</td><td>DoT ≥ 1 → 生效</td></tr>
+              <tr><td>主擊終傷</td><td>+{{ singleCastResult.burningMagic.fdPct }}% → × {{ singleCastResult.burningMagic.mult.toFixed(4) }}</td></tr>
+              <tr><td>DoT 時長倍率</td><td>× {{ singleCastResult.burningMagic.durMult.toFixed(1) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑬ 等差終傷 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">⑬ 等差終傷 (僅主擊)</div>
+            <table class="bp-test__table">
+              <tr><td>角色等級</td><td>Lv {{ singleCastResult.levelDiffInfo.charLevel }}</td></tr>
+              <tr><td>怪物等級</td><td>Lv {{ singleCastResult.levelDiffInfo.enemyLevel }}</td></tr>
+              <tr><td>等差</td><td>{{ singleCastResult.levelDiffInfo.diff >= 0 ? '+' : '' }}{{ singleCastResult.levelDiffInfo.diff }}</td></tr>
+              <tr class="bp-test__table-result"><td>終傷</td><td>{{ singleCastResult.levelDiffInfo.pct >= 0 ? '+' : '' }}{{ singleCastResult.levelDiffInfo.pct }}% → × {{ singleCastResult.levelDiffInfo.mult.toFixed(4) }}</td></tr>
+            </table>
+          </div>
+
+          <!-- ⑭ DoT 專用 -->
+          <div v-if="singleCastResult.dot.burnPct" class="bp-test__section">
+            <div class="bp-test__section-title">⑭ DoT 專用乘區</div>
+            <table class="bp-test__table">
+              <tr><td>baseRaw</td><td>{{ fmtNum(Math.round(singleCastResult.dot.baseRaw)) }}</td></tr>
+              <tr><td>DoT%</td><td>{{ singleCastResult.dot.burnPct }}%</td></tr>
+              <tr><td>VM 技能終傷</td><td>× {{ singleCastResult.dot.skillFinalMult.toFixed(4) }}</td></tr>
+              <tr><td>特殊終傷 (Fervent Drain)</td><td>{{ singleCastResult.dot.ferventStacks }} 層 × {{ singleCastResult.dot.ferventPerStack }}% → × {{ singleCastResult.dot.dotSpecialMult.toFixed(4) }}</td></tr>
+              <tr><td>怪物類型乘區</td><td>× {{ singleCastResult.dot.dotEnemyMult.toFixed(2) }} ({{ singleCastResult.dot.enemyType === 'boss' ? `Boss-${singleCastResult.dot.enemyElemDmg}` : 'Normal' }})</td></tr>
+              <tr><td>ARC 終傷</td><td>× {{ singleCastResult.dot.arcMult.toFixed(4) }}</td></tr>
+              <tr><td>DoT 係數</td><td>× {{ singleCastResult.dot.coefficient.toFixed(2) }}</td></tr>
+              <tr><td>場上 DoT 數</td><td>{{ singleCastResult.dot.testDotCount }}</td></tr>
+              <tr class="bp-test__table-result"><td>每 Tick 傷害</td><td>{{ fmtNum(singleCastResult.dot.dotHit) }}</td></tr>
+              <tr class="bp-test__table-note"><td colspan="2">不吃: 面板終傷 / Damage% / Boss Damage% / Buff終傷 / 防禦 / 爆擊 / 熟練度 / 屬性減傷</td></tr>
+            </table>
+          </div>
+
+          <!-- 主擊公式 -->
+          <div class="bp-test__section">
+            <div class="bp-test__section-title">主擊公式</div>
+            <code class="bp-test__code">hit = bossBase × (技能% ÷ 100) × elemMult × arcMult × VM終傷 × Buff終傷 × defMult × 爆炸終傷 × BM終傷 × 等差終傷</code>
           </div>
 
           <!-- 每一擊 -->
@@ -639,7 +741,7 @@ const timelineRows = computed(() => {
                 </li>
               </ol>
             </div>
-            <div class="bp-test__hit-group">
+            <div v-if="singleCastResult.dotTicks.length" class="bp-test__hit-group">
               <div class="bp-test__hit-title">
                 {{ t('battle.test.dotTicks') }}
                 <span class="bp-test__hit-sum">∑ {{ fmtNum(singleCastResult.dotSum) }}</span>
@@ -843,15 +945,55 @@ const timelineRows = computed(() => {
   color: #c9d2dd;
   margin-top: 2px;
 }
-.bp-test__inputs,
-.bp-test__mults,
-.bp-test__formula,
+.bp-test__section,
 .bp-test__hits,
 .bp-test__total {
   padding: 8px 10px;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid #1a1f27;
   border-radius: 6px;
+}
+.bp-test__section-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffc857;
+  margin-bottom: 6px;
+}
+.bp-test__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.bp-test__table td {
+  padding: 3px 6px;
+  color: #c9d2dd;
+}
+.bp-test__table td:first-child {
+  color: #8ea6b8;
+  white-space: nowrap;
+  width: 40%;
+}
+.bp-test__table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #e8edf2;
+}
+.bp-test__table tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
+}
+.bp-test__table-result td {
+  border-top: 1px solid rgba(92, 209, 234, 0.3);
+  color: #5cd1ea !important;
+  font-weight: 700 !important;
+}
+.bp-test__table-note td {
+  font-size: 0.7rem;
+  color: #8ea6b8 !important;
+  font-style: italic;
+  padding-top: 6px;
+  font-weight: 400 !important;
 }
 .bp-test__inputs-title {
   font-size: 0.74rem;

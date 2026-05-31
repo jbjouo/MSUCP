@@ -709,7 +709,8 @@
       "pirate": "Pirate",
       "cygnus": "Cygnus Knights",
       "mihile": "Mihile",
-      "heroes": "Heroes"
+      "heroes": "Heroes",
+      "flora": "Flora"
     },
     "jobs": {
       "beginner": "Beginner",
@@ -739,7 +740,8 @@
       "mercedes": "Mercedes",
       "phantom": "Phantom",
       "luminous": "Luminous",
-      "shade": "Shade"
+      "shade": "Shade",
+      "ark": "Ark"
     }
   },
   "pet": {
@@ -1110,6 +1112,14 @@
           "4": "When attacking, has a 21% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +2%, Enemy DEF Ignored per Stack: +2%\nEffect Duration: 10 sec, Stacks up to 3 times",
           "5": "When attacking, has a 23% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times",
           "6": "When attacking, has a 25% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times"
+        }
+      },
+      "solus": {
+        "name": "Solus",
+        "flavor": "Lose oneself to battle with an intense, combat-focused will. If the combat state is maintained for a certain period of time, the damage increases.",
+        "desc": {
+          "1": "Activates when the combat state continues for 5 sec. Can be stacked a max of 5 times. Duration: 5 sec.\nWhen activated, damage increases by 1%, and damage increases an extra 1% per stack.",
+          "2": "Activates when the combat state continues for 5 sec. Can be stacked a max of 5 times. Duration: 5 sec.\nWhen activated, damage increases by 1%, and damage increases an extra 2% per stack."
         }
       }
     },

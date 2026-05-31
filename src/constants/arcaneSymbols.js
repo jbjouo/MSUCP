@@ -7,15 +7,17 @@
 // 主屬性依角色 currentJob.primary 決定 (str/dex/int/luk)。
 // ARC (Arcane Power) 為獨立屬性,僅在面板顯示;主屬性加成視為 fixed flat (不吃 % 加成)。
 
+import { ASSET } from './skills/_shared/helpers.js'
+
 export const ARCANE_MAX_LEVEL = 20
 
 export const ARCANE_SYMBOLS = [
-  { id: 'vanishing_journey', nameKey: 'arcane.vanishing_journey', imageUrl: 'https://api-static.msu.io/itemimages/icon/1712001.png' },
-  { id: 'chu_chu_island',    nameKey: 'arcane.chu_chu_island',    imageUrl: 'https://api-static.msu.io/itemimages/icon/1712002.png' },
-  { id: 'lachelein',         nameKey: 'arcane.lachelein',         imageUrl: 'https://api-static.msu.io/itemimages/icon/1712003.png' },
-  { id: 'arcana',            nameKey: 'arcane.arcana',            imageUrl: 'https://api-static.msu.io/itemimages/icon/1712004.png' },
-  { id: 'morass',            nameKey: 'arcane.morass',            imageUrl: 'https://api-static.msu.io/itemimages/icon/1712005.png' },
-  { id: 'esfera',            nameKey: 'arcane.esfera',            imageUrl: 'https://api-static.msu.io/itemimages/icon/1712006.png' },
+  { id: 'vanishing_journey', nameKey: 'arcane.vanishing_journey', imageUrl: ASSET('images/arcane/1712001.png') },
+  { id: 'chu_chu_island',    nameKey: 'arcane.chu_chu_island',    imageUrl: ASSET('images/arcane/1712002.png') },
+  { id: 'lachelein',         nameKey: 'arcane.lachelein',         imageUrl: ASSET('images/arcane/1712003.png') },
+  { id: 'arcana',            nameKey: 'arcane.arcana',            imageUrl: ASSET('images/arcane/1712004.png') },
+  { id: 'morass',            nameKey: 'arcane.morass',            imageUrl: ASSET('images/arcane/1712005.png') },
+  { id: 'esfera',            nameKey: 'arcane.esfera',            imageUrl: ASSET('images/arcane/1712006.png') },
 ]
 
 export function arcForLevel(level) {

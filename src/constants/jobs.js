@@ -77,6 +77,12 @@ export const JOB_BRANCHES = [
       { key: 'shade',      primary: 'str', linkSkill: 'close_call' },
     ],
   },
+  {
+    key: 'flora',
+    jobs: [
+      { key: 'ark', primary: 'str', linkSkill: 'solus' },
+    ],
+  },
 ]
 
 export const JOB_BRANCH_KEYS = JOB_BRANCHES.map((b) => b.key)

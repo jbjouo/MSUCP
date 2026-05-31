@@ -282,10 +282,11 @@ function rebuildAtt(att, extraDmgPct) {
   const fm = att?.fm || 1
   const totalDmg = add(att?.dmgPct || 0, extraDmgPct || 0)
   const bossDmg = att?.bossDmg || 0
+  const abnormalMobDmg = att?.abnormalMobDmg || 0
   const critDmg = att?.critDmg || 0
   const mastery = att?.mastery || 100
   const basicRaw = mul(applyPct(baseRaw, totalDmg), fm)
-  const bossRaw  = mul(applyPct(baseRaw, add(totalDmg, bossDmg)), fm)
+  const bossRaw  = mul(applyPct(baseRaw, add(totalDmg, bossDmg, abnormalMobDmg)), fm)
   const bossMaxRaw = mul(bossRaw, clean(1.5 + critDmg / 100))
   const bossMinRaw = mul(bossRaw, clean(1.2 + critDmg / 100), mastery / 100)
   return { basicRaw, bossRaw, bossMinRaw, bossMaxRaw }
@@ -1138,7 +1139,7 @@ export function useBattleSim() {
     state.cooldownEndAt = {}
   }
 
-  // 測試用 — 以當前設定跑一次技能施放,回傳每擊傷害明細與公式字串。
+  // 測試用 — 以當前設定跑一次技能施放,回傳每擊傷害明細。
   // 不影響主模擬器狀態 (不寫入 state.result、不觸發 timeline)
   function simulateSingleCast(skillId = SIM_SKILLS[0]?.id) {
     const skill = SKILL_BY_ID[skillId]
@@ -1152,7 +1153,6 @@ export function useBattleSim() {
     currentCharLevel = Number(charState.level) || 0
     currentEnemyLevel = Number(enemy?.level) || 0
     const att = cpAttStats?.value || {}
-    // 等差終傷 (僅主擊)
     const levelDiff = currentCharLevel - currentEnemyLevel
     const levelDiffPct = levelDiffFinalDmgPct(currentCharLevel, currentEnemyLevel)
     const levelDiffMult = clean(1 + levelDiffPct / 100)
@@ -1161,10 +1161,6 @@ export function useBattleSim() {
     const elemIgnorePct = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
     const cpIgnoreDefPct = att.ignoreDef || 0
     const vm = skillVmatrixBonus(skill, vmatrixLevelOf(skill.id))
-    // 測試用 DoT 數:
-    //   sim 執行中 → 以當前實際 burnState 數為底(其他技能的 DoT 仍生效中),
-    //                 若此技能自身沒在 burnState 內但有 burn,視為此次施放新增 1 個
-    //   sim 非執行 → 僅此技能自身(有 burn = 1,否則 0)
     let testDotCount = skill.burn ? 1 : 0
     if (state.running) {
       const existing = Object.keys(burnState).length
@@ -1175,13 +1171,11 @@ export function useBattleSim() {
     const buffDmgPct = buffBonuses.dmgPct || 0
     const buffIgnoreDefPct = buffBonuses.ignoreDefPct || 0
     const buffFinalDmgMult = buffBonuses.finalDmgMult || 1
-    // DoT 專用的「特殊終傷」— 現階段僅火毒 Fervent Drain (每層 +5%)
     const dotSpecial = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount })
     const ferventStacks = dotSpecial.stacks
     const ferventPerStack = dotSpecial.perStack
     const dotSpecialMult = dotSpecial.mult
     const dotEnemyMultVal = dotEnemyMult(enemy)
-    // 超技能 bag — 主擊 / DoT / 命中數 / 時長 / 無視防禦 / 冷卻 都會用到
     const hs = hyperBagFor(skill.id)
     const lv = effSkillLevel(skill)
     const skillIgDef = skillIgnoreDefPct(skill, lv)
@@ -1192,34 +1186,22 @@ export function useBattleSim() {
     const effectiveDef = mul(enemyDef, clean(1 - totalIgnoreDefPct / 100))
     const defMult = defMultFor(enemy, totalIgnoreDefPct)
     const skillFinalMult = clean(1 + vm.finalDmgPct / 100)
-
-    // 爆炸終傷 (Mist Eruption):依 DoT 層數查表(固定爆炸次數不影響終傷查表)
     const explosionsN = skillExplosionCount(skill)
     const explosionFdPct = skillExplosionFinalDmgPct(skill, testDotCount)
     const explosionMult = clean(1 + explosionFdPct / 100)
-
-    // Burning Magic (火毒 passive):DoT 計數 ≥ 1 → 主擊終傷 +20%
-    //   測試模式以 testDotCount 充當 activeDotCount
     const bmActive = !!(BURNING_MAGIC?.jobs?.includes(currentJobKey) && testDotCount >= 1)
     const bmFdPct = bmActive ? (BURNING_MAGIC.finalDmgPctWhenDotActive || 0) : 0
     const bmMult = clean(1 + bmFdPct / 100)
-
-    // 超技能 damagePct / burnDamagePct 加進 Damage% 桶,不乘進技能 % 本身
     const baseP = skillDamagePct(skill, lv)
     const pcts = { hit: baseP.hit, burn: baseP.burn }
     const mainDmgPct = add(buffDmgPct, hs.damagePct || 0)
     const dotDmgPct = add(buffDmgPct, hs.burnDamagePct || 0)
     const localRng = makeRng(state.seed ^ Date.now() ^ performance.now() | 0)
-
-    // 重算:主擊用 mainDmgPct、DoT 用 dotDmgPct (兩者 Damage% 桶不同)
     const mainRebuilt = rebuildAtt(att, mainDmgPct)
     const dotRebuilt = rebuildAtt(att, dotDmgPct)
     const bossMinRaw = mainRebuilt.bossMinRaw
     const bossMaxRaw = mainRebuilt.bossMaxRaw
     const basicRaw   = dotRebuilt.basicRaw
-
-    // 主擊 — 每擊在 bossMin~bossMax 間隨機取樣;
-    //   爆炸型:總擊數 = (hitsPerCast × 固定爆炸數) + 超技能 hitsPerCastBonus
     const perCastHits = (skill.hitsPerCast || 0) * explosionsN
     const totalHits = Math.max(0, add(perCastHits, hs.hitsPerCastBonus || 0))
     const mainHits = []
@@ -1229,10 +1211,6 @@ export function useBattleSim() {
                         skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult)
       mainHits.push(Math.max(1, floor(value)))
     }
-
-    // DoT — 新公式:baseRaw × 技能DoT% × V矩陣終傷 × 特殊終傷(Fervent Drain) × 怪物類型乘區
-    //   不吃:面板終傷 / CP&Buff&Hyper Damage% / Boss Damage% / 屬性減傷 / ARC / DEF
-    //   時長 = (base + 超技能 burnDurationBonusSec) × Burning Magic 倍率
     const bmDurMult = burningMagicDotDurationMult()
     const baseBurnSec = add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
     const burnDurationSec = clean(baseBurnSec * bmDurMult)
@@ -1244,134 +1222,145 @@ export function useBattleSim() {
     for (let i = 0; i < dotTickCount; i++) {
       dotTicks.push({ time: (i + 1) * (skill.burn.tickIntervalSec * 1000), dmg: dotHit })
     }
-
     const mainSum = mainHits.reduce((s, x) => s + x, 0)
     const dotSum = dotTicks.reduce((s, x) => s + x.dmg, 0)
-
-    const fmtMul = (n) => n.toFixed(4)
 
     return {
       skill,
       level: lv,
-      // 輸入值
-      cpInputs: {
-        basic: att.basic,
-        basicRaw,
-        bossMin: att.bossMin,
-        bossMax: att.bossMax,
-        bossMinRaw,
-        bossMaxRaw,
-        dmgPct: att.dmgPct,
-        bossDmg: att.bossDmg,
-        finalDmg: att.finalDmg,
-        fm: att.fm,
-        critDmg: att.critDmg,
-        mastery: att.mastery,
-        attVal: att.attVal,
-        primaryStat: att.primaryStat,
-        primaryVal: att.primaryVal,
-        secondaryVal: att.secondaryVal,
-        usesMatk: att.usesMatk,
-      },
-      // 乘區
-      mults: {
-        mainPct: pcts.hit,      // 技能主擊 %(超技能不再乘進這裡)
-        dotPct: pcts.burn,      // 技能 DoT %(同上)
-        baseMainPct: baseP.hit,
-        baseDotPct: baseP.burn,
-        hitsPerCast: totalHits,
-        baseHitsPerCast: skill.hitsPerCast || 0,
-        burnDurationSec,
-        baseBurnDurationSec: skill.burn?.durationSec || 0,
-        hyperDamagePct: hs.damagePct || 0,
-        hyperBurnDamagePct: hs.burnDamagePct || 0,
-        hyperHitsBonus: hs.hitsPerCastBonus || 0,
-        hyperBurnDurationBonusSec: hs.burnDurationBonusSec || 0,
-        hyperIgnoreDefPct: hs.ignoreDefPct || 0,
-        hyperCdPctRed: hs.cooldownOwnPctRed || 0,
-        skillIgnoreDefPct: skillIgDef,
-        explosionsN,
-        explosionFdPct,
-        explosionMult,
-        mainDmgPct,             // 主擊實際進桶 Damage%(CP+Buff+Hyper)
-        dotDmgPct,              // DoT 實際進桶 Damage%
-        elemMult,
-        elemResistPct,
-        elemIgnorePct,
-        arcMult,
-        arcFinalPct,
-        buffDmgPct,
-        buffIgnoreDefPct,
-        buffFinalDmgMult,
-        buffFinalDmgPct: clean((buffFinalDmgMult - 1) * 100),
-        testDotCount,
-        totalDmgPct: add(att.dmgPct || 0, buffDmgPct),
-        rebuiltBasic: Math.round(basicRaw),
-        rebuiltBossMin: Math.round(bossMinRaw),
-        rebuiltBossMax: Math.round(bossMaxRaw),
-        cpIgnoreDefPct,
-        vmIgnoreDefPct: vm.ignoreDefPct,
-        totalIgnoreDefPct,
-        enemyDef,
-        effectiveDef,
-        defMult,
-        vmLevel: vm.level,
-        vmMaxLevel: vm.maxLevel,
-        vmFinalDmgPct: vm.finalDmgPct,
-        skillFinalMult,
-        // Burning Magic (火毒 passive Lv10) — 場上有 DoT 時 主擊終傷 +20%,DoT 時長 ×2
-        bmActive,
-        bmFdPct,
-        bmMult,
-        bmDurMult,
-        bmBaseBurnSec: baseBurnSec,
-        // 等差終傷 (僅主擊)
-        charLevel: currentCharLevel,
-        enemyLevel: currentEnemyLevel,
-        levelDiff,
-        levelDiffPct,
-        levelDiffMult,
-        // DoT 專用輸出(供測試面板顯示)
-        dotBaseRaw,
-        dotSpecialMult,
-        ferventStacks,
-        ferventPerStack,
-        dotEnemyMult: dotEnemyMultVal,
-      },
       mainHits,
       dotTicks,
       mainSum,
       dotSum,
       total: mainSum + dotSum,
-      // 公式字串 (顯示用)
-      formulas: {
-        vmatrix:
-          `V 矩陣 Lv ${vm.level}/${vm.maxLevel} → 技能終傷 +${vm.finalDmgPct}% (×${fmtMul(skillFinalMult)})` +
-          (vm.ignoreDefPct > 0 ? `,額外無視防禦 +${vm.ignoreDefPct}% (Lv40+ 門檻,僅此技能)` : ''),
-        hyper:
-          `超技能 → 主擊 Damage% +${hs.damagePct || 0}% (加算到 CP+Buff Damage 桶,不乘進技能 ${baseP.hit}%) · ` +
-          `DoT Damage% +${hs.burnDamagePct || 0}% (同樣加算到 Damage 桶,不乘進 ${baseP.burn}%) · ` +
-          `命中數 ${skill.hitsPerCast || 0}${(hs.hitsPerCastBonus || 0) > 0 ? `+${hs.hitsPerCastBonus}` : ''} → ${totalHits} · ` +
-          `DoT 時長 ${skill.burn?.durationSec || 0}s${(hs.burnDurationBonusSec || 0) > 0 ? `+${hs.burnDurationBonusSec}` : ''}${bmDurMult !== 1 ? ` × BM(${bmDurMult.toFixed(1)})` : ''} → ${burnDurationSec}s · ` +
-          `無視防禦 +${hs.ignoreDefPct || 0}% · 冷卻 -${hs.cooldownOwnPctRed || 0}%`,
-        buff:
-          `法師傳授 (Buff) → Damage +${buffDmgPct}% (與角色 Damage ${(att.dmgPct || 0).toFixed(2)}% 相加) · 無視防禦 +${buffIgnoreDefPct}%`,
-        rebuild:
-          `重算 (主擊) :basic 不用,此路徑改走 boss — ` +
-          `boss = baseRaw × (1 + (CP ${(att.dmgPct || 0).toFixed(2)}% + Buff ${buffDmgPct}% + Hyper ${hs.damagePct || 0}% + BossDmg ${(att.bossDmg || 0).toFixed(2)}%)/100) × fm(${fmtMul(att.fm || 1)}) ⇒ bossMin=${bossMinRaw.toFixed(0)} / bossMax=${bossMaxRaw.toFixed(0)}\n` +
-          `重算 (DoT)  :DoT 改走新公式,不吃 Damage% / fm / BossDmg,直接用 baseRaw = ${Math.round(att.baseRaw || 0)}`,
-        main:
-          `主擊 = bossMin~bossMax 隨機 × (${pcts.hit}% ÷ 100) × 屬性(${fmtMul(elemMult)}) × ARC終傷(${fmtMul(arcMult)}) × VM終傷(${fmtMul(skillFinalMult)}) × Buff終傷(${fmtMul(buffFinalDmgMult)}) × 防禦(${fmtMul(defMult)}) × 爆炸終傷(${fmtMul(explosionMult)}) × Burning Magic(${bmActive ? `×${fmtMul(bmMult)} [DoT 生效, +${bmFdPct}%]` : '×1.0000 [無 DoT]'}) × 等差終傷(×${fmtMul(levelDiffMult)}; 角色 Lv${currentCharLevel} − 怪物 Lv${currentEnemyLevel} = ${levelDiff >= 0 ? '+' : ''}${levelDiff} → ${levelDiffPct >= 0 ? '+' : ''}${levelDiffPct}%) · 共 ${totalHits} 下`,
-        explosion: skill.explosions
-          ? `爆炸 = 固定 ${explosionsN} 次 × 每爆 ${skill.hitsPerCast} 擊 = 共 ${totalHits} 擊 · DoT 層數 ${testDotCount} → 終傷 +${explosionFdPct}% (×${fmtMul(explosionMult)})`
-          : '',
-        defense:
-          `無視防禦合併 = 1 − (1 − CP${cpIgnoreDefPct.toFixed(2)}%/100)(1 − VM${vm.ignoreDefPct}%/100)(1 − Buff${buffIgnoreDefPct}%/100)(1 − Hyper${hs.ignoreDefPct || 0}%/100)(1 − 技能${skillIgDef}%/100) = ${totalIgnoreDefPct.toFixed(2)}%\n` +
-          `有效防禦 = 怪物DEF(${enemyDef}) × (1 − 合併無視/100) = ${effectiveDef.toFixed(2)}  ⇒  defMult = max(0, 1 − 有效防禦/100) = ${fmtMul(defMult)}`,
-        dot:
-          `DoT = baseRaw(${Math.round(dotBaseRaw).toLocaleString?.('en-US') ?? 0}) × (${pcts.burn}% ÷ 100) × VM終傷(${fmtMul(skillFinalMult)}) × 特殊終傷(${fmtMul(dotSpecialMult)}; Fervent Drain ${ferventStacks}層×${ferventPerStack}%) × 怪物乘區(×${dotEnemyMultVal.toFixed(2)}; ${enemy?.type === 'boss' ? `Boss-${enemy?.elementalDmg}` : '一般怪物'}) × ARC終傷(×${fmtMul(arcMult)}; ${arcFinalPct}%) × DoT係數(×${DOT_COEFFICIENT.toFixed(2)})\n` +
-          `  baseRaw = 武器係數 × (4×主屬+副屬) × ATK(計算%後)/100 · 公式為一般怪物 未減半;Boss 未減半 ×1.86、Boss 減半 ×1.41\n` +
-          `  ← 不吃面板終傷 / CP&Buff&Hyper Damage% / Boss Damage% / 防禦 / 爆擊 / 熟練度 / 屬性減傷`,
+      // ── 基礎面板 (CP 頁來源) ──
+      base: {
+        weaponConst: att.weaponConst,
+        primaryStat: att.primaryStat,
+        primaryVal: att.primaryVal,
+        secondaryVal: att.secondaryVal,
+        attVal: att.attVal,
+        usesMatk: att.usesMatk,
+        baseRaw: att.baseRaw,
+        mastery: att.mastery,
+      },
+      // ── Damage% 桶 (主擊用,相加) ──
+      damageBucket: {
+        cpDmgPct: att.dmgPct || 0,
+        cpBossDmg: att.bossDmg || 0,
+        cpAbnormalMobDmg: att.abnormalMobDmg || 0,
+        buffDmgPct,
+        hyperDamagePct: hs.damagePct || 0,
+        total: add(att.dmgPct || 0, att.bossDmg || 0, att.abnormalMobDmg || 0, buffDmgPct, hs.damagePct || 0),
+      },
+      // ── Final Damage (面板終傷, 獨立乘��) ──
+      finalDmg: {
+        pct: att.finalDmg || 0,
+        mult: att.fm || 1,
+      },
+      // ── Crit (爆��區間) ──
+      crit: {
+        critDmg: att.critDmg || 0,
+        mastery: att.mastery || 100,
+        bossMinRaw,
+        bossMaxRaw,
+      },
+      // ── 技能本體 ──
+      skillInfo: {
+        hitPct: pcts.hit,
+        burnPct: pcts.burn,
+        baseHitPct: baseP.hit,
+        baseBurnPct: baseP.burn,
+        hitsPerCast: skill.hitsPerCast || 0,
+        totalHits,
+        explosionsN,
+        explosionFdPct,
+        explosionMult,
+        burnDurationSec,
+        baseBurnDurationSec: skill.burn?.durationSec || 0,
+        dotTickCount,
+        tickInterval: skill.burn?.tickIntervalSec || 0,
+      },
+      // ── 超技能 ──
+      hyper: {
+        damagePct: hs.damagePct || 0,
+        burnDamagePct: hs.burnDamagePct || 0,
+        hitsPerCastBonus: hs.hitsPerCastBonus || 0,
+        burnDurationBonusSec: hs.burnDurationBonusSec || 0,
+        ignoreDefPct: hs.ignoreDefPct || 0,
+        cooldownOwnPctRed: hs.cooldownOwnPctRed || 0,
+      },
+      // ── V 矩陣 ──
+      vmatrix: {
+        level: vm.level,
+        maxLevel: vm.maxLevel,
+        finalDmgPct: vm.finalDmgPct,
+        ignoreDefPct: vm.ignoreDefPct,
+        skillFinalMult,
+      },
+      // ── Buff (戰鬥增益) ──
+      buff: {
+        dmgPct: buffDmgPct,
+        ignoreDefPct: buffIgnoreDefPct,
+        finalDmgMult: buffFinalDmgMult,
+        finalDmgPct: clean((buffFinalDmgMult - 1) * 100),
+      },
+      // ── 屬性 ──
+      elem: {
+        mult: elemMult,
+        resistPct: elemResistPct,
+        ignorePct: elemIgnorePct,
+      },
+      // ── ARC ──
+      arc: {
+        finalPct: arcFinalPct,
+        mult: arcMult,
+      },
+      // ── 無視防禦 ──
+      ignoreDef: {
+        cp: cpIgnoreDefPct,
+        vm: vm.ignoreDefPct,
+        buff: buffIgnoreDefPct,
+        hyper: hs.ignoreDefPct || 0,
+        skill: skillIgDef,
+        total: totalIgnoreDefPct,
+        enemyDef,
+        effectiveDef,
+        defMult,
+      },
+      // ── Burning Magic ──
+      burningMagic: {
+        active: bmActive,
+        fdPct: bmFdPct,
+        mult: bmMult,
+        durMult: bmDurMult,
+      },
+      // ── 等差終傷 ──
+      levelDiffInfo: {
+        charLevel: currentCharLevel,
+        enemyLevel: currentEnemyLevel,
+        diff: levelDiff,
+        pct: levelDiffPct,
+        mult: levelDiffMult,
+      },
+      // ── DoT 專用 ──
+      dot: {
+        baseRaw: dotBaseRaw,
+        burnPct: pcts.burn,
+        skillFinalMult,
+        dotSpecialMult,
+        ferventStacks,
+        ferventPerStack,
+        dotEnemyMult: dotEnemyMultVal,
+        enemyType: enemy?.type || 'normal',
+        enemyElemDmg: enemy?.elementalDmg || 'none',
+        arcMult,
+        coefficient: DOT_COEFFICIENT,
+        dotDmgPct,
+        hyperBurnDamagePct: hs.burnDamagePct || 0,
+        buffDmgPct,
+        dotHit,
+        testDotCount,
       },
     }
   }
