@@ -755,6 +755,24 @@
       "imageUrl": "/msucp/images/items/1352233.png"
     },
     {
+      "id": "secondary_white_gold_book_epode",
+      "name": "White Gold Book <Epode>",
+      "nameEn": "White Gold Book <Epode>",
+      "type": "secondary",
+      "subType": "magic_book",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 3,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352252.png"
+    },
+    {
       "id": "secondary_evolving_slashing_shadow",
       "name": "Evolving Slashing Shadow",
       "nameEn": "Evolving Slashing Shadow",
@@ -901,6 +919,34 @@
       },
       "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
       "imageUrl": "/msucp/images/items/1003722.png"
+    },
+    {
+      "id": "hat_chaos_pierre",
+      "name": "Chaos Pierre Hat",
+      "nameEn": "Chaos Pierre Hat",
+      "type": "hat",
+      "level": 140,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "luckyItem": true,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "def": 300,
+        "str": 23,
+        "dex": 23,
+        "int": 23,
+        "luk": 23,
+        "moveSpeed": 5
+      },
+      "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
+      "imageUrl": "/msucp/images/items/1003719.png"
     },
     {
       "id": "hat_royal_dunwitch",
