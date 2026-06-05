@@ -1244,9 +1244,9 @@ function onPanelOut(e) {
             <span class="k">Cooldown Not Applied</span>
             <span class="v">0%</span>
           </div>
-          <div class="stat-cell">
+          <div class="stat-cell" data-stat="elementalResist" data-label="Ignore Elemental Resistance">
             <span class="k">Ignore Elemental Resistance</span>
-            <span class="v">0%</span>
+            <span class="v">{{ fmtPct(statTotal('elementalResist')) }}</span>
           </div>
         </div>
         <div class="stat-row">

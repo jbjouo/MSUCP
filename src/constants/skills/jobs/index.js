@@ -2,6 +2,7 @@
 // 新增職業時在此 import + push,上層 skills/index.js 會自動彙整。
 
 export * from './archmage-fp/index.js'
+export * from './bishop/index.js'
 
 import {
   ARCHMAGE_FP_SKILLS,
@@ -13,6 +14,17 @@ import {
   ARCHMAGE_FP_HYPER_SKILLS,
   ARCHMAGE_FP_LINK_SKILLS,
 } from './archmage-fp/index.js'
+
+import {
+  BISHOP_SKILLS,
+  BISHOP_SIM_SKILLS,
+  BISHOP_PASSIVE_SKILLS,
+  BISHOP_BUFFS,
+  BISHOP_BATTLE_BUFFS,
+  BISHOP_VMATRIX_SKILLS,
+  BISHOP_HYPER_SKILLS_ALL,
+  BISHOP_LINK_SKILLS,
+} from './bishop/index.js'
 
 // 每個職業一筆 entry;新增職業時在此 push。
 // all:該職業 0~6 轉的全部技能(主列表);各系統子集從 all filter 得,這裡僅沿用命名習慣。
@@ -28,6 +40,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: ARCHMAGE_FP_VMATRIX_SKILLS,
     hyper: ARCHMAGE_FP_HYPER_SKILLS,
     link: ARCHMAGE_FP_LINK_SKILLS,
+  },
+  {
+    jobKey: 'bishop',
+    branchKey: 'magician',
+    all: BISHOP_SKILLS,
+    sim: BISHOP_SIM_SKILLS,
+    passive: BISHOP_PASSIVE_SKILLS,
+    buffs: BISHOP_BUFFS,
+    battleBuffs: BISHOP_BATTLE_BUFFS,
+    vmatrix: BISHOP_VMATRIX_SKILLS,
+    hyper: BISHOP_HYPER_SKILLS_ALL,
+    link: BISHOP_LINK_SKILLS,
   },
 ]
 
