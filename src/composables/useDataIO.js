@@ -31,6 +31,7 @@ export const LEGACY_PER_CHAR_KEYS = [
   'msucp.pet.v1',
   'msucp.innerPotential.v1',
   'msucp.vmatrix.v1',
+  'msucp.blessingSkills.v1',
   'msucp.linkSkills.applied.v3',
   'msucp.cpBuffs.v1',
   'msucp.cpSkills.v1',

@@ -14,6 +14,7 @@ import { useArcane } from './useArcane.js'
 import { usePet } from './usePet.js'
 import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
+import { useBlessingSkills } from './useBlessingSkills.js'
 import { useEvent } from './useEvent.js'
 import { activeSkillContributions } from './useLinkSkills.js'
 import { useCpToggles } from './useCpToggles.js'
@@ -166,6 +167,7 @@ export function useCpDamage() {
   const { contributions: arcaneContribs } = useArcane()
   const { statContributions: abilityContribs } = useInnerPotential()
   const { statContributions: vmatrixContribs } = useVMatrix()
+  const { blessingAtk } = useBlessingSkills()
   const { statContributions: eventContribs } = useEvent()
   const {
     state: petState,
@@ -386,7 +388,12 @@ export function useCpDamage() {
           : skill.stats
       } else if (role === 'toggle') {
         if (!activeSkillIds.value.has(skill.id)) continue
-        bag = skill.stats
+        if (skill.id === 'blessing_of_the_fairy' || skill.id === 'empress_blessing') {
+          const lv = blessingAtk(skill.id)
+          bag = lv > 0 ? { atk: lv, matk: lv } : null
+        } else {
+          bag = skill.stats
+        }
       } else {
         continue // 沒 CP 角色
       }

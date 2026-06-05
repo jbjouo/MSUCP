@@ -867,6 +867,9 @@
       "skillCooldownChance": "使用技能時一定機率不消耗冷卻時間"
     }
   },
+  "blessingSkills": {
+    "title": "祝福技能"
+  },
   "vmatrix": {
     "title": "V 矩陣",
     "reset": "重設",

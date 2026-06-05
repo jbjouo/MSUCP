@@ -867,6 +867,9 @@
       "skillCooldownChance": "Chance to skip skill cooldown"
     }
   },
+  "blessingSkills": {
+    "title": "Blessing Skills"
+  },
   "vmatrix": {
     "title": "V MATRIX",
     "reset": "Reset",

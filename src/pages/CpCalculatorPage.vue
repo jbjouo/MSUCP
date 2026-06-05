@@ -19,6 +19,7 @@ import { useArcane } from '../composables/useArcane.js'
 import { usePet } from '../composables/usePet.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
+import { useBlessingSkills } from '../composables/useBlessingSkills.js'
 import { useEvent } from '../composables/useEvent.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
 import { charKey } from '../composables/useActiveCharacter.js'
@@ -72,6 +73,7 @@ const { statContributions: hyperStatContribs } = useHyperStat()
 const { contributions: arcaneContribs } = useArcane()
 const { statContributions: abilityContribs } = useInnerPotential()
 const { statContributions: vmatrixContribs } = useVMatrix()
+const { blessingAtk } = useBlessingSkills()
 const { statContributions: eventContribs } = useEvent()
 const {
   state: petState,
@@ -532,7 +534,12 @@ const breakdowns = computed(() => {
         : skill.stats
     } else if (role === 'toggle') {
       if (!activeSkillIds.value.has(skill.id)) continue
-      bag = skill.stats
+      if (skill.id === 'blessing_of_the_fairy' || skill.id === 'empress_blessing') {
+        const lv = blessingAtk(skill.id)
+        bag = lv > 0 ? { atk: lv, matk: lv } : null
+      } else {
+        bag = skill.stats
+      }
     } else {
       continue // 沒 CP 角色
     }
