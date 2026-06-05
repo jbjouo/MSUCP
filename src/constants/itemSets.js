@@ -24,6 +24,7 @@ export const ITEM_SETS = [
       { id: 'top_eagle_eye_dunwitch_robe', name: 'Eagle Eye Dunwitch Robe', type: 'top' },
       { id: 'bottom_trixter_dunwitch_pants', name: 'Trixter Dunwitch Pants', type: 'bottom' },
       { id: 'wpn_fafnir_mana_taker', name: 'Fafnir Mana Taker', type: 'weapon' },
+      { id: 'wpn_fafnir_mana_crown', name: 'Fafnir Mana Crown', type: 'weapon' },
     ],
     tiers: [
       { count: 2, stats: { hp: 1000, mp: 1000, int: 20, luk: 20 } },
@@ -154,6 +155,22 @@ export const ITEM_SETS = [
     tiers: [
       { count: 2, stats: { allStat: 5, atk: 2, matk: 2 } },
       { count: 3, stats: { hpPct: 5, mpPct: 5, atk: 3, matk: 3 } },
+    ],
+  },
+  {
+    id: 'arcane_umbra_magician',
+    nameKey: 'itemSet.arcane_umbra_magician.name',
+    members: [
+      { id: 'shoes_arcane_umbra_mage_shoes', name: 'Arcane Umbra Mage Shoes', type: 'shoes' },
+      { id: 'glove_arcane_umbra_mage_gloves', name: 'Arcane Umbra Mage Gloves', type: 'glove' },
+      { id: 'cape_arcane_umbra_mage_cape', name: 'Arcane Umbra Mage Cape', type: 'cape' },
+      { id: 'wpn_arcane_umbra_staff', name: 'Arcane Umbra Staff', type: 'weapon' },
+      { id: 'wpn_arcane_umbra_wand', name: 'Arcane Umbra Wand', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
+      { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
     ],
   },
   {

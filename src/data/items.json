@@ -415,6 +415,31 @@
       "imageUrl": "/msucp/images/items/1122254.png"
     },
     {
+      "id": "pendant_chaos_horntail",
+      "name": "Chaos Horntail Necklace",
+      "nameEn": "Chaos Horntail Necklace",
+      "type": "pendant",
+      "level": 120,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "def": 140,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1122076.png"
+    },
+    {
       "id": "hat_absolab_mage_crown",
       "name": "AbsoLab Mage Crown",
       "nameEn": "AbsoLab Mage Crown",
@@ -686,6 +711,27 @@
         "def": 150
       },
       "imageUrl": "/msucp/images/items/1082637.png"
+    },
+    {
+      "id": "glove_arcane_umbra_mage_gloves",
+      "name": "Arcane Umbra Mage Gloves",
+      "nameEn": "Arcane Umbra Mage Gloves",
+      "type": "glove",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 9,
+        "def": 250,
+        "int": 40,
+        "luk": 40
+      },
+      "imageUrl": "/msucp/images/items/1082696.png"
     },
     {
       "id": "glove_absolab_bandit_gloves",

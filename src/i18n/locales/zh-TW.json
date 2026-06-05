@@ -453,6 +453,9 @@
     "ifias_treasure": {
       "name": "Ifia's Treasure Set"
     },
+    "arcane_umbra_magician": {
+      "name": "Arcane Umbra Set (法師)"
+    },
     "arcane_umbra_thief": {
       "name": "Arcane Umbra Set (盜賊)"
     }
