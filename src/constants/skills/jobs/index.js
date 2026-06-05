@@ -3,6 +3,7 @@
 
 export * from './archmage-fp/index.js'
 export * from './bishop/index.js'
+export * from './shadower/index.js'
 
 import {
   ARCHMAGE_FP_SKILLS,
@@ -25,6 +26,17 @@ import {
   BISHOP_HYPER_SKILLS_ALL,
   BISHOP_LINK_SKILLS,
 } from './bishop/index.js'
+
+import {
+  SHADOWER_SKILLS,
+  SHADOWER_SIM_SKILLS,
+  SHADOWER_PASSIVE_SKILLS,
+  SHADOWER_BUFFS,
+  SHADOWER_BATTLE_BUFFS,
+  SHADOWER_VMATRIX_SKILLS,
+  SHADOWER_HYPER_SKILLS_ALL,
+  SHADOWER_LINK_SKILLS,
+} from './shadower/index.js'
 
 // 每個職業一筆 entry;新增職業時在此 push。
 // all:該職業 0~6 轉的全部技能(主列表);各系統子集從 all filter 得,這裡僅沿用命名習慣。
@@ -52,6 +64,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: BISHOP_VMATRIX_SKILLS,
     hyper: BISHOP_HYPER_SKILLS_ALL,
     link: BISHOP_LINK_SKILLS,
+  },
+  {
+    jobKey: 'shadower',
+    branchKey: 'thief',
+    all: SHADOWER_SKILLS,
+    sim: SHADOWER_SIM_SKILLS,
+    passive: SHADOWER_PASSIVE_SKILLS,
+    buffs: SHADOWER_BUFFS,
+    battleBuffs: SHADOWER_BATTLE_BUFFS,
+    vmatrix: SHADOWER_VMATRIX_SKILLS,
+    hyper: SHADOWER_HYPER_SKILLS_ALL,
+    link: SHADOWER_LINK_SKILLS,
   },
 ]
 

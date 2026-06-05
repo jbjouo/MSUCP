@@ -46,8 +46,9 @@ const ioStatus = ref('')
 
 function onExport() {
   const payload = exportData()
+  const charName = state.job || 'character'
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  downloadJSON(payload, `msucp-data-${stamp}.json`)
+  downloadJSON(payload, `msucp-${charName}-${stamp}.json`)
   ioStatus.value = t('character.io.exported')
   setTimeout(() => { ioStatus.value = '' }, 2500)
 }
@@ -55,13 +56,9 @@ function triggerImport() { fileInput.value?.click() }
 async function onFileSelected(e) {
   const f = e.target.files?.[0]
   if (!f) return
-  if (!confirm(t('character.io.confirmImport'))) {
-    e.target.value = ''
-    return
-  }
   try {
     const payload = await readFileAsJSON(f)
-    importData(payload) // reload inside
+    importData(payload)
   } catch (err) {
     alert(`${t('character.io.importFailed')}\n${err.message || err}`)
     e.target.value = ''

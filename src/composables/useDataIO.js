@@ -49,26 +49,32 @@ export const DATA_KEYS = GLOBAL_KEYS
 //          兩者皆為既有 key 內的新值,無需資料遷移 — 用戶舊檔匯入後自動 sanitize 預設。
 export const EXPORT_VERSION = 2
 
-// 收集 localStorage 的所有資料(全域 + 所有 per-character) → JSON 字串
+// 匯出當前角色資料
 export function exportData() {
+  const activeId = (() => {
+    try { return JSON.parse(localStorage.getItem('msucp.activeCharId.v1')) } catch { return 'default' }
+  })() || 'default'
+  const prefix = `msucp.char.${activeId}.`
   const data = {}
-  // 1. 全域 keys
-  for (const key of GLOBAL_KEYS) {
-    const raw = localStorage.getItem(key)
-    if (raw == null) continue
-    try { data[key] = JSON.parse(raw) } catch { data[key] = raw }
-  }
-  // 2. 所有 per-character keys (msucp.char.<id>.*)
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i)
-    if (!k || !k.startsWith('msucp.char.')) continue
+    if (!k || !k.startsWith(prefix)) continue
+    const suffix = k.slice(prefix.length)
     const raw = localStorage.getItem(k)
     if (raw == null) continue
-    try { data[k] = JSON.parse(raw) } catch { data[k] = raw }
+    try { data[suffix] = JSON.parse(raw) } catch { data[suffix] = raw }
   }
+  const charName = (() => {
+    try {
+      const roster = JSON.parse(localStorage.getItem('msucp.characters.v1'))
+      const ch = roster?.find((c) => c.id === activeId)
+      return ch?.name || activeId
+    } catch { return activeId }
+  })()
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
+    characterName: charName,
     data,
   }
 }
@@ -80,36 +86,49 @@ function isAcceptedKey(k) {
   return false
 }
 
-// 把 payload (JSON) 寫回 localStorage,並整頁 reload 讓 composable 重新讀取。
-// 接受新格式(含 msucp.char.* + GLOBAL_KEYS)與舊格式(裸 msucp.equipment.v3 等)。
-// 舊格式會被搬到 msucp.char.default.<suffix>。
+// 匯入為新角色（不覆蓋當前角色），匯入後自動切換到新角色。
+// 接受新格式（suffix-based）與舊格式（完整 key）。
 export function importData(payload, { reload = true } = {}) {
   if (!payload || typeof payload !== 'object') throw new Error('Invalid payload')
   const data = payload.data || payload
   if (!data || typeof data !== 'object') throw new Error('No data in payload')
 
-  // 清除既有衝突:全域 keys、所有 char.* keys、legacy keys
-  for (const key of GLOBAL_KEYS) localStorage.removeItem(key)
-  const charKeysToRemove = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i)
-    if (k && k.startsWith('msucp.char.')) charKeysToRemove.push(k)
-  }
-  for (const k of charKeysToRemove) localStorage.removeItem(k)
-  for (const k of LEGACY_PER_CHAR_KEYS) localStorage.removeItem(k)
+  // 產生新角色 id
+  const newId = 'c' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4)
+  const charName = payload.characterName
+    ? `${payload.characterName} (匯入)`
+    : `匯入角色 ${new Date().toLocaleDateString()}`
 
+  // 寫入新角色的 per-char 資料
   for (const [key, value] of Object.entries(data)) {
-    if (!isAcceptedKey(key)) continue
-    let writeKey = key
+    let suffix = key
+    // 舊格式: msucp.equipment.v3 → equipment.v3
     if (LEGACY_PER_CHAR_KEYS.includes(key)) {
-      // 舊格式 → 寫到 default 角色
-      writeKey = `msucp.char.default.${key.replace(/^msucp\./, '')}`
+      suffix = key.replace(/^msucp\./, '')
     }
+    // 完整 char key 格式: msucp.char.<old_id>.<suffix> → 取 suffix
+    if (key.startsWith('msucp.char.')) {
+      const parts = key.split('.')
+      suffix = parts.slice(3).join('.')
+    }
+    // 跳過全域 key
+    if (GLOBAL_KEYS.includes(key)) continue
+    const writeKey = `msucp.char.${newId}.${suffix}`
     try {
       const str = typeof value === 'string' ? value : JSON.stringify(value)
       localStorage.setItem(writeKey, str)
     } catch { /* skip */ }
   }
+
+  // 加入角色名單
+  let roster = []
+  try { roster = JSON.parse(localStorage.getItem('msucp.characters.v1')) || [] } catch { roster = [] }
+  roster.push({ id: newId, name: charName, createdAt: new Date().toISOString() })
+  localStorage.setItem('msucp.characters.v1', JSON.stringify(roster))
+
+  // 切換到新角色
+  localStorage.setItem('msucp.activeCharId.v1', JSON.stringify(newId))
+
   if (reload) window.location.reload()
 }
 

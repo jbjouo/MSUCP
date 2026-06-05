@@ -1,0 +1,7 @@
+// 冒險家盜賊共通 — 4 轉
+
+export const ADVENTURER_THIEF_4TH_TOGGLE_SKILLS = []
+export const ADVENTURER_THIEF_4TH_BUFFS = []
+export const ADVENTURER_THIEF_4TH_VMATRIX_SKILLS = []
+export const ADVENTURER_THIEF_4TH_BATTLE_BUFFS = []
+export const ADVENTURER_THIEF_4TH_PASSIVE_SKILLS = []

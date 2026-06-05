@@ -1,0 +1,7 @@
+// 冒險家盜賊共通 — 6 轉
+
+export const ADVENTURER_THIEF_6TH_TOGGLE_SKILLS = []
+export const ADVENTURER_THIEF_6TH_BUFFS = []
+export const ADVENTURER_THIEF_6TH_VMATRIX_SKILLS = []
+export const ADVENTURER_THIEF_6TH_BATTLE_BUFFS = []
+export const ADVENTURER_THIEF_6TH_PASSIVE_SKILLS = []

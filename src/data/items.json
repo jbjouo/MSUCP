@@ -44,6 +44,31 @@
       "imageUrl": "/msucp/images/items/1372177.png"
     },
     {
+      "id": "wpn_fafnir_mana_crown",
+      "name": "Fafnir Mana Crown",
+      "nameEn": "Fafnir Mana Crown",
+      "type": "weapon",
+      "subType": "staff",
+      "level": 150,
+      "req": {
+        "int": 450
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 2,
+      "stats": {
+        "atk": 126,
+        "matk": 204,
+        "int": 40,
+        "luk": 40,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1382208.png"
+    },
+    {
       "id": "wpn_fafnir_wind_chaser",
       "name": "Fafnir Wind Chaser",
       "nameEn": "Fafnir Wind Chaser",
