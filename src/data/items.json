@@ -659,6 +659,25 @@
       "imageUrl": "/msucp/images/items/1082639.png"
     },
     {
+      "id": "medal_chaos_vellum_crusher",
+      "name": "Chaos Vellum Crusher",
+      "nameEn": "Chaos Vellum Crusher",
+      "type": "medal",
+      "level": 0,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "bossDmg": 5
+      },
+      "imageUrl": "/msucp/images/items/1142905.png"
+    },
+    {
       "id": "medal_seven_day_monster_parker",
       "name": "Seven Day Monster Parker",
       "nameEn": "Seven Day Monster Parker",

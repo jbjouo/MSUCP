@@ -15,6 +15,7 @@ const { t } = useI18n()
 const { inventoryEntries, removeEntry } = useEquipment()
 
 const filterType = ref('all')
+const pendingRemove = ref(null)
 
 const typeOptions = computed(() => {
   const set = new Set(inventoryEntries.value.map((e) => e.item.type))
@@ -50,7 +51,18 @@ function onLeave() { emit('entry-hover', null) }
 function onRemove(e, entry) {
   e.stopPropagation()
   if (!entry) return
-  removeEntry(entry.uid)
+  pendingRemove.value = entry
+}
+
+function confirmRemove() {
+  if (pendingRemove.value) {
+    removeEntry(pendingRemove.value.uid)
+    pendingRemove.value = null
+  }
+}
+
+function cancelRemove() {
+  pendingRemove.value = null
 }
 
 function onEdit(e, entry) {
@@ -137,6 +149,23 @@ function onEdit(e, entry) {
     <p v-if="!filtered.length" class="bag-empty">
       {{ t('equipment.bag.empty') }}
     </p>
+    <Teleport to="body">
+      <div v-if="pendingRemove" class="confirm-backdrop" @click.self="cancelRemove">
+        <div class="confirm-dialog">
+          <p class="confirm-dialog__msg">
+            {{ t('equipment.bag.confirmRemove', { name: pendingRemove.item.name }) }}
+          </p>
+          <div class="confirm-dialog__actions">
+            <button class="confirm-dialog__btn confirm-dialog__btn--cancel" @click="cancelRemove">
+              {{ t('equipment.bag.cancel') }}
+            </button>
+            <button class="confirm-dialog__btn confirm-dialog__btn--ok" @click="confirmRemove">
+              {{ t('equipment.bag.confirmDelete') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -329,5 +358,64 @@ function onEdit(e, entry) {
   .bag-cell__actions { display: inline-flex; }
   .bag-cell__btn { width: 16px; height: 16px; font-size: 0.7rem; }
   .bag-cell__btn--remove { font-size: 0.8rem; }
+}
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-dialog {
+  background: linear-gradient(180deg, #1a2038 0%, #0f1324 100%);
+  border: 1px solid #2a3152;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  min-width: 280px;
+  max-width: 400px;
+  text-align: center;
+}
+.confirm-dialog__msg {
+  color: #e9edf5;
+  font-size: 0.95rem;
+  margin: 0 0 1.2rem;
+  line-height: 1.5;
+}
+.confirm-dialog__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.confirm-dialog__btn {
+  padding: 0.45rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid;
+  transition: filter 100ms ease, background 100ms ease;
+}
+.confirm-dialog__btn--cancel {
+  background: transparent;
+  color: #8089a3;
+  border-color: #3a4270;
+}
+.confirm-dialog__btn--cancel:hover {
+  border-color: #7ee8fa;
+  color: #e9edf5;
+}
+.confirm-dialog__btn--ok {
+  background: #ff5555;
+  color: #fff;
+  border-color: #ff5555;
+}
+.confirm-dialog__btn--ok:hover {
+  filter: brightness(1.15);
 }
 </style>

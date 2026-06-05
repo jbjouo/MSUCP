@@ -530,7 +530,10 @@
       "filteredBySlot": "已依所選槽位篩選",
       "add": "新增",
       "remove": "從背包移除",
-      "edit": "編輯裝備"
+      "edit": "編輯裝備",
+      "confirmRemove": "確定要刪除「{name}」嗎？",
+      "cancel": "取消",
+      "confirmDelete": "刪除"
     },
     "editor": {
       "title": "編輯裝備",

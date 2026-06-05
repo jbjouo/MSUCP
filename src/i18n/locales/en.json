@@ -530,7 +530,10 @@
       "filteredBySlot": "Filtered by selected slot",
       "add": "Add",
       "remove": "Remove from bag",
-      "edit": "Edit item"
+      "edit": "Edit item",
+      "confirmRemove": "Delete \"{name}\"?",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete"
     },
     "editor": {
       "title": "Edit item",
