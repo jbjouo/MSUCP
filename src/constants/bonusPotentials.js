@@ -226,6 +226,22 @@ const WEAPON_120_LEGENDARY = [
   { label: 'Boss Damage: +18%',      weight: 2.564103, stats: { bossDmg: 18 } },
 ]
 
+// Pendant Lv120 Rare line 2/3 額外降級池
+//   來源:MSU API CubeType_BONUS_POTENTIAL / GradeType_RARE / ACCESSORY_PENDANT / Lv120
+const PENDANT_120_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +60',        weight: 10.893247, stats: { hp: 60 } },
+  { label: 'Max MP: +60',        weight: 10.893247, stats: { mp: 60 } },
+  { label: 'Movement Speed: +4', weight: 10.893247, stats: { moveSpeed: 4 } },
+  { label: 'Jump: +4',           weight: 10.893247, stats: { jump: 4 } },
+  { label: 'ATT: +3',            weight: 7.262164, stats: { atk: 3 } },
+  { label: 'Magic ATT: +3',      weight: 7.262164, stats: { matk: 3 } },
+  { label: 'DEF: +60',           weight: 10.893247, stats: { def: 60 } },
+]
+
 // 武器 Lv120 Rare line 2/3 額外降級池
 //   來源:MSU API CubeType_BONUS_POTENTIAL / GradeType_RARE / WEAPON / Lv120,line 2 與 line 3 共用
 //   Line 1 只吃 WEAPON_120_RARE;Line 2/3 才會出現這些「半階」值
@@ -948,13 +964,13 @@ export const BONUS_POTENTIAL_POOLS = {
       legendary: BELT_120_LEGENDARY,
     },
   },
-  // Pendant Lv120+ 附加潛能與戒指 Lv120 完全相同
   pendant: {
     120: {
       rare:      RING_120_RARE,
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: RING_120_LEGENDARY,
+      rareLine23Extra: PENDANT_120_RARE_LINE23_EXTRA,
     },
   },
   // 臉部裝飾 Lv110+ 附加潛能與戒指 Lv110 完全相同 (MSU API 驗證)
