@@ -40,6 +40,19 @@ export const TITLES = [
       bossDmg: 10,
     },
   },
+  {
+    id: 'holy_pink_beanity',
+    name: 'Holy Pink Beanity',
+    nameKey: 'titles.holy_pink_beanity.name',
+    descriptionKey: 'titles.holy_pink_beanity.description',
+    icon: ASSET('skills/titles/holy_pink_beanity.png'),
+    stats: {
+      allStat: 10,
+      atk: 5,
+      matk: 5,
+      bossDmg: 10,
+    },
+  },
 ]
 
 export const TITLES_BY_ID = Object.fromEntries(TITLES.map((t) => [t.id, t]))

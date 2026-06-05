@@ -331,6 +331,10 @@
     "mulung_600y_inner_power": {
       "name": "One with 600 Years of Inner Power",
       "description": "稱號(武陵道場職業第一名):全屬性 +15、ATT / MATK +9、最大 HP / MP +400、Boss 傷害 +10%。"
+    },
+    "holy_pink_beanity": {
+      "name": "Holy Pink Beanity",
+      "description": "稱號:全屬性 +10、ATT / MATK +5、Boss 傷害 +10%。"
     }
   },
   "hyperSkill": {
@@ -445,6 +449,9 @@
     },
     "absolab_thief": {
       "name": "AbsoLab Set (盜賊)"
+    },
+    "ifias_treasure": {
+      "name": "Ifia's Treasure Set"
     },
     "arcane_umbra_thief": {
       "name": "Arcane Umbra Set (盜賊)"

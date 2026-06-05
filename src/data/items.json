@@ -529,6 +529,31 @@
       "imageUrl": "/msucp/images/items/1152178.png"
     },
     {
+      "id": "shoulder_royal_black_metal",
+      "name": "Royal Black Metal Shoulder",
+      "nameEn": "Royal Black Metal Shoulder",
+      "type": "shoulder",
+      "level": 120,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "def": 100,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1152170.png"
+    },
+    {
       "id": "cape_absolab_mage_cape",
       "name": "AbsoLab Mage Cape",
       "nameEn": "AbsoLab Mage Cape",
@@ -730,6 +755,30 @@
       "imageUrl": "/msucp/images/items/1182200.png"
     },
     {
+      "id": "badge_crystal_ventus",
+      "name": "Crystal Ventus Badge",
+      "nameEn": "Crystal Ventus Badge",
+      "type": "badge",
+      "level": 130,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 5,
+        "matk": 5,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1182087.png"
+    },
+    {
       "id": "emblem_gold_maple_leaf",
       "name": "Gold Maple Leaf Emblem",
       "nameEn": "Gold Maple Leaf Emblem",
@@ -860,6 +909,31 @@
         "mp": 100
       },
       "imageUrl": "/msucp/images/items/1032136.png"
+    },
+    {
+      "id": "earring_ifias",
+      "name": "Ifia's Earrings",
+      "nameEn": "Ifia's Earrings",
+      "type": "earring",
+      "level": 110,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 10,
+      "stats": {
+        "def": 120,
+        "str": 1,
+        "dex": 1,
+        "int": 1,
+        "luk": 1,
+        "hp": 150,
+        "mp": 150
+      },
+      "imageUrl": "/msucp/images/items/1032227.png"
     },
     {
       "id": "face_condensed_power_crystal",

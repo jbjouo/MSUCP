@@ -144,6 +144,19 @@ export const ITEM_SETS = [
     ],
   },
   {
+    id: 'ifias_treasure',
+    nameKey: 'itemSet.ifias_treasure.name',
+    members: [
+      { id: 'ring_noble_ifia', name: "Noble Ifia's Ring", type: 'ring' },
+      { id: 'earring_ifias', name: "Ifia's Earrings", type: 'earring' },
+      { id: 'pendant_ifias_necklace', name: "Ifia's Necklace", type: 'pendant' },
+    ],
+    tiers: [
+      { count: 2, stats: { allStat: 5, atk: 2, matk: 2 } },
+      { count: 3, stats: { hpPct: 5, mpPct: 5, atk: 3, matk: 3 } },
+    ],
+  },
+  {
     id: 'arcane_umbra_thief',
     nameKey: 'itemSet.arcane_umbra_thief.name',
     members: [

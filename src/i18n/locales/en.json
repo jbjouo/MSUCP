@@ -331,6 +331,10 @@
     "mulung_600y_inner_power": {
       "name": "One with 600 Years of Inner Power",
       "description": "Title granted to the 1st-ranked character of each job in Mu Lung Dojo — all-stat +15, ATT / MATK +9, Max HP / MP +400, Boss Damage +10%."
+    },
+    "holy_pink_beanity": {
+      "name": "Holy Pink Beanity",
+      "description": "All Stats +10, Attack Power / Magic ATT +5, Boss Damage +10%."
     }
   },
   "hyperSkill": {
@@ -445,6 +449,9 @@
     },
     "absolab_thief": {
       "name": "AbsoLab Set (Thief)"
+    },
+    "ifias_treasure": {
+      "name": "Ifia's Treasure Set"
     },
     "arcane_umbra_thief": {
       "name": "Arcane Umbra Set (Thief)"
