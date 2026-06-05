@@ -148,7 +148,7 @@ export const ITEM_SETS = [
     id: 'ifias_treasure',
     nameKey: 'itemSet.ifias_treasure.name',
     members: [
-      { id: 'ring_noble_ifia', name: "Noble Ifia's Ring", type: 'ring' },
+      { id: 'ring_ifias', name: "Ifia's Ring", type: 'ring' },
       { id: 'earring_ifias', name: "Ifia's Earrings", type: 'earring' },
       { id: 'pendant_ifias_necklace', name: "Ifia's Necklace", type: 'pendant' },
     ],
