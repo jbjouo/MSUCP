@@ -142,6 +142,30 @@
       "imageUrl": "/msucp/images/items/1452257.png"
     },
     {
+      "id": "wpn_arcane_umbra_dagger",
+      "name": "Arcane Umbra Dagger",
+      "nameEn": "Arcane Umbra Dagger",
+      "type": "weapon",
+      "subType": "dagger",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 276,
+        "dex": 100,
+        "luk": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1332279.png"
+    },
+    {
       "id": "ring_guardian_angel",
       "name": "Guardian Angel Ring",
       "nameEn": "Guardian Angel Ring",
@@ -317,6 +341,28 @@
       "imageUrl": "/msucp/images/items/1042388.png"
     },
     {
+      "id": "top_eagle_eye_assassin_shirt",
+      "name": "Eagle Eye Assassin Shirt",
+      "nameEn": "Eagle Eye Assassin Shirt",
+      "type": "top",
+      "level": 150,
+      "req": {
+        "luk": 450
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "dex": 30,
+        "luk": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1042257.png"
+    },
+    {
       "id": "pendant_mechanator",
       "name": "Mechanator Pendant",
       "nameEn": "Mechanator Pendant",
@@ -416,17 +462,38 @@
       "imageUrl": "/msucp/images/items/1022278.png"
     },
     {
-      "id": "shoulder_absolab_mage_shoulder",
-      "name": "AbsoLab Mage Shoulder",
-      "nameEn": "AbsoLab Mage Shoulder",
-      "type": "shoulder",
-      "level": 160,
+      "id": "eye_black_bean_mark",
+      "name": "Black Bean Mark",
+      "nameEn": "Black Bean Mark",
+      "type": "eye",
+      "level": 135,
       "classes": [
         "warrior",
         "magician",
         "bowman",
         "thief",
         "pirate"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "def": 120,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1022232.png"
+    },
+    {
+      "id": "shoulder_absolab_mage_shoulder",
+      "name": "AbsoLab Mage Shoulder",
+      "nameEn": "AbsoLab Mage Shoulder",
+      "type": "shoulder",
+      "level": 160,
+      "classes": [
+        "magician"
       ],
       "maxStars": 25,
       "stats": {
@@ -441,17 +508,34 @@
       "imageUrl": "/msucp/images/items/1152176.png"
     },
     {
+      "id": "shoulder_absolab_thief_shoulder",
+      "name": "AbsoLab Thief Shoulder",
+      "nameEn": "AbsoLab Thief Shoulder",
+      "type": "shoulder",
+      "level": 160,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "def": 100,
+        "str": 14,
+        "dex": 14,
+        "int": 14,
+        "luk": 14
+      },
+      "imageUrl": "/msucp/images/items/1152178.png"
+    },
+    {
       "id": "cape_absolab_mage_cape",
       "name": "AbsoLab Mage Cape",
       "nameEn": "AbsoLab Mage Cape",
       "type": "cape",
       "level": 160,
       "classes": [
-        "warrior",
-        "magician",
-        "bowman",
-        "thief",
-        "pirate"
+        "magician"
       ],
       "maxStars": 25,
       "stats": {
@@ -464,6 +548,27 @@
         "luk": 15
       },
       "imageUrl": "/msucp/images/items/1102794.png"
+    },
+    {
+      "id": "cape_arcane_umbra_thief_cape",
+      "name": "Arcane Umbra Thief Cape",
+      "nameEn": "Arcane Umbra Thief Cape",
+      "type": "cape",
+      "level": 200,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "def": 450,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35
+      },
+      "imageUrl": "/msucp/images/items/1102943.png"
     },
     {
       "id": "shoes_absolab_mage_shoes",
@@ -489,6 +594,29 @@
       "imageUrl": "/msucp/images/items/1073032.png"
     },
     {
+      "id": "shoes_absolab_bandit_shoes",
+      "name": "AbsoLab Bandit Shoes",
+      "nameEn": "AbsoLab Bandit Shoes",
+      "type": "shoes",
+      "level": 160,
+      "req": {
+        "luk": 480
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "def": 150,
+        "dex": 20,
+        "luk": 20,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073034.png"
+    },
+    {
       "id": "glove_absolab_mage_gloves",
       "name": "AbsoLab Mage Gloves",
       "nameEn": "AbsoLab Mage Gloves",
@@ -508,6 +636,27 @@
         "def": 150
       },
       "imageUrl": "/msucp/images/items/1082637.png"
+    },
+    {
+      "id": "glove_absolab_bandit_gloves",
+      "name": "AbsoLab Bandit Gloves",
+      "nameEn": "AbsoLab Bandit Gloves",
+      "type": "glove",
+      "level": 160,
+      "req": {
+        "luk": 480
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "dex": 20,
+        "luk": 20,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1082639.png"
     },
     {
       "id": "medal_seven_day_monster_parker",
@@ -606,6 +755,24 @@
       "imageUrl": "/msucp/images/items/1352233.png"
     },
     {
+      "id": "secondary_evolving_slashing_shadow",
+      "name": "Evolving Slashing Shadow",
+      "nameEn": "Evolving Slashing Shadow",
+      "type": "secondary",
+      "subType": "dagger_scabbard",
+      "level": 100,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 5,
+        "dex": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352283.png"
+    },
+    {
       "id": "earring_dea_sidus",
       "name": "Dea Sidus Earring",
       "nameEn": "Dea Sidus Earring",
@@ -629,6 +796,33 @@
         "luk": 5
       },
       "imageUrl": "/msucp/images/items/1032241.png"
+    },
+    {
+      "id": "earring_will_o_the_wisps",
+      "name": "Will o' the Wisps",
+      "nameEn": "Will o' the Wisps",
+      "type": "earring",
+      "level": 130,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "def": 100,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "hp": 100,
+        "mp": 100
+      },
+      "imageUrl": "/msucp/images/items/1032136.png"
     },
     {
       "id": "face_condensed_power_crystal",
@@ -733,6 +927,30 @@
       "imageUrl": "/msucp/images/items/1003798.png"
     },
     {
+      "id": "hat_royal_assassin_hood",
+      "name": "Royal Assassin Hood",
+      "nameEn": "Royal Assassin Hood",
+      "type": "hat",
+      "level": 150,
+      "req": {
+        "luk": 450
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "def": 300,
+        "dex": 40,
+        "luk": 40,
+        "hp": 360,
+        "mp": 360,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1003800.png"
+    },
+    {
       "id": "bottom_trixter_dunwitch_pants",
       "name": "Trixter Dunwitch Pants",
       "nameEn": "Trixter Dunwitch Pants",
@@ -753,6 +971,28 @@
         "ignoreDef": 5
       },
       "imageUrl": "/msucp/images/items/1062166.png"
+    },
+    {
+      "id": "bottom_trixter_assassin_pants",
+      "name": "Trixter Assassin Pants",
+      "nameEn": "Trixter Assassin Pants",
+      "type": "bottom",
+      "level": 150,
+      "req": {
+        "luk": 450
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "dex": 30,
+        "luk": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1062168.png"
     },
     {
       "id": "pendant_dominator",

@@ -439,6 +439,15 @@
     },
     "pitched_boss": {
       "name": "Pitched Boss Set"
+    },
+    "root_abyss_thief": {
+      "name": "Root Abyss Set (Thief)"
+    },
+    "absolab_thief": {
+      "name": "AbsoLab Set (Thief)"
+    },
+    "arcane_umbra_thief": {
+      "name": "Arcane Umbra Set (Thief)"
     }
   },
   "hyperStat": {

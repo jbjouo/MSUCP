@@ -88,6 +88,9 @@ export const REFERENCE_WEAPON_DATA = {
     150: { atk: 160 },              // Fafnir Wind Chaser
     200: { atk: 276 },              // Arcane Umbra Bow
   },
+  dagger: {
+    200: { atk: 276 },              // Arcane Umbra Dagger
+  },
 }
 
 // 職業 → CP 基準武器(subType + 主要 attKey)

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEquipment } from '../composables/useEquipment.js'
+import { useCharacter } from '../composables/useCharacter.js'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -10,6 +11,7 @@ const emit = defineEmits(['close', 'hover'])
 
 const { t } = useI18n()
 const { CATALOG, addToInventory } = useEquipment()
+const { state: charState } = useCharacter()
 
 const keyword = ref('')
 const typeFilter = ref('all')
@@ -29,7 +31,9 @@ const typeOptions = computed(() => {
 
 const filtered = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
+  const branch = charState.branch
   return CATALOG.filter((it) => {
+    if (it.classes && it.classes.length > 0 && !it.classes.includes(branch)) return false
     if (typeFilter.value !== 'all' && it.type !== typeFilter.value) return false
     if (!kw) return true
     return (

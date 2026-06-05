@@ -2,7 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StarBar from './StarBar.vue'
-import { setsForItem, countActiveSet } from '../constants/itemSets.js'
+import { setsForItem, countActiveSet, getMemberDisplay } from '../constants/itemSets.js'
 import { ITEMS_BY_ID, useEquipment } from '../composables/useEquipment.js'
 import { useCpDamage } from '../composables/useCpDamage.js'
 import { computeStarStats } from '../constants/starForce.js'
@@ -84,8 +84,7 @@ const matchedClasses = computed(() => {
 })
 
 const showClassBar = computed(() => {
-  // 只有武器 / 副手會顯示職業列
-  return item.value?.type === 'weapon' || item.value?.type === 'secondary'
+  return !!item.value
 })
 
 // 顯示 stat 的順序與要轉 % 的 key
@@ -420,13 +419,13 @@ function formatTierStats(stats) {
     <header class="tip-set__head">{{ t(set.nameKey) }}</header>
     <ul class="tip-set__members">
       <li
-        v-for="id in set.itemIds.filter((i) => ITEMS_BY_ID[i])"
-        :key="id"
+        v-for="m in set.members"
+        :key="m.id"
         class="tip-set__member"
-        :class="{ 'tip-set__member--active': equippedIds.has(id) }"
+        :class="{ 'tip-set__member--active': equippedIds.has(m.id) }"
       >
-        <span class="tip-set__name">{{ ITEMS_BY_ID[id].name }}</span>
-        <span class="tip-set__slot">({{ t(`equipment.types.${ITEMS_BY_ID[id].type}`) }})</span>
+        <span class="tip-set__name">{{ getMemberDisplay(m).name }}</span>
+        <span class="tip-set__slot">({{ t(`equipment.types.${getMemberDisplay(m).type}`) }})</span>
       </li>
     </ul>
     <div class="tip-set__tiers">

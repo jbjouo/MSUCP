@@ -1215,7 +1215,7 @@ function onPanelOut(e) {
         <div class="stat-row">
           <div class="stat-cell" data-stat="matk" data-label="Magic ATT">
             <span class="k">Magic ATT</span>
-            <span class="v v--hl"><span class="tri">▲</span> {{ fmtNum(statTotal('matk')) }}</span>
+            <span class="v">{{ fmtNum(statTotal('matk')) }}</span>
           </div>
           <div class="stat-cell" data-stat="critDmg" data-label="Critical Damage">
             <span class="k">Critical Damage</span>

@@ -439,6 +439,15 @@
     },
     "pitched_boss": {
       "name": "Pitched Boss Set"
+    },
+    "root_abyss_thief": {
+      "name": "深淵 BOSS 套(盜賊)"
+    },
+    "absolab_thief": {
+      "name": "AbsoLab Set (盜賊)"
+    },
+    "arcane_umbra_thief": {
+      "name": "Arcane Umbra Set (盜賊)"
     }
   },
   "hyperStat": {
