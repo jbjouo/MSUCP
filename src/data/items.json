@@ -1584,6 +1584,225 @@
         "ignoreDef": 20
       },
       "imageUrl": "/msucp/images/items/1482221.png"
+    },
+    {
+      "id": "cape_raven_horn_chaser_cape",
+      "apiItemId": 1102278,
+      "name": "Raven Horn Chaser Cape",
+      "nameEn": "Raven Horn Chaser Cape",
+      "type": "cape",
+      "level": 140,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "dex": 7,
+        "luk": 7,
+        "def": 150,
+        "moveSpeed": 10,
+        "jump": 5
+      },
+      "imageUrl": "/msucp/images/items/1102278.png"
+    },
+    {
+      "id": "hat_raven_horn_chaser_hat",
+      "apiItemId": 1003175,
+      "name": "Raven Horn Chaser Hat",
+      "nameEn": "Raven Horn Chaser Hat",
+      "type": "hat",
+      "level": 140,
+      "req": {
+        "luk": 420
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "dex": 25,
+        "luk": 25,
+        "hp": 300,
+        "mp": 300,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1003175.png"
+    },
+    {
+      "id": "shoulder_raven_horn_chaser_shoulder",
+      "apiItemId": 1152112,
+      "name": "Raven Horn Chaser Shoulder",
+      "nameEn": "Raven Horn Chaser Shoulder",
+      "type": "shoulder",
+      "level": 140,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 11,
+        "dex": 11,
+        "int": 11,
+        "luk": 11,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152112.png"
+    },
+    {
+      "id": "shoes_raven_horn_chaser_boots",
+      "apiItemId": 1072488,
+      "name": "Raven Horn Chaser Boots",
+      "nameEn": "Raven Horn Chaser Boots",
+      "type": "shoes",
+      "level": 140,
+      "req": {
+        "luk": 420
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "dex": 15,
+        "luk": 15,
+        "def": 85,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1072488.png"
+    },
+    {
+      "id": "glove_raven_horn_chaser_gloves",
+      "apiItemId": 1082298,
+      "name": "Raven Horn Chaser Gloves",
+      "nameEn": "Raven Horn Chaser Gloves",
+      "type": "glove",
+      "level": 140,
+      "req": {
+        "luk": 420
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "dex": 16,
+        "luk": 16,
+        "hp": 350,
+        "def": 50
+      },
+      "imageUrl": "/msucp/images/items/1082298.png"
+    },
+    {
+      "id": "hat_necromancer_chaser_hat",
+      "apiItemId": 1004217,
+      "name": "Necromancer Chaser Hat",
+      "nameEn": "Necromancer Chaser Hat",
+      "type": "hat",
+      "level": 120,
+      "req": {
+        "luk": 280
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "dex": 4,
+        "luk": 5,
+        "hp": 20,
+        "def": 75
+      },
+      "imageUrl": "/msucp/images/items/1004217.png"
+    },
+    {
+      "id": "belt_enraged_zakum_belt",
+      "apiItemId": 1132296,
+      "name": "Enraged Zakum Belt",
+      "nameEn": "Enraged Zakum Belt",
+      "type": "belt",
+      "level": 150,
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 18,
+        "dex": 18,
+        "int": 18,
+        "luk": 18,
+        "hp": 150,
+        "mp": 150,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1132296.png"
+    },
+    {
+      "id": "emblem_gold_cygnus_emblem",
+      "apiItemId": 1190801,
+      "name": "Gold Cygnus Emblem",
+      "nameEn": "Gold Cygnus Emblem",
+      "type": "emblem",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1190801.png"
+    },
+    {
+      "id": "sec_evolving_ereve_brilliance",
+      "apiItemId": 1352973,
+      "name": "Evolving Ereve Brilliance",
+      "nameEn": "Evolving Ereve Brilliance",
+      "type": "secondary",
+      "subType": "jewel",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 5,
+        "matk": 5,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352973.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_guards",
+      "apiItemId": 1472265,
+      "name": "Arcane Umbra Guards",
+      "nameEn": "Arcane Umbra Guards",
+      "type": "weapon",
+      "subType": "claw",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 149,
+        "dex": 100,
+        "luk": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1472265.png"
     }
   ]
 }

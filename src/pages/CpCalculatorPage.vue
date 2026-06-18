@@ -62,6 +62,54 @@ const {
 } = useCpToggles()
 const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
+import { useBattleRecord } from '../composables/useBattleRecord.js'
+import { combineIgnorePct } from '../utils/numerics.js'
+const { hasRecord, recordAvg } = useBattleRecord()
+const showSimDps = ref(false)
+
+const simAttStats = computed(() => {
+  if (!showSimDps.value || !hasRecord.value) return null
+  const avg = recordAvg.value
+  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
+  const primary = primaryStat.value
+  const secondary = SECONDARY_STAT[primary] || 'dex'
+
+  const primaryVal = statTotal(primary) + (avg[primary] || 0)
+  const secondaryVal = statTotal(secondary) + (avg[secondary] || 0)
+  const attKey = meta.usesMatk ? 'matk' : 'atk'
+  const attVal = statTotal(attKey) + (avg[attKey] || 0)
+  const dmgPct = statTotal('dmgPct') + (avg.dmgPct || 0)
+  const bossDmg = statTotal('bossDmg') + (avg.bossDmg || 0)
+  const finalDmg = statTotal('finalDmg') + (avg.finalDmgPct || 0)
+  const critDmg = statTotal('critDmg') + (avg.critDmg || 0)
+
+  const baseIgnoreDef = statTotal('ignoreDef')
+  const buffIgnoreDef = avg.ignoreDef || 0
+  const simIgnoreDef = combineIgnorePct(baseIgnoreDef, buffIgnoreDef)
+
+  let mastery = meta.mastery
+  for (const buff of BUFFS) {
+    if (activeBuffs.value.has(buff.id)) mastery += buff.mastery || 0
+  }
+
+  const statFactor = primaryVal * 4 + secondaryVal
+  const base = statFactor * (attVal / 100) * meta.weaponConst
+  const fm = 1 + finalDmg / 100
+  const basic = base * (1 + dmgPct / 100) * fm
+  const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
+  const bossMax = boss * (1.5 + critDmg / 100)
+  const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100)
+  const bossAvg = (bossMax + bossMin) / 2
+
+  return {
+    basic: Math.round(basic),
+    boss: Math.round(boss),
+    bossMax: Math.round(bossMax),
+    bossMin: Math.round(bossMin),
+    bossAvg: Math.round(bossAvg),
+    ignoreDef: Math.round(simIgnoreDef * 100) / 100,
+  }
+})
 const {
   statContributions: collectionContribs,
   setBonusTotal: collectionSetBonus,
@@ -1183,6 +1231,9 @@ function onPanelOut(e) {
           <div class="stat-cell" data-stat="attStats" data-label="ATT STATS">
             <span class="k">ATT STATS</span>
             <span class="v v--hl"><span class="tri">▲</span> {{ fmtNum(attStatsInfo.basic) }}</span>
+            <span v-if="simAttStats" class="v v--sim">
+              {{ fmtNum(simAttStats.basic) }} (+{{ fmtNum(simAttStats.basic - attStatsInfo.basic) }})
+            </span>
           </div>
           <div class="stat-cell" data-stat="dmgPct" data-label="Damage">
             <span class="k">Damage</span>
@@ -1203,6 +1254,9 @@ function onPanelOut(e) {
           <div class="stat-cell" data-stat="ignoreDef" data-label="Ignore Defense">
             <span class="k">Ignore Defense</span>
             <span class="v">{{ fmtPct(statTotal('ignoreDef')) }}</span>
+            <span v-if="simAttStats && simAttStats.ignoreDef !== statTotal('ignoreDef')" class="v v--sim">
+              → {{ simAttStats.ignoreDef }}%
+            </span>
           </div>
           <div class="stat-cell" data-stat="normalMobDmg" data-label="Normal Enemy Damage">
             <span class="k">Normal Enemy Damage</span>
@@ -1335,6 +1389,17 @@ function onPanelOut(e) {
 
     <!-- 側欄 (Skill + Buff 雙面板) -->
     <aside class="side-panel">
+      <div v-if="charState.job === 'archmageFP' && hasRecord" class="sim-dps-toggle">
+        <label class="sim-dps-toggle__label">
+          <input type="checkbox" v-model="showSimDps" class="sim-dps-toggle__input" />
+          <span>{{ t('cp.simDps.toggle') }}</span>
+        </label>
+        <div v-if="showSimDps" class="sim-dps-toggle__detail">
+          <span v-for="key in ['dmgPct','bossDmg','finalDmgPct','ignoreDef','critDmg','critRate','str','dex','int','luk','atk','matk']" :key="key">
+            <template v-if="recordAvg[key]">{{ key }}: +{{ recordAvg[key] }}{{ ['str','dex','int','luk','atk','matk'].includes(key) ? '' : '%' }}</template>
+          </span>
+        </div>
+      </div>
       <section class="buff-panel">
         <header class="buff-panel__head">{{ t('cp.skillHeader') }}</header>
         <div class="buff-grid">
@@ -1420,6 +1485,7 @@ function onPanelOut(e) {
           <div class="stat-tip__row">
             <span class="stat-tip__label">{{ t('cp.attStats.boss') }}</span>
             <span class="stat-tip__val">{{ fmtNum(attStatsInfo.boss) }}</span>
+            <span v-if="simAttStats" class="stat-tip__sim">({{ fmtNum(simAttStats.boss) }})</span>
           </div>
         </div>
 
@@ -1428,14 +1494,17 @@ function onPanelOut(e) {
           <div class="stat-tip__row">
             <span class="stat-tip__label">{{ t('cp.attStats.bossMax') }}</span>
             <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossMax) }}</span>
+            <span v-if="simAttStats" class="stat-tip__sim">({{ fmtNum(simAttStats.bossMax) }})</span>
           </div>
           <div class="stat-tip__row">
             <span class="stat-tip__label">{{ t('cp.attStats.bossAvg') }}</span>
             <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossAvg) }}</span>
+            <span v-if="simAttStats" class="stat-tip__sim">({{ fmtNum(simAttStats.bossAvg) }})</span>
           </div>
           <div class="stat-tip__row">
             <span class="stat-tip__label">{{ t('cp.attStats.bossMin') }}</span>
             <span class="stat-tip__val">{{ fmtNum(attStatsInfo.bossMin) }}</span>
+            <span v-if="simAttStats" class="stat-tip__sim">({{ fmtNum(simAttStats.bossMin) }})</span>
           </div>
         </div>
       </div>
@@ -1901,6 +1970,7 @@ function onPanelOut(e) {
   white-space: nowrap;
 }
 .v--hl { color: #ffc857; }
+.v--sim { color: #ff6040; font-size: 0.72rem; font-weight: 600; }
 .tri {
   color: #ffc857;
   font-size: 0.65rem;
@@ -1938,6 +2008,36 @@ function onPanelOut(e) {
   gap: 10px;
   width: 212px;
   align-self: flex-start;
+}
+.sim-dps-toggle {
+  background: linear-gradient(180deg, #2a1a1a 0%, #1a1010 100%);
+  border: 1px solid #5c2020;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sim-dps-toggle__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff9060;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sim-dps-toggle__input {
+  accent-color: #e86040;
+}
+.sim-dps-toggle__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #ff6040;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: right;
 }
 
 /* Buff / Skill 子面板 (共用樣式) */
@@ -2088,6 +2188,12 @@ function onPanelOut(e) {
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
+}
+.stat-tip__sim {
+  color: #ff6040;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-left: 4px;
 }
 .stat-tip__empty {
   color: #8ea6b8;

@@ -11,7 +11,7 @@ const emit = defineEmits(['close', 'hover'])
 
 const { t } = useI18n()
 const { CATALOG, addToInventory } = useEquipment()
-const { state: charState } = useCharacter()
+const { combatClass } = useCharacter()
 
 const keyword = ref('')
 const typeFilter = ref('all')
@@ -31,9 +31,9 @@ const typeOptions = computed(() => {
 
 const filtered = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
-  const branch = charState.branch
+  const cc = combatClass.value
   return CATALOG.filter((it) => {
-    if (it.classes && it.classes.length > 0 && !it.classes.includes(branch)) return false
+    if (it.classes && it.classes.length > 0 && !it.classes.includes(cc)) return false
     if (typeFilter.value !== 'all' && it.type !== typeFilter.value) return false
     if (!kw) return true
     return (

@@ -50,6 +50,7 @@
       "duration": "戰鬥時間",
       "sec": "秒",
       "start": "開始測量",
+      "startRecord": "開始測量並記錄",
       "stop": "停止",
       "reset": "重設"
     },
@@ -1163,6 +1164,9 @@
     "skillHeader": "技能",
     "buffHeader": "增益",
     "titleHeader": "稱號",
+    "simDps": {
+      "toggle": "戰鬥模擬 DPS"
+    },
     "tip": {
       "flatTotal": "基本數值統計",
       "fixedTotal": "固定值統計",

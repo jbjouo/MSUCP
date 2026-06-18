@@ -50,6 +50,7 @@
       "duration": "Duration",
       "sec": "sec",
       "start": "Start",
+      "startRecord": "Start & Record",
       "stop": "Stop",
       "reset": "Reset"
     },
@@ -1163,6 +1164,9 @@
     "skillHeader": "SKILL",
     "buffHeader": "BUFF",
     "titleHeader": "TITLE",
+    "simDps": {
+      "toggle": "Battle Sim DPS"
+    },
     "tip": {
       "flatTotal": "Flat Total",
       "fixedTotal": "Fixed Total",

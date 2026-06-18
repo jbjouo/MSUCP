@@ -14,6 +14,8 @@ import { visibleBuffsForJob, BATTLE_BUFFS } from '../constants/battleBuffs.js'
 const BUFFS_BY_ID = Object.fromEntries(BATTLE_BUFFS.map((b) => [b.id, b]))
 import { useCharacter } from '../composables/useCharacter.js'
 
+import { useBattleRecord } from '../composables/useBattleRecord.js'
+
 const {
   state,
   sortedSkills,
@@ -23,7 +25,21 @@ const {
   reset,
   simulateSingleCast,
   toggleSkill,
+  setCallbacks,
 } = useBattleSim()
+
+const { state: recordState, startRecording, onTick: recordTick, stopRecording } = useBattleRecord()
+
+function startWithRecord() {
+  startRecording()
+  setCallbacks(recordTick, stopRecording)
+  start()
+}
+
+function stopSim() {
+  stop()
+  setCallbacks(null, null)
+}
 
 const { state: vmState } = useVMatrix()
 const { state: charStateBattle } = useCharacter()
@@ -514,10 +530,18 @@ const timelineRows = computed(() => {
             ⏵ {{ t('battle.controls.start') }}
           </button>
           <button
-            v-else
+            v-if="!state.running"
+            class="bp-start bp-start--record"
+            type="button"
+            @click="startWithRecord"
+          >
+            ⏵ {{ t('battle.controls.startRecord') }}
+          </button>
+          <button
+            v-if="state.running"
             class="bp-stop"
             type="button"
-            @click="stop"
+            @click="stopSim"
           >
             ⏸ {{ t('battle.controls.stop') }}
           </button>
@@ -1684,6 +1708,12 @@ const timelineRows = computed(() => {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 .bp-start:hover { filter: brightness(1.1); }
+.bp-start--record {
+  background: linear-gradient(180deg, #e86040 0%, #c04030 100%);
+  color: #fff;
+  border-color: #8f2020;
+  font-size: 0.82rem;
+}
 .bp-stop {
   background: linear-gradient(180deg, #d9563a 0%, #9b3522 100%);
   color: #2a110a;

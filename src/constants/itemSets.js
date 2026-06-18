@@ -118,6 +118,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.boss_accessory.name',
     members: [
       { id: 'face_condensed_power_crystal', name: 'Condensed Power Crystal', type: 'face' },
+      { id: 'belt_enraged_zakum_belt', name: 'Enraged Zakum Belt', type: 'belt' },
       { id: 'eye_aquatic_letter', name: 'Aquatic Letter Eye Accessory', type: 'eye' },
       { id: 'eye_black_bean_mark', name: 'Black Bean Mark', type: 'eye' },
       { id: 'eye_papulatus_mark', name: 'Papulatus Mark', type: 'eye' },
@@ -178,6 +179,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_thief.name',
     members: [
       { id: 'shoes_arcane_umbra_thief_shoes', name: 'Arcane Umbra Thief Shoes', type: 'shoes' },
+      { id: 'wpn_arcane_umbra_guards', name: 'Arcane Umbra Guards', type: 'weapon' },
       { id: 'glove_arcane_umbra_thief_gloves', name: 'Arcane Umbra Thief Gloves', type: 'glove' },
       { id: 'cape_arcane_umbra_thief_cape', name: 'Arcane Umbra Thief Cape', type: 'cape' },
       { id: 'wpn_arcane_umbra_dagger', name: 'Arcane Umbra Dagger', type: 'weapon' },

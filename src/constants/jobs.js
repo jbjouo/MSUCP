@@ -1,86 +1,104 @@
-// 職業分支 — 新楓之谷 N 冒險家線為主 (後續可擴充)
-// 欄位:
+// 職業系統三層架構:
+//   classGroup  : 大類 (explorer / cygnus / resistance / heroes / ...)
+//   combatClass : 職業分類 (warrior / magician / bowman / thief / pirate)
+//   job (key)   : 具體職業 (archmageFP / shadower / nightwalker / ...)
+//
+// 裝備的 classes 欄位對應 combatClass,跨大類共用 (盜賊裝 = 冒險盜賊 + 夜行者)
+//
+// 其他欄位:
 //   primary   : 主屬性 key (對應 equipment.stats.str/dex/int/luk)
 //   linkSkill : 該職業原生擁有的連結技能 id (對應 data/linkSkills.js)
+
+export const COMBAT_CLASSES = ['warrior', 'magician', 'bowman', 'thief', 'pirate']
 
 export const JOB_BRANCHES = [
   {
     key: 'beginner',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'beginner', primary: 'str' },
+      { key: 'beginner', primary: 'str', combatClass: 'warrior' },
     ],
   },
   {
     key: 'warrior',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'hero',        primary: 'str', linkSkill: 'invincible_belief' },
-      { key: 'paladin',     primary: 'str', linkSkill: 'invincible_belief' },
-      { key: 'darkKnight',  primary: 'str', linkSkill: 'invincible_belief' },
+      { key: 'hero',        primary: 'str', combatClass: 'warrior', linkSkill: 'invincible_belief' },
+      { key: 'paladin',     primary: 'str', combatClass: 'warrior', linkSkill: 'invincible_belief' },
+      { key: 'darkKnight',  primary: 'str', combatClass: 'warrior', linkSkill: 'invincible_belief' },
     ],
   },
   {
     key: 'magician',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'archmageFP',  primary: 'int', linkSkill: 'empirical_knowledge' },
-      { key: 'archmageIL',  primary: 'int', linkSkill: 'empirical_knowledge' },
-      { key: 'bishop',      primary: 'int', linkSkill: 'empirical_knowledge' },
+      { key: 'archmageFP',  primary: 'int', combatClass: 'magician', linkSkill: 'empirical_knowledge' },
+      { key: 'archmageIL',  primary: 'int', combatClass: 'magician', linkSkill: 'empirical_knowledge' },
+      { key: 'bishop',      primary: 'int', combatClass: 'magician', linkSkill: 'empirical_knowledge' },
     ],
   },
   {
     key: 'bowman',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'bowmaster',   primary: 'dex', linkSkill: 'adventurers_curiosity' },
-      { key: 'marksman',    primary: 'dex', linkSkill: 'adventurers_curiosity' },
-      { key: 'pathfinder',  primary: 'dex', linkSkill: 'adventurers_curiosity' },
+      { key: 'bowmaster',   primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
+      { key: 'marksman',    primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
+      { key: 'pathfinder',  primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
     ],
   },
   {
     key: 'thief',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'nightlord',   primary: 'luk', linkSkill: 'thiefs_cunning' },
-      { key: 'shadower',    primary: 'luk', linkSkill: 'thiefs_cunning' },
-      { key: 'dualblade',   primary: 'luk', linkSkill: 'thiefs_cunning' },
+      { key: 'nightlord',   primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
+      { key: 'shadower',    primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
+      { key: 'dualblade',   primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
     ],
   },
   {
     key: 'pirate',
+    classGroup: 'explorer',
     jobs: [
-      { key: 'buccaneer',   primary: 'str', linkSkill: 'pirate_blessing' },
-      { key: 'corsair',     primary: 'dex', linkSkill: 'pirate_blessing' },
-      { key: 'cannoneer',   primary: 'str', linkSkill: 'pirate_blessing' },
+      { key: 'buccaneer',   primary: 'str', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
+      { key: 'corsair',     primary: 'dex', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
+      { key: 'cannoneer',   primary: 'str', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
     ],
   },
   {
     key: 'cygnus',
+    classGroup: 'cygnus',
     jobs: [
-      { key: 'dawnwarrior',    primary: 'str', linkSkill: 'cygnus_blessing' },
-      { key: 'blazewizard',    primary: 'int', linkSkill: 'cygnus_blessing' },
-      { key: 'windarcher',     primary: 'dex', linkSkill: 'cygnus_blessing' },
-      { key: 'nightwalker',    primary: 'luk', linkSkill: 'cygnus_blessing' },
-      { key: 'thunderbreaker', primary: 'str', linkSkill: 'cygnus_blessing' },
+      { key: 'dawnwarrior',    primary: 'str', combatClass: 'warrior', linkSkill: 'cygnus_blessing' },
+      { key: 'blazewizard',    primary: 'int', combatClass: 'magician', linkSkill: 'cygnus_blessing' },
+      { key: 'windarcher',     primary: 'dex', combatClass: 'bowman', linkSkill: 'cygnus_blessing' },
+      { key: 'nightwalker',    primary: 'luk', combatClass: 'thief', linkSkill: 'cygnus_blessing' },
+      { key: 'thunderbreaker', primary: 'str', combatClass: 'pirate', linkSkill: 'cygnus_blessing' },
     ],
   },
   {
     key: 'mihile',
+    classGroup: 'cygnus',
     jobs: [
-      { key: 'mihile',     primary: 'str', linkSkill: 'knights_watch' },
+      { key: 'mihile',     primary: 'str', combatClass: 'warrior', linkSkill: 'knights_watch' },
     ],
   },
   {
     key: 'heroes',
+    classGroup: 'heroes',
     jobs: [
-      { key: 'aran',       primary: 'str', linkSkill: 'combo_kill_blessing' },
-      { key: 'evan',       primary: 'int', linkSkill: 'rune_persistence' },
-      { key: 'mercedes',   primary: 'dex', linkSkill: 'elven_blessing' },
-      { key: 'phantom',    primary: 'luk', linkSkill: 'phantom_instinct' },
-      { key: 'luminous',   primary: 'int', linkSkill: 'light_wash' },
-      { key: 'shade',      primary: 'str', linkSkill: 'close_call' },
+      { key: 'aran',       primary: 'str', combatClass: 'warrior', linkSkill: 'combo_kill_blessing' },
+      { key: 'evan',       primary: 'int', combatClass: 'magician', linkSkill: 'rune_persistence' },
+      { key: 'mercedes',   primary: 'dex', combatClass: 'bowman', linkSkill: 'elven_blessing' },
+      { key: 'phantom',    primary: 'luk', combatClass: 'thief', linkSkill: 'phantom_instinct' },
+      { key: 'luminous',   primary: 'int', combatClass: 'magician', linkSkill: 'light_wash' },
+      { key: 'shade',      primary: 'str', combatClass: 'pirate', linkSkill: 'close_call' },
     ],
   },
   {
     key: 'flora',
+    classGroup: 'flora',
     jobs: [
-      { key: 'ark', primary: 'str', linkSkill: 'solus' },
+      { key: 'ark', primary: 'str', combatClass: 'pirate', linkSkill: 'solus' },
     ],
   },
 ]
@@ -100,6 +118,14 @@ export function findJob(branchKey, jobKey) {
 export function findBranchByJob(jobKey) {
   for (const branch of JOB_BRANCHES) {
     if (branch.jobs.some((j) => j.key === jobKey)) return branch.key
+  }
+  return null
+}
+
+export function combatClassOf(jobKey) {
+  for (const branch of JOB_BRANCHES) {
+    const job = branch.jobs.find((j) => j.key === jobKey)
+    if (job) return job.combatClass || null
   }
   return null
 }

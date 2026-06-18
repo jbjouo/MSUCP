@@ -4,6 +4,7 @@
 export * from './archmage-fp/index.js'
 export * from './bishop/index.js'
 export * from './buccaneer/index.js'
+export * from './night-walker/index.js'
 export * from './shadower/index.js'
 
 import {
@@ -27,6 +28,17 @@ import {
   BISHOP_HYPER_SKILLS_ALL,
   BISHOP_LINK_SKILLS,
 } from './bishop/index.js'
+
+import {
+  NIGHT_WALKER_SKILLS,
+  NIGHT_WALKER_SIM_SKILLS,
+  NIGHT_WALKER_PASSIVE_SKILLS,
+  NIGHT_WALKER_BUFFS,
+  NIGHT_WALKER_BATTLE_BUFFS,
+  NIGHT_WALKER_VMATRIX_SKILLS,
+  NIGHT_WALKER_HYPER_SKILLS_ALL,
+  NIGHT_WALKER_LINK_SKILLS,
+} from './night-walker/index.js'
 
 import {
   BUCCANEER_SKILLS,
@@ -100,6 +112,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: BUCCANEER_VMATRIX_SKILLS,
     hyper: BUCCANEER_HYPER_SKILLS_ALL,
     link: BUCCANEER_LINK_SKILLS,
+  },
+  {
+    jobKey: 'nightwalker',
+    branchKey: 'cygnus',
+    all: NIGHT_WALKER_SKILLS,
+    sim: NIGHT_WALKER_SIM_SKILLS,
+    passive: NIGHT_WALKER_PASSIVE_SKILLS,
+    buffs: NIGHT_WALKER_BUFFS,
+    battleBuffs: NIGHT_WALKER_BATTLE_BUFFS,
+    vmatrix: NIGHT_WALKER_VMATRIX_SKILLS,
+    hyper: NIGHT_WALKER_HYPER_SKILLS_ALL,
+    link: NIGHT_WALKER_LINK_SKILLS,
   },
 ]
 

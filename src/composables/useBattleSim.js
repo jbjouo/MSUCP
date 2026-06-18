@@ -85,6 +85,9 @@ function makeRng(seed) {
   }
 }
 
+let onTickCallback = null
+let onStopCallback = null
+
 const state = reactive({
   durationSec: 180,
   result: null,
@@ -1045,11 +1048,13 @@ function tick() {
   if (elapsed - lastRefreshMs >= 1000 || elapsed >= totalMs) {
     refreshDerived()
     lastRefreshMs = elapsed
+    if (onTickCallback) onTickCallback(elapsed, state.result)
   }
 
   if (elapsed >= totalMs) {
     // 自然結束 — 與手動 Stop 行為一致 (清實戰 buff / DoT 追蹤)
     state.running = false
+    if (onStopCallback) onStopCallback(state.result)
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
     return
@@ -1128,9 +1133,8 @@ export function useBattleSim() {
     state.running = false
     if (rafId) cancelAnimationFrame(rafId)
     rafId = null
-    // 手動停止 → 強制重算衍生統計一次,確保顯示是停止當下的最新值
     refreshDerived()
-    // 停止 = 結束戰鬥:實戰 buff 與 DoT 追蹤一併清空
+    if (onStopCallback) onStopCallback(state.result)
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
   }
@@ -1398,5 +1402,9 @@ export function useBattleSim() {
     simulateSingleCast,
     toggleSkill,
     skillById: (id) => SKILL_BY_ID[id] || null,
+    setCallbacks(onTick, onStop) {
+      onTickCallback = onTick || null
+      onStopCallback = onStop || null
+    },
   }
 }

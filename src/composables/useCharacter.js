@@ -91,6 +91,7 @@ function reset() {
 
 const currentJob = computed(() => findJob(state.branch, state.job))
 const primaryStat = computed(() => currentJob.value?.primary || 'str')
+const combatClass = computed(() => currentJob.value?.combatClass || 'warrior')
 
 export function useCharacter() {
   return {
@@ -99,6 +100,7 @@ export function useCharacter() {
     reset,
     currentJob,
     primaryStat,
+    combatClass,
     LEVEL_MIN,
     LEVEL_MAX,
     JOB_BRANCHES,
