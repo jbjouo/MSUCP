@@ -20,6 +20,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Local scripts (API tools, not for version control)
+scripts/
+
 # Claude Code local settings (user-specific)
 .claude/settings.local.json
 

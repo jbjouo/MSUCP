@@ -3,6 +3,7 @@
     "description": "裝備基礎資料 — 僅存「基礎數值」;使用者在背包中新增/強化 (星力 / Bonus Stats / 潛能 / 附加潛能) 屬於 entry 實例狀態,不寫回此表",
     "fields": {
       "id": "唯一 ID",
+      "apiItemId": "MSU Open API 的數字 item ID (用於 API 查詢與套裝比對)",
       "name": "中文名稱",
       "nameEn": "英文名稱",
       "type": "裝備類型 (對應 equipmentSlots.js 中 slot.accepts)",
@@ -20,6 +21,7 @@
   "items": [
     {
       "id": "wpn_fafnir_mana_taker",
+      "apiItemId": 1372177,
       "name": "Fafnir Mana Taker",
       "nameEn": "Fafnir Mana Taker",
       "type": "weapon",
@@ -32,7 +34,7 @@
         "magician"
       ],
       "maxStars": 25,
-      "attackSpeed": 4,
+      "attackSpeed": 6,
       "stats": {
         "atk": 119,
         "matk": 201,
@@ -45,6 +47,7 @@
     },
     {
       "id": "wpn_fafnir_mana_crown",
+      "apiItemId": 1382208,
       "name": "Fafnir Mana Crown",
       "nameEn": "Fafnir Mana Crown",
       "type": "weapon",
@@ -57,7 +60,7 @@
         "magician"
       ],
       "maxStars": 25,
-      "attackSpeed": 2,
+      "attackSpeed": 8,
       "stats": {
         "atk": 126,
         "matk": 204,
@@ -70,6 +73,7 @@
     },
     {
       "id": "wpn_fafnir_wind_chaser",
+      "apiItemId": 1452205,
       "name": "Fafnir Wind Chaser",
       "nameEn": "Fafnir Wind Chaser",
       "type": "weapon",
@@ -82,7 +86,7 @@
         "bowman"
       ],
       "maxStars": 25,
-      "attackSpeed": 4,
+      "attackSpeed": 6,
       "stats": {
         "atk": 160,
         "str": 40,
@@ -94,6 +98,7 @@
     },
     {
       "id": "wpn_arcane_umbra_staff",
+      "apiItemId": 1382265,
       "name": "Arcane Umbra Staff",
       "nameEn": "Arcane Umbra Staff",
       "type": "weapon",
@@ -106,7 +111,7 @@
         "magician"
       ],
       "maxStars": 25,
-      "attackSpeed": 2,
+      "attackSpeed": 8,
       "stats": {
         "atk": 218,
         "matk": 353,
@@ -119,6 +124,7 @@
     },
     {
       "id": "wpn_arcane_umbra_wand",
+      "apiItemId": 1372228,
       "name": "Arcane Umbra Wand",
       "nameEn": "Arcane Umbra Wand",
       "type": "weapon",
@@ -131,7 +137,7 @@
         "magician"
       ],
       "maxStars": 25,
-      "attackSpeed": 4,
+      "attackSpeed": 6,
       "stats": {
         "atk": 206,
         "matk": 347,
@@ -144,6 +150,7 @@
     },
     {
       "id": "wpn_arcane_umbra_bow",
+      "apiItemId": 1452257,
       "name": "Arcane Umbra Bow",
       "nameEn": "Arcane Umbra Bow",
       "type": "weapon",
@@ -156,18 +163,20 @@
         "bowman"
       ],
       "maxStars": 25,
-      "attackSpeed": 4,
+      "attackSpeed": 6,
       "stats": {
         "atk": 276,
         "str": 100,
         "dex": 100,
         "bossDmg": 30,
-        "ignoreDef": 20
+        "ignoreDef": 20,
+        "moveSpeed": 19
       },
       "imageUrl": "/msucp/images/items/1452257.png"
     },
     {
       "id": "wpn_arcane_umbra_dagger",
+      "apiItemId": 1332279,
       "name": "Arcane Umbra Dagger",
       "nameEn": "Arcane Umbra Dagger",
       "type": "weapon",
@@ -180,7 +189,7 @@
         "thief"
       ],
       "maxStars": 25,
-      "attackSpeed": 6,
+      "attackSpeed": 4,
       "stats": {
         "atk": 276,
         "dex": 100,
@@ -192,6 +201,7 @@
     },
     {
       "id": "ring_guardian_angel",
+      "apiItemId": 1113313,
       "name": "Guardian Angel Ring",
       "nameEn": "Guardian Angel Ring",
       "type": "ring",
@@ -218,6 +228,7 @@
     },
     {
       "id": "ring_neophyte",
+      "apiItemId": 1113334,
       "name": "Neophyte Ring",
       "nameEn": "Neophyte Ring",
       "type": "ring",
@@ -242,6 +253,7 @@
     },
     {
       "id": "ring_silver_blossom",
+      "apiItemId": 1113149,
       "name": "Silver Blossom Ring",
       "nameEn": "Silver Blossom Ring",
       "type": "ring",
@@ -266,6 +278,7 @@
     },
     {
       "id": "ring_noble_ifia",
+      "apiItemId": 1113282,
       "name": "Noble Ifia's Ring",
       "nameEn": "Noble Ifia's Ring",
       "type": "ring",
@@ -292,6 +305,7 @@
     },
     {
       "id": "pocket_pink_holy_cup",
+      "apiItemId": 1162025,
       "name": "Pink Holy Cup",
       "nameEn": "Pink Holy Cup",
       "type": "pocket",
@@ -318,6 +332,7 @@
     },
     {
       "id": "belt_golden_clover",
+      "apiItemId": 1132272,
       "name": "Golden Clover Belt",
       "nameEn": "Golden Clover Belt",
       "type": "belt",
@@ -345,6 +360,7 @@
     },
     {
       "id": "top_eagle_eye_dunwitch_robe",
+      "apiItemId": 1042388,
       "name": "Eagle Eye Dunwitch Robe",
       "nameEn": "Eagle Eye Dunwitch Robe",
       "type": "top",
@@ -367,6 +383,7 @@
     },
     {
       "id": "top_eagle_eye_assassin_shirt",
+      "apiItemId": 1042257,
       "name": "Eagle Eye Assassin Shirt",
       "nameEn": "Eagle Eye Assassin Shirt",
       "type": "top",
@@ -389,6 +406,7 @@
     },
     {
       "id": "pendant_mechanator",
+      "apiItemId": 1122254,
       "name": "Mechanator Pendant",
       "nameEn": "Mechanator Pendant",
       "type": "pendant",
@@ -416,6 +434,7 @@
     },
     {
       "id": "pendant_chaos_horntail",
+      "apiItemId": 1122076,
       "name": "Chaos Horntail Necklace",
       "nameEn": "Chaos Horntail Necklace",
       "type": "pendant",
@@ -431,16 +450,19 @@
       "stats": {
         "atk": 2,
         "matk": 2,
-        "def": 140,
         "str": 10,
         "dex": 10,
         "int": 10,
-        "luk": 10
+        "luk": 10,
+        "def": 140,
+        "hpPct": 10,
+        "mpPct": 10
       },
       "imageUrl": "/msucp/images/items/1122076.png"
     },
     {
       "id": "hat_absolab_mage_crown",
+      "apiItemId": 1004423,
       "name": "AbsoLab Mage Crown",
       "nameEn": "AbsoLab Mage Crown",
       "type": "hat",
@@ -463,6 +485,7 @@
     },
     {
       "id": "eye_aquatic_letter",
+      "apiItemId": 1022231,
       "name": "Aquatic Letter Eye Accessory",
       "nameEn": "Aquatic Letter Eye Accessory",
       "type": "eye",
@@ -488,6 +511,7 @@
     },
     {
       "id": "eye_magic_eyepatch",
+      "apiItemId": 1022278,
       "name": "Magic Eyepatch",
       "nameEn": "Magic Eyepatch",
       "type": "eye",
@@ -513,6 +537,7 @@
     },
     {
       "id": "eye_black_bean_mark",
+      "apiItemId": 1022232,
       "name": "Black Bean Mark",
       "nameEn": "Black Bean Mark",
       "type": "eye",
@@ -538,6 +563,7 @@
     },
     {
       "id": "shoulder_absolab_mage_shoulder",
+      "apiItemId": 1152176,
       "name": "AbsoLab Mage Shoulder",
       "nameEn": "AbsoLab Mage Shoulder",
       "type": "shoulder",
@@ -559,6 +585,7 @@
     },
     {
       "id": "shoulder_absolab_thief_shoulder",
+      "apiItemId": 1152178,
       "name": "AbsoLab Thief Shoulder",
       "nameEn": "AbsoLab Thief Shoulder",
       "type": "shoulder",
@@ -580,6 +607,7 @@
     },
     {
       "id": "shoulder_royal_black_metal",
+      "apiItemId": 1152170,
       "name": "Royal Black Metal Shoulder",
       "nameEn": "Royal Black Metal Shoulder",
       "type": "shoulder",
@@ -605,6 +633,7 @@
     },
     {
       "id": "cape_absolab_mage_cape",
+      "apiItemId": 1102794,
       "name": "AbsoLab Mage Cape",
       "nameEn": "AbsoLab Mage Cape",
       "type": "cape",
@@ -626,6 +655,7 @@
     },
     {
       "id": "cape_arcane_umbra_thief_cape",
+      "apiItemId": 1102943,
       "name": "Arcane Umbra Thief Cape",
       "nameEn": "Arcane Umbra Thief Cape",
       "type": "cape",
@@ -647,6 +677,7 @@
     },
     {
       "id": "shoes_absolab_mage_shoes",
+      "apiItemId": 1073032,
       "name": "AbsoLab Mage Shoes",
       "nameEn": "AbsoLab Mage Shoes",
       "type": "shoes",
@@ -660,9 +691,9 @@
       "maxStars": 25,
       "stats": {
         "matk": 5,
-        "def": 150,
         "int": 20,
         "luk": 20,
+        "def": 150,
         "moveSpeed": 10,
         "jump": 7
       },
@@ -670,6 +701,7 @@
     },
     {
       "id": "shoes_absolab_bandit_shoes",
+      "apiItemId": 1073034,
       "name": "AbsoLab Bandit Shoes",
       "nameEn": "AbsoLab Bandit Shoes",
       "type": "shoes",
@@ -683,9 +715,9 @@
       "maxStars": 25,
       "stats": {
         "atk": 5,
-        "def": 150,
         "dex": 20,
         "luk": 20,
+        "def": 150,
         "moveSpeed": 10,
         "jump": 7
       },
@@ -693,6 +725,7 @@
     },
     {
       "id": "glove_absolab_mage_gloves",
+      "apiItemId": 1082637,
       "name": "AbsoLab Mage Gloves",
       "nameEn": "AbsoLab Mage Gloves",
       "type": "glove",
@@ -714,6 +747,7 @@
     },
     {
       "id": "glove_arcane_umbra_mage_gloves",
+      "apiItemId": 1082696,
       "name": "Arcane Umbra Mage Gloves",
       "nameEn": "Arcane Umbra Mage Gloves",
       "type": "glove",
@@ -735,6 +769,7 @@
     },
     {
       "id": "glove_absolab_bandit_gloves",
+      "apiItemId": 1082639,
       "name": "AbsoLab Bandit Gloves",
       "nameEn": "AbsoLab Bandit Gloves",
       "type": "glove",
@@ -756,6 +791,7 @@
     },
     {
       "id": "medal_chaos_vellum_crusher",
+      "apiItemId": 1142905,
       "name": "Chaos Vellum Crusher",
       "nameEn": "Chaos Vellum Crusher",
       "type": "medal",
@@ -775,6 +811,7 @@
     },
     {
       "id": "medal_seven_day_monster_parker",
+      "apiItemId": 1142922,
       "name": "Seven Day Monster Parker",
       "nameEn": "Seven Day Monster Parker",
       "type": "medal",
@@ -801,6 +838,7 @@
     },
     {
       "id": "badge_seven_days",
+      "apiItemId": 1182200,
       "name": "Seven Days Badge",
       "nameEn": "Seven Days Badge",
       "type": "badge",
@@ -827,6 +865,7 @@
     },
     {
       "id": "badge_crystal_ventus",
+      "apiItemId": 1182087,
       "name": "Crystal Ventus Badge",
       "nameEn": "Crystal Ventus Badge",
       "type": "badge",
@@ -845,12 +884,15 @@
         "str": 10,
         "dex": 10,
         "int": 10,
-        "luk": 10
+        "luk": 10,
+        "moveSpeed": 10,
+        "jump": 10
       },
       "imageUrl": "/msucp/images/items/1182087.png"
     },
     {
       "id": "emblem_gold_maple_leaf",
+      "apiItemId": 1190301,
       "name": "Gold Maple Leaf Emblem",
       "nameEn": "Gold Maple Leaf Emblem",
       "type": "emblem",
@@ -876,6 +918,7 @@
     },
     {
       "id": "secondary_evolving_rusty_book_epode",
+      "apiItemId": 1352233,
       "name": "Evolving Rusty Book <Epode>",
       "nameEn": "Evolving Rusty Book <Epode>",
       "type": "secondary",
@@ -895,6 +938,7 @@
     },
     {
       "id": "secondary_white_gold_book_epode",
+      "apiItemId": 1352252,
       "name": "White Gold Book <Epode>",
       "nameEn": "White Gold Book <Epode>",
       "type": "secondary",
@@ -913,6 +957,7 @@
     },
     {
       "id": "secondary_evolving_slashing_shadow",
+      "apiItemId": 1352283,
       "name": "Evolving Slashing Shadow",
       "nameEn": "Evolving Slashing Shadow",
       "type": "secondary",
@@ -931,6 +976,7 @@
     },
     {
       "id": "earring_dea_sidus",
+      "apiItemId": 1032241,
       "name": "Dea Sidus Earring",
       "nameEn": "Dea Sidus Earring",
       "type": "earring",
@@ -956,6 +1002,7 @@
     },
     {
       "id": "earring_will_o_the_wisps",
+      "apiItemId": 1032136,
       "name": "Will o' the Wisps",
       "nameEn": "Will o' the Wisps",
       "type": "earring",
@@ -983,6 +1030,7 @@
     },
     {
       "id": "earring_ifias",
+      "apiItemId": 1032227,
       "name": "Ifia's Earrings",
       "nameEn": "Ifia's Earrings",
       "type": "earring",
@@ -1008,6 +1056,7 @@
     },
     {
       "id": "face_condensed_power_crystal",
+      "apiItemId": 1012478,
       "name": "Condensed Power Crystal",
       "nameEn": "Condensed Power Crystal",
       "type": "face",
@@ -1033,6 +1082,7 @@
     },
     {
       "id": "face_berserked",
+      "apiItemId": 1012632,
       "name": "Berserked",
       "nameEn": "Berserked",
       "type": "face",
@@ -1058,6 +1108,7 @@
     },
     {
       "id": "hat_chaos_vellums_helm",
+      "apiItemId": 1003722,
       "name": "Chaos Vellum's Helm",
       "nameEn": "Chaos Vellum's Helm",
       "type": "hat",
@@ -1074,11 +1125,11 @@
       "stats": {
         "atk": 1,
         "matk": 1,
-        "def": 350,
         "str": 23,
         "dex": 23,
         "int": 23,
         "luk": 23,
+        "def": 350,
         "moveSpeed": 5
       },
       "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
@@ -1086,6 +1137,7 @@
     },
     {
       "id": "hat_chaos_pierre",
+      "apiItemId": 1003719,
       "name": "Chaos Pierre Hat",
       "nameEn": "Chaos Pierre Hat",
       "type": "hat",
@@ -1102,11 +1154,11 @@
       "stats": {
         "atk": 1,
         "matk": 1,
-        "def": 300,
         "str": 23,
         "dex": 23,
         "int": 23,
         "luk": 23,
+        "def": 300,
         "moveSpeed": 5
       },
       "description": "This lucky item counts towards any set, so long as you have at least 3 set pieces equipped!",
@@ -1114,6 +1166,7 @@
     },
     {
       "id": "hat_royal_dunwitch",
+      "apiItemId": 1003798,
       "name": "Royal Dunwitch Hat",
       "nameEn": "Royal Dunwitch Hat",
       "type": "hat",
@@ -1138,6 +1191,7 @@
     },
     {
       "id": "hat_royal_assassin_hood",
+      "apiItemId": 1003800,
       "name": "Royal Assassin Hood",
       "nameEn": "Royal Assassin Hood",
       "type": "hat",
@@ -1162,6 +1216,7 @@
     },
     {
       "id": "bottom_trixter_dunwitch_pants",
+      "apiItemId": 1062166,
       "name": "Trixter Dunwitch Pants",
       "nameEn": "Trixter Dunwitch Pants",
       "type": "bottom",
@@ -1184,6 +1239,7 @@
     },
     {
       "id": "bottom_trixter_assassin_pants",
+      "apiItemId": 1062168,
       "name": "Trixter Assassin Pants",
       "nameEn": "Trixter Assassin Pants",
       "type": "bottom",
@@ -1206,6 +1262,7 @@
     },
     {
       "id": "pendant_dominator",
+      "apiItemId": 1122150,
       "name": "Dominator Pendant",
       "nameEn": "Dominator Pendant",
       "type": "pendant",
@@ -1230,6 +1287,303 @@
         "mpPct": 10
       },
       "imageUrl": "/msucp/images/items/1122150.png"
+    },
+    {
+      "id": "belt_dreamy_belt",
+      "apiItemId": 1132308,
+      "name": "Dreamy Belt",
+      "nameEn": "Dreamy Belt",
+      "type": "belt",
+      "level": 200,
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "str": 50,
+        "dex": 50,
+        "int": 50,
+        "luk": 50,
+        "hp": 150,
+        "mp": 150,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1132308.png"
+    },
+    {
+      "id": "cape_absolab_bandit_cape",
+      "apiItemId": 1102796,
+      "name": "AbsoLab Bandit Cape",
+      "nameEn": "AbsoLab Bandit Cape",
+      "type": "cape",
+      "level": 160,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1102796.png"
+    },
+    {
+      "id": "shoes_arcane_umbra_thief_shoes",
+      "apiItemId": 1073161,
+      "name": "Arcane Umbra Thief Shoes",
+      "nameEn": "Arcane Umbra Thief Shoes",
+      "type": "shoes",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "dex": 40,
+        "luk": 40,
+        "def": 250,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073161.png"
+    },
+    {
+      "id": "glove_arcane_umbra_thief_gloves",
+      "apiItemId": 1082698,
+      "name": "Arcane Umbra Thief Gloves",
+      "nameEn": "Arcane Umbra Thief Gloves",
+      "type": "glove",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "dex": 40,
+        "luk": 40,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1082698.png"
+    },
+    {
+      "id": "btm_trixter_wanderer_pants",
+      "apiItemId": 1062169,
+      "name": "Trixter Wanderer Pants",
+      "nameEn": "Trixter Wanderer Pants",
+      "type": "bottom",
+      "level": 150,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1062169.png"
+    },
+    {
+      "id": "top_eagle_eye_wanderer_coat",
+      "apiItemId": 1042258,
+      "name": "Eagle Eye Wanderer Coat",
+      "nameEn": "Eagle Eye Wanderer Coat",
+      "type": "top",
+      "level": 150,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1042258.png"
+    },
+    {
+      "id": "cape_absolab_pirate_cape",
+      "apiItemId": 1102797,
+      "name": "AbsoLab Pirate Cape",
+      "nameEn": "AbsoLab Pirate Cape",
+      "type": "cape",
+      "level": 160,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1102797.png"
+    },
+    {
+      "id": "hat_chaos_von_bon_helmet",
+      "apiItemId": 1003720,
+      "name": "Chaos Von Bon Helmet",
+      "nameEn": "Chaos Von Bon Helmet",
+      "type": "hat",
+      "level": 140,
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 23,
+        "dex": 23,
+        "int": 23,
+        "luk": 23,
+        "def": 300,
+        "moveSpeed": 5
+      },
+      "imageUrl": "/msucp/images/items/1003720.png"
+    },
+    {
+      "id": "glove_absolab_pirate_gloves",
+      "apiItemId": 1082640,
+      "name": "AbsoLab Pirate Gloves",
+      "nameEn": "AbsoLab Pirate Gloves",
+      "type": "glove",
+      "level": 160,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 20,
+        "dex": 20,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1082640.png"
+    },
+    {
+      "id": "shoes_absolab_pirate_shoes",
+      "apiItemId": 1073035,
+      "name": "AbsoLab Pirate Shoes",
+      "nameEn": "AbsoLab Pirate Shoes",
+      "type": "shoes",
+      "level": 160,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 20,
+        "dex": 20,
+        "def": 150,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073035.png"
+    },
+    {
+      "id": "sec_evolving_wrist_armor",
+      "apiItemId": 1352903,
+      "name": "Evolving Wrist Armor",
+      "nameEn": "Evolving Wrist Armor",
+      "type": "secondary",
+      "subType": "wrist_band",
+      "level": 100,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 5,
+        "str": 10,
+        "dex": 10
+      },
+      "imageUrl": "/msucp/images/items/1352903.png"
+    },
+    {
+      "id": "shoulder_absolab_pirate_shoulder",
+      "apiItemId": 1152179,
+      "name": "AbsoLab Pirate Shoulder",
+      "nameEn": "AbsoLab Pirate Shoulder",
+      "type": "shoulder",
+      "level": 160,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 14,
+        "dex": 14,
+        "int": 14,
+        "luk": 14,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152179.png"
+    },
+    {
+      "id": "wpn_zakums_tree_branch",
+      "apiItemId": 1372049,
+      "name": "Zakum's Tree Branch",
+      "nameEn": "Zakum's Tree Branch",
+      "type": "weapon",
+      "subType": "wand",
+      "level": 10,
+      "req": {
+        "int": 4,
+        "luk": 4
+      },
+      "maxStars": 5,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 33,
+        "matk": 55
+      },
+      "imageUrl": "/msucp/images/items/1372049.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_knuckle",
+      "apiItemId": 1482221,
+      "name": "Arcane Umbra Knuckle",
+      "nameEn": "Arcane Umbra Knuckle",
+      "type": "weapon",
+      "subType": "knuckle",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 221,
+        "str": 100,
+        "dex": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1482221.png"
     }
   ]
 }

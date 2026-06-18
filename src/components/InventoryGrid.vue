@@ -12,10 +12,11 @@ const props = defineProps({
 const emit = defineEmits(['entry-click', 'entry-hover', 'entry-edit', 'open-picker'])
 
 const { t } = useI18n()
-const { inventoryEntries, removeEntry } = useEquipment()
+const { state, inventoryEntries, removeEntry, importEntries } = useEquipment()
 
 const filterType = ref('all')
 const pendingRemove = ref(null)
+const pendingCopy = ref(null)
 
 const typeOptions = computed(() => {
   const set = new Set(inventoryEntries.value.map((e) => e.item.type))
@@ -69,6 +70,26 @@ function onEdit(e, entry) {
   e.stopPropagation()
   if (!entry) return
   emit('entry-edit', entry)
+}
+
+function onCopy(e, entry) {
+  e.stopPropagation()
+  if (!entry) return
+  pendingCopy.value = entry
+}
+
+function confirmCopy() {
+  if (!pendingCopy.value) return
+  const src = state.entries[pendingCopy.value.uid]
+  if (!src) { pendingCopy.value = null; return }
+  const fakeUid = '_copy_1'
+  const entries = { [fakeUid]: JSON.parse(JSON.stringify(src)) }
+  importEntries(entries, [fakeUid])
+  pendingCopy.value = null
+}
+
+function cancelCopy() {
+  pendingCopy.value = null
 }
 </script>
 
@@ -132,6 +153,12 @@ function onEdit(e, entry) {
         >★{{ cell.entry.stars }}</span>
         <div v-if="cell.entry" class="bag-cell__actions">
           <button
+            class="bag-cell__btn bag-cell__btn--copy"
+            :title="t('equipment.bag.copy')"
+            :aria-label="t('equipment.bag.copy')"
+            @click="onCopy($event, cell.entry)"
+          >⧉</button>
+          <button
             class="bag-cell__btn bag-cell__btn--edit"
             :title="t('equipment.bag.edit')"
             :aria-label="t('equipment.bag.edit')"
@@ -161,6 +188,21 @@ function onEdit(e, entry) {
             </button>
             <button class="confirm-dialog__btn confirm-dialog__btn--ok" @click="confirmRemove">
               {{ t('equipment.bag.confirmDelete') }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-if="pendingCopy" class="confirm-backdrop" @click.self="cancelCopy">
+        <div class="confirm-dialog">
+          <p class="confirm-dialog__msg">
+            {{ t('equipment.bag.confirmCopy', { name: pendingCopy.item.name }) }}
+          </p>
+          <div class="confirm-dialog__actions">
+            <button class="confirm-dialog__btn confirm-dialog__btn--cancel" @click="cancelCopy">
+              {{ t('equipment.bag.cancel') }}
+            </button>
+            <button class="confirm-dialog__btn confirm-dialog__btn--copy-ok" @click="confirmCopy">
+              {{ t('equipment.bag.confirmCopyOk') }}
             </button>
           </div>
         </div>
@@ -341,6 +383,8 @@ function onEdit(e, entry) {
   border: 1px solid;
 }
 .bag-cell__btn:focus-visible { outline: none; }
+.bag-cell__btn--copy { color: #a0d995; border-color: #a0d995; font-size: 0.72rem; }
+.bag-cell__btn--copy:hover { background: #a0d995; color: #0a0e1c; }
 .bag-cell__btn--edit { color: #7ee8fa; border-color: #7ee8fa; }
 .bag-cell__btn--edit:hover { background: #7ee8fa; color: #0a0e1c; }
 .bag-cell__btn--remove { color: #ff8080; border-color: #ff8080; font-size: 0.9rem; }
@@ -416,6 +460,14 @@ function onEdit(e, entry) {
   border-color: #ff5555;
 }
 .confirm-dialog__btn--ok:hover {
+  filter: brightness(1.15);
+}
+.confirm-dialog__btn--copy-ok {
+  background: #a0d995;
+  color: #0a0e1c;
+  border-color: #a0d995;
+}
+.confirm-dialog__btn--copy-ok:hover {
   filter: brightness(1.15);
 }
 </style>

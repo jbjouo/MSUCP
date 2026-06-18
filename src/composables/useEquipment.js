@@ -344,6 +344,49 @@ function resetAll() {
   persist()
 }
 
+function importEntries(rawEntries, rawInventory) {
+  let count = 0
+  for (const oldUid of rawInventory) {
+    const raw = rawEntries[oldUid]
+    if (!raw) continue
+    const item = getItem(raw.itemId)
+    if (!item) continue
+
+    const uid = newUid()
+    const entry = {
+      itemId: raw.itemId,
+      stars: clampStars(raw.stars || 0, item),
+    }
+
+    if (raw.bonusStats) {
+      const bs = sanitizeBonusStats(raw.bonusStats, item)
+      if (bs) entry.bonusStats = bs
+    }
+
+    if (raw.potential) {
+      const lines = (raw.potential.lines || []).map(l =>
+        typeof l === 'string' ? l : l?.label || null
+      )
+      const tier = POTENTIAL_TIERS.includes(raw.potential.tier) ? raw.potential.tier : null
+      if (tier) entry.potential = { tier, lines }
+    }
+
+    if (raw.bonusPotential) {
+      const lines = (raw.bonusPotential.lines || []).map(l =>
+        typeof l === 'string' ? l : l?.label || null
+      )
+      const tier = POTENTIAL_TIERS.includes(raw.bonusPotential.tier) ? raw.bonusPotential.tier : null
+      if (tier) entry.bonusPotential = { tier, lines }
+    }
+
+    state.entries[uid] = entry
+    state.inventory.push(uid)
+    count++
+  }
+  if (count > 0) persist()
+  return count
+}
+
 // 合計屬性 (基礎 + 星力加成 + Bonus Stats — 給計算機使用)
 // % 類 (bossDmg/dmgPct/allStatPct) 也累加,供 CP 計算用
 const totalStats = computed(() => {
@@ -390,6 +433,7 @@ export function useEquipment() {
     setPotential,
     setBonusPotential,
     resetAll,
+    importEntries,
     totalStats,
     inventoryEntries,
   }

@@ -7,9 +7,11 @@ import ItemTooltip from '../components/ItemTooltip.vue'
 import CatalogPicker from '../components/CatalogPicker.vue'
 import EntryEditor from '../components/EntryEditor.vue'
 import { useEquipment, requestPersistentStorage } from '../composables/useEquipment.js'
+import { readFileAsJSON, downloadJSON } from '../composables/useDataIO.js'
 
 const { t } = useI18n()
-const { state, equipEntry, unequipSlot } = useEquipment()
+const { state, equipEntry, unequipSlot, importEntries } = useEquipment()
+const importFileInput = ref(null)
 
 const selectedSlot = ref(null)
 // hoveredEntry 可以是 { uid, item, stars } 或是 { item } (來自 catalog picker,尚未擁有)
@@ -66,6 +68,56 @@ function setHoverItem(item) {
   hoveredEntry.value = item ? { item, stars: 0 } : null
 }
 
+function triggerImport() {
+  importFileInput.value?.click()
+}
+
+async function onImportFile(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  try {
+    const payload = await readFileAsJSON(file)
+    const data = payload.data || payload
+    const equip = data['equipment.v3']
+    if (!equip?.entries || !equip?.inventory) {
+      throw new Error('找不到裝備資料')
+    }
+    const count = importEntries(equip.entries, equip.inventory)
+    alert(`已匯入 ${count} 件裝備到背包`)
+  } catch (err) {
+    alert(`匯入失敗: ${err.message}`)
+  } finally {
+    e.target.value = ''
+  }
+}
+
+function exportEquipment() {
+  const entries = {}
+  const inventory = []
+  for (const uid of state.inventory) {
+    const raw = state.entries[uid]
+    if (!raw) continue
+    entries[uid] = { ...raw }
+    inventory.push(uid)
+  }
+  for (const [, uid] of Object.entries(state.equipped)) {
+    if (!uid || entries[uid]) continue
+    const raw = state.entries[uid]
+    if (!raw) continue
+    entries[uid] = { ...raw }
+    inventory.push(uid)
+  }
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    source: 'msucp-export',
+    data: {
+      'equipment.v3': { entries, inventory, equipped: {} },
+    },
+  }
+  downloadJSON(payload, `equipment-${Date.now()}.json`)
+}
+
 onUnmounted(() => {
   hoveredEntry.value = null
 })
@@ -80,9 +132,22 @@ onUnmounted(() => {
     <header class="equip-page__head">
       <h1>{{ t('pages.equipment.title') }}</h1>
       <div class="equip-page__actions">
+        <button class="btn" @click="exportEquipment">
+          {{ t('equipment.action.export') }}
+        </button>
+        <button class="btn" @click="triggerImport">
+          {{ t('equipment.action.import') }}
+        </button>
         <button v-if="selectedSlot" class="btn btn--ghost" @click="clearSelection">
           {{ t('equipment.action.clearSelection') }}
         </button>
+        <input
+          ref="importFileInput"
+          type="file"
+          accept=".json"
+          style="display: none"
+          @change="onImportFile"
+        />
       </div>
     </header>
 

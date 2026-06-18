@@ -543,7 +543,10 @@
       "edit": "編輯裝備",
       "confirmRemove": "確定要刪除「{name}」嗎？",
       "cancel": "取消",
-      "confirmDelete": "刪除"
+      "confirmDelete": "刪除",
+      "copy": "複製裝備",
+      "confirmCopy": "確定要複製「{name}」嗎？",
+      "confirmCopyOk": "複製"
     },
     "editor": {
       "title": "編輯裝備",
@@ -672,7 +675,9 @@
     },
     "action": {
       "reset": "重設",
-      "clearSelection": "取消選取"
+      "clearSelection": "取消選取",
+      "import": "匯入裝備",
+      "export": "匯出裝備"
     },
     "tip": {
       "weaponType": "Weapon Type",

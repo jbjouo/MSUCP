@@ -52,8 +52,8 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.pitched_boss.name',
     members: [
       { id: 'face_berserked', name: 'Berserked', type: 'face' },
+      { id: 'belt_dreamy_belt', name: 'Dreamy Belt', type: 'belt' },
       { id: 'eye_magic_eyepatch', name: 'Magic Eyepatch', type: 'eye' },
-      { id: 'belt_dreamy', name: 'Dreamy Belt', type: 'belt' },
     ],
     tiers: [
       { count: 2, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, bossDmg: 10 } },

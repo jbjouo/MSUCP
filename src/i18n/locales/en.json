@@ -543,7 +543,10 @@
       "edit": "Edit item",
       "confirmRemove": "Delete \"{name}\"?",
       "cancel": "Cancel",
-      "confirmDelete": "Delete"
+      "confirmDelete": "Delete",
+      "copy": "Copy item",
+      "confirmCopy": "Copy \"{name}\"?",
+      "confirmCopyOk": "Copy"
     },
     "editor": {
       "title": "Edit item",
@@ -672,7 +675,9 @@
     },
     "action": {
       "reset": "Reset",
-      "clearSelection": "Clear selection"
+      "clearSelection": "Clear selection",
+      "import": "Import Equipment",
+      "export": "Export Equipment"
     },
     "tip": {
       "weaponType": "Weapon Type",

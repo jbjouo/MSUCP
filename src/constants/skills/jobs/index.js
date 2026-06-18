@@ -3,6 +3,7 @@
 
 export * from './archmage-fp/index.js'
 export * from './bishop/index.js'
+export * from './buccaneer/index.js'
 export * from './shadower/index.js'
 
 import {
@@ -26,6 +27,17 @@ import {
   BISHOP_HYPER_SKILLS_ALL,
   BISHOP_LINK_SKILLS,
 } from './bishop/index.js'
+
+import {
+  BUCCANEER_SKILLS,
+  BUCCANEER_SIM_SKILLS,
+  BUCCANEER_PASSIVE_SKILLS,
+  BUCCANEER_BUFFS,
+  BUCCANEER_BATTLE_BUFFS,
+  BUCCANEER_VMATRIX_SKILLS,
+  BUCCANEER_HYPER_SKILLS_ALL,
+  BUCCANEER_LINK_SKILLS,
+} from './buccaneer/index.js'
 
 import {
   SHADOWER_SKILLS,
@@ -76,6 +88,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: SHADOWER_VMATRIX_SKILLS,
     hyper: SHADOWER_HYPER_SKILLS_ALL,
     link: SHADOWER_LINK_SKILLS,
+  },
+  {
+    jobKey: 'buccaneer',
+    branchKey: 'pirate',
+    all: BUCCANEER_SKILLS,
+    sim: BUCCANEER_SIM_SKILLS,
+    passive: BUCCANEER_PASSIVE_SKILLS,
+    buffs: BUCCANEER_BUFFS,
+    battleBuffs: BUCCANEER_BATTLE_BUFFS,
+    vmatrix: BUCCANEER_VMATRIX_SKILLS,
+    hyper: BUCCANEER_HYPER_SKILLS_ALL,
+    link: BUCCANEER_LINK_SKILLS,
   },
 ]
 
