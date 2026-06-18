@@ -1803,6 +1803,195 @@
         "ignoreDef": 20
       },
       "imageUrl": "/msucp/images/items/1472265.png"
+    },
+    {
+      "id": "badge_badge_of_chiu",
+      "apiItemId": 1182194,
+      "name": "Badge of Chiu",
+      "nameEn": "Badge of Chiu",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182194.png",
+      "dayBonus": {
+        "day": 2,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_mano",
+      "apiItemId": 1182193,
+      "name": "Badge of Mano",
+      "nameEn": "Badge of Mano",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182193.png",
+      "dayBonus": {
+        "day": 1,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_wodan",
+      "apiItemId": 1182195,
+      "name": "Badge of Wodan",
+      "nameEn": "Badge of Wodan",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182195.png",
+      "dayBonus": {
+        "day": 3,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_donarr",
+      "apiItemId": 1182196,
+      "name": "Badge of Donarr",
+      "nameEn": "Badge of Donarr",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182196.png",
+      "dayBonus": {
+        "day": 4,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_pruba",
+      "apiItemId": 1182197,
+      "name": "Badge of Pruba",
+      "nameEn": "Badge of Pruba",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182197.png",
+      "dayBonus": {
+        "day": 5,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_saturnus",
+      "apiItemId": 1182198,
+      "name": "Badge of Saturnus",
+      "nameEn": "Badge of Saturnus",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182198.png",
+      "dayBonus": {
+        "day": 6,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "badge_badge_of_junna",
+      "apiItemId": 1182199,
+      "name": "Badge of Junna",
+      "nameEn": "Badge of Junna",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7
+      },
+      "imageUrl": "/msucp/images/items/1182199.png",
+      "dayBonus": {
+        "day": 0,
+        "stats": {
+          "ignoreDef": 10
+        }
+      }
+    },
+    {
+      "id": "medal_the_black",
+      "apiItemId": 1143519,
+      "name": "THE BLACK",
+      "nameEn": "THE BLACK",
+      "type": "medal",
+      "level": 0,
+      "maxStars": 0,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "hp": 350,
+        "mp": 350,
+        "bossDmg": 5
+      },
+      "imageUrl": "/msucp/images/items/1143519.png"
     }
   ]
 }

@@ -470,6 +470,11 @@ const breakdowns = computed(() => {
     for (const [k, v] of Object.entries(entry.starStats || {})) accumulate(k, v)
     for (const [k, v] of Object.entries(entry.bonusStats || {})) accumulate(k, v)
 
+    const db = entry.item.dayBonus
+    if (db && new Date().getDay() === db.day) {
+      for (const [k, v] of Object.entries(db.stats || {})) accumulate(k, v)
+    }
+
     const potSources = [
       { data: entry.potential,       find: findPotentialOptionForLine },
       { data: entry.bonusPotential,  find: findBonusPotentialOptionForLine },
