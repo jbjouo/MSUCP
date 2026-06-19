@@ -190,6 +190,25 @@ export const ITEM_SETS = [
       { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
     ],
   },
+  {
+    id: 'raven_horn',
+    nameKey: 'itemSet.raven_horn.name',
+    members: [
+      { id: 'hat_raven_horn_chaser_hat', name: 'Raven Horn Chaser Hat', type: 'hat' },
+      { id: 'cape_raven_horn_chaser_cape', name: 'Raven Horn Chaser Cape', type: 'cape' },
+      { id: 'glove_raven_horn_chaser_gloves', name: 'Raven Horn Chaser Gloves', type: 'glove' },
+      { id: 'shoes_raven_horn_chaser_boots', name: 'Raven Horn Chaser Boots', type: 'shoes' },
+      { id: 'shoulder_raven_horn_chaser_shoulder', name: 'Raven Horn Chaser Shoulder', type: 'shoulder' },
+    ],
+    tiers: [
+      { count: 2, stats: { def: 300 } },
+      { count: 3, stats: { hpPct: 15, mpPct: 15 } },
+      { count: 4, stats: { atk: 15, matk: 15 } },
+      { count: 5, stats: { allStat: 20 } },
+      { count: 6, stats: { atk: 30, matk: 30, bossDmg: 30 } },
+      { count: 7, stats: { hpPct: 15, mpPct: 15, atk: 10, matk: 10 } },
+    ],
+  },
 ]
 
 // 向後相容:產生 itemIds 供現有邏輯使用
