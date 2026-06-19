@@ -195,8 +195,10 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.raven_horn.name',
     members: [
       { id: 'hat_raven_horn_chaser_hat', name: 'Raven Horn Chaser Hat', type: 'hat' },
+      { id: 'wpn_raven_horn_metal_fist', name: 'Raven Horn Metal Fist', type: 'weapon' },
       { id: 'cape_raven_horn_chaser_cape', name: 'Raven Horn Chaser Cape', type: 'cape' },
       { id: 'glove_raven_horn_chaser_gloves', name: 'Raven Horn Chaser Gloves', type: 'glove' },
+      { id: 'overall_raven_horn_chaser_armor', name: 'Raven Horn Chaser Armor', type: 'overall' },
       { id: 'shoes_raven_horn_chaser_boots', name: 'Raven Horn Chaser Boots', type: 'shoes' },
       { id: 'shoulder_raven_horn_chaser_shoulder', name: 'Raven Horn Chaser Shoulder', type: 'shoulder' },
     ],

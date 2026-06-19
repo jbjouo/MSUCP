@@ -1992,6 +1992,51 @@
         "bossDmg": 5
       },
       "imageUrl": "/msucp/images/items/1143519.png"
+    },
+    {
+      "id": "overall_raven_horn_chaser_armor",
+      "apiItemId": 1052317,
+      "name": "Raven Horn Chaser Armor",
+      "nameEn": "Raven Horn Chaser Armor",
+      "type": "overall",
+      "level": 140,
+      "req": {
+        "luk": 420
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "dex": 30,
+        "luk": 30,
+        "def": 225
+      },
+      "imageUrl": "/msucp/images/items/1052317.png"
+    },
+    {
+      "id": "wpn_raven_horn_metal_fist",
+      "apiItemId": 1472122,
+      "name": "Raven Horn Metal Fist",
+      "nameEn": "Raven Horn Metal Fist",
+      "type": "weapon",
+      "subType": "claw",
+      "level": 140,
+      "req": {
+        "luk": 420
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 4,
+      "stats": {
+        "atk": 69,
+        "dex": 20,
+        "luk": 35
+      },
+      "imageUrl": "/msucp/images/items/1472122.png"
     }
   ]
 }
