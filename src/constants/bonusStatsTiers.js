@@ -6,7 +6,25 @@
 // Key 規則
 //   物理武器 → 查 item.stats.atk(武器基礎攻擊力)
 //   法師武器 → 查 item.stats.matk(魔法攻擊力)
-// 若 key 不在表中 → 該欄位 fallback 為自由輸入
+// 若 key 不在表中 → 用公式自動計算;公式也失敗才 fallback 為自由輸入
+
+// 星火公式 — ceil(base × %) , 依等級區間使用不同百分比
+// Normal Weapons: T1~T7 百分比
+const FLAME_FORMULA = {
+  '120-159': [4, 8, 12, 17.6, 24.2, 31.944, 40.9948],
+}
+
+function computeFlameByFormula(base, level) {
+  let pcts = null
+  if (level >= 120 && level <= 159) pcts = FLAME_FORMULA['120-159']
+  if (!pcts || base <= 0) return null
+  return pcts.map(p => Math.ceil(base * p / 100))
+}
+
+// Lv140 武器 — base ATT/MATK → [等級1..等級7] (由公式產生)
+export const LV140_WEAPON_BONUS_TIERS = {
+  69: computeFlameByFormula(69, 140),  // Raven Horn Metal Fist (Claw)
+}
 
 // Lv150 武器 — base ATT/MATK → [等級1..等級7]
 export const LV150_WEAPON_BONUS_TIERS = {
@@ -38,6 +56,7 @@ export const LV200_WEAPON_BONUS_TIERS = {
 
 // 依等級索引各 Lv 的表,之後擴充直接加入即可
 export const WEAPON_BONUS_TIERS_BY_LEVEL = {
+  140: LV140_WEAPON_BONUS_TIERS,
   150: LV150_WEAPON_BONUS_TIERS,
   200: LV200_WEAPON_BONUS_TIERS,
 }
@@ -50,11 +69,11 @@ export const WEAPON_BONUS_TIERS_BY_LEVEL = {
 export function weaponBonusTiersFor(item, statKey) {
   if (!item || item.type !== 'weapon') return null
   if (statKey !== 'atk' && statKey !== 'matk') return null
-  const table = WEAPON_BONUS_TIERS_BY_LEVEL[item.level]
-  if (!table) return null
   const base = Number(item.stats?.[statKey]) || 0
   if (base <= 0) return null
-  return table[base] || null
+  const table = WEAPON_BONUS_TIERS_BY_LEVEL[item.level]
+  if (table?.[base]) return table[base]
+  return computeFlameByFormula(base, item.level)
 }
 
 // 反查 — 依武器 + 已選 bonus stat 值找出對應 tier index (1..7);0 = 未套用或非表中值
