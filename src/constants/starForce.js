@@ -190,20 +190,20 @@ const TABLE_130 = {
 //   16★ ATT:武器/裝備/手套 皆 +8
 //   裝備/手套 16-22★ ATT&MATK:8, 9, 10, 11, 12, 13, 15
 //   裝備/手套 23★ 特例 +17 ATT&MATK
-//   武器 17★ 以上目前標示「未完成」,暫僅提供 16★ 資料
+//   武器 16-22★ ATT:由 API 反推 (22★ enhance=98, 1-15★=30, 全屬+9/星已驗證)
 const TABLE_140 = {
   mainSubByStar: [
     { from: 1, to: 5,  delta: 2 },
     { from: 6, to: 15, delta: 3 },
   ],
   perStarFrom16: {
-    weapon: { allStat: 9, rangeTo: 16 }, // 17+ 未完成
+    weapon: { allStat: 9, rangeTo: 22 },
     armor:  { mainSub: 9, rangeTo: 22 },
     glove:  { mainSub: 9, rangeTo: 22 },
     other:  { allStat: 9, rangeTo: 22 },
   },
   attByStar: {
-    weapon: { 16: 8 }, // 17-23 未完成
+    weapon: { 16: 8, 17: 8, 18: 9, 19: 10, 20: 10, 21: 11, 22: 12 },
     armor:  { 16: 8, 17: 9, 18: 10, 19: 11, 20: 12, 21: 13, 22: 15, 23: 17 },
     glove:  { 16: 8, 17: 9, 18: 10, 19: 11, 20: 12, 21: 13, 22: 15, 23: 17 },
     other:  { 16: 8, 17: 9, 18: 10, 19: 11, 20: 12, 21: 13, 22: 15, 23: 17 },
