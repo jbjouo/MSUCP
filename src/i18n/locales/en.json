@@ -467,6 +467,7 @@
   "hyperStat": {
     "title": "HYPER STAT",
     "reset": "Reset",
+    "autoAllocate": "Auto",
     "points": "POINT",
     "remaining": "{n} left",
     "stats": {

@@ -1,6 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useHyperStat } from '../composables/useHyperStat.js'
+import { useCharacter } from '../composables/useCharacter.js'
+import { useCpDamage } from '../composables/useCpDamage.js'
 
 const { t } = useI18n()
 const {
@@ -10,10 +12,62 @@ const {
   canDecrement,
   increment,
   decrement,
+  resetAll,
+  autoAllocate,
   totalPoints,
   usedPoints,
   remainingPoints,
 } = useHyperStat()
+
+const { state: charState, primaryStat } = useCharacter()
+const { statTotal } = useCpDamage()
+
+const JOB_ATT_META = {
+  beginner: { weaponConst: 1.20, mastery: 50, usesMatk: false },
+  hero: { weaponConst: 1.34, mastery: 95, usesMatk: false },
+  paladin: { weaponConst: 1.34, mastery: 95, usesMatk: false },
+  darkKnight: { weaponConst: 1.49, mastery: 95, usesMatk: false },
+  archmageFP: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  archmageIL: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  bishop: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  bowmaster: { weaponConst: 1.30, mastery: 95, usesMatk: false },
+  marksman: { weaponConst: 1.30, mastery: 95, usesMatk: false },
+  pathfinder: { weaponConst: 1.30, mastery: 95, usesMatk: false },
+  nightlord: { weaponConst: 1.75, mastery: 95, usesMatk: false },
+  shadower: { weaponConst: 1.30, mastery: 95, usesMatk: false },
+  dualblade: { weaponConst: 1.25, mastery: 95, usesMatk: false },
+  buccaneer: { weaponConst: 1.70, mastery: 95, usesMatk: false },
+  corsair: { weaponConst: 1.50, mastery: 95, usesMatk: false },
+  cannoneer: { weaponConst: 1.49, mastery: 95, usesMatk: false },
+  dawnwarrior: { weaponConst: 1.34, mastery: 95, usesMatk: false },
+  blazewizard: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  windarcher: { weaponConst: 1.30, mastery: 95, usesMatk: false },
+  nightwalker: { weaponConst: 1.75, mastery: 95, usesMatk: false },
+  thunderbreaker: { weaponConst: 1.70, mastery: 95, usesMatk: false },
+  mihile: { weaponConst: 1.34, mastery: 95, usesMatk: false },
+  aran: { weaponConst: 1.49, mastery: 95, usesMatk: false },
+  evan: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  mercedes: { weaponConst: 1.35, mastery: 95, usesMatk: false },
+  phantom: { weaponConst: 1.34, mastery: 95, usesMatk: false },
+  luminous: { weaponConst: 1.20, mastery: 95, usesMatk: true },
+  shade: { weaponConst: 1.70, mastery: 95, usesMatk: false },
+  ark: { weaponConst: 1.70, mastery: 95, usesMatk: false },
+}
+
+function onReset() {
+  resetAll()
+}
+
+function onAutoAllocate() {
+  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
+  autoAllocate({
+    primaryStat: primaryStat.value,
+    statTotal,
+    mastery: meta.mastery,
+    weaponConst: meta.weaponConst,
+    usesMatk: meta.usesMatk,
+  })
+}
 
 const PCT_KEYS_HYPER = new Set([
   'hpPct', 'mpPct', 'critRate', 'critDmg', 'ignoreDef',
@@ -41,6 +95,10 @@ function currentValueText(stat) {
   <section class="hs-panel">
     <header class="hs-panel__head">
       <span>{{ t('hyperStat.title') }}</span>
+      <div class="hs-panel__head-actions">
+        <button class="hs-head-btn" type="button" @click="onReset">{{ t('hyperStat.reset') }}</button>
+        <button class="hs-head-btn hs-head-btn--auto" type="button" @click="onAutoAllocate">{{ t('hyperStat.autoAllocate') }}</button>
+      </div>
     </header>
 
     <div class="hs-panel__body">
@@ -119,6 +177,29 @@ function currentValueText(stat) {
   color: #ffc857;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
+.hs-panel__head-actions {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+}
+.hs-head-btn {
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #c9d2dd;
+  border: 1px solid #3d4554;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.hs-head-btn:hover { border-color: #ffc857; color: #ffc857; }
+.hs-head-btn--auto {
+  color: #7ee8fa;
+}
+.hs-head-btn--auto:hover { border-color: #7ee8fa; }
 .hs-panel__body {
   background: linear-gradient(180deg, #4f5867 0%, #434c59 100%);
   border: 1px solid #2f3642;

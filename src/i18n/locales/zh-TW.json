@@ -467,6 +467,7 @@
   "hyperStat": {
     "title": "HYPER STAT",
     "reset": "重設",
+    "autoAllocate": "自動配點",
     "points": "點數",
     "remaining": "剩餘 {n}",
     "stats": {
