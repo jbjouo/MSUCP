@@ -134,23 +134,29 @@ export function useHyperStat() {
     const ignoreUsed = hyperCumulativeCost(ignoreLv)
     const budget = totalPoints.value - ignoreUsed
 
-    const currentBag = {}
+    // 暫時歸零 hyper stat（保留 ignoreDef），讀取不含 hyper 的 base 值
+    const saved = {}
     for (const s of HYPER_STATS) {
-      if (s.id === 'ignoreDef') continue
-      const lv = state[s.id] || 0
-      if (!lv) continue
-      const v = s.valueAt(lv)
-      for (const [k, val] of Object.entries(v)) currentBag[k] = (currentBag[k] || 0) + val
+      saved[s.id] = state[s.id] || 0
+      if (s.id !== 'ignoreDef') state[s.id] = 0
     }
 
     const attKey = usesMatk ? 'matk' : 'atk'
-    const basePrimary = statTotal(primaryStat) - (currentBag[primaryStat] || 0)
-    const baseSecondary = statTotal(secondaryStat) - (currentBag[secondaryStat] || 0)
-    const baseAtt = statTotal(attKey) - (currentBag[attKey] || 0)
-    const baseDmgPct = statTotal('dmgPct') - (currentBag.dmgPct || 0)
-    const baseBossDmg = statTotal('bossDmg') - (currentBag.bossDmg || 0)
-    const baseCritDmg = statTotal('critDmg') - (currentBag.critDmg || 0)
+    const attPctKey = usesMatk ? 'matkPct' : 'atkPct'
+    const basePrimary = statTotal(primaryStat)
+    const baseSecondary = statTotal(secondaryStat)
+    const baseAtt = statTotal(attKey)
+    const baseAttPct = statTotal(attPctKey)
+    const baseDmgPct = statTotal('dmgPct')
+    const baseBossDmg = statTotal('bossDmg')
+    const baseCritDmg = statTotal('critDmg')
     const finalDmg = statTotal('finalDmg')
+
+    // 還原
+    for (const s of HYPER_STATS) state[s.id] = saved[s.id]
+
+    // ATT/MATK % 乘數：hyper 的 ATK/MATK 是 non-fixed，要被 % 放大
+    const attMultiplier = 1 + baseAttPct / 100
     const fm = 1 + finalDmg / 100
     const masteryRatio = mastery / 100
 
@@ -185,7 +191,7 @@ export function useHyperStat() {
       if (idx === relevantIds.length) {
         const pVal = basePrimary + dP
         const sVal = baseSecondary + dS
-        const attVal = baseAtt + dAtt
+        const attVal = baseAtt + Math.floor(dAtt * attMultiplier)
         const boss = (pVal * 4 + sVal) * (attVal / 100) * weaponConst * (1 + (baseDmgPct + dDmg + baseBossDmg + dBoss) / 100) * fm
         const cd = baseCritDmg + dCrit
         const bossMax = boss * (1.5 + cd / 100)
