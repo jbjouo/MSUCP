@@ -152,7 +152,7 @@ export function useHyperStat() {
     const baseCritDmg = statTotal('critDmg') - (currentBag.critDmg || 0)
     const finalDmg = statTotal('finalDmg')
     const fm = 1 + finalDmg / 100
-    const critBase = 1.5 + 1.2 * (mastery / 100)
+    const masteryRatio = mastery / 100
 
     const maxLevels = relevantIds.map(id => HYPER_STATS_BY_ID[id].maxLevel)
     const costs = relevantIds.map(id => {
@@ -186,9 +186,11 @@ export function useHyperStat() {
         const pVal = basePrimary + dP
         const sVal = baseSecondary + dS
         const attVal = baseAtt + dAtt
-        const bossBase = (pVal * 4 + sVal) * (attVal / 100) * weaponConst * (1 + (baseDmgPct + dDmg + baseBossDmg + dBoss) / 100) * fm
+        const boss = (pVal * 4 + sVal) * (attVal / 100) * weaponConst * (1 + (baseDmgPct + dDmg + baseBossDmg + dBoss) / 100) * fm
         const cd = baseCritDmg + dCrit
-        const avg = bossBase * (critBase + 2 * cd / 100) / 2
+        const bossMax = boss * (1.5 + cd / 100)
+        const bossMin = boss * (1.2 + cd / 100) * masteryRatio
+        const avg = (bossMax + bossMin) / 2
         if (avg > bestAvg) {
           bestAvg = avg
           for (let i = 0; i < relevantIds.length; i++) bestLevels[i] = currentSearch[i]
