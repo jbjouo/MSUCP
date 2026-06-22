@@ -126,7 +126,6 @@ export function useHyperStat() {
   function solveOptimal(ctx) {
     const { primaryStat, statTotal, mastery, weaponConst, usesMatk } = ctx
 
-    const SECONDARY_MAP = { str: 'dex', dex: 'str', int: 'luk', luk: 'dex' }
     const secondaryStat = SECONDARY_MAP[primaryStat] || 'dex'
     const relevantIds = [primaryStat, secondaryStat, 'critDmg', 'damage', 'bossDmg', 'attMatk']
       .filter((id, i, arr) => HYPER_STATS_BY_ID[id] && arr.indexOf(id) === i)
@@ -135,91 +134,83 @@ export function useHyperStat() {
     const ignoreUsed = hyperCumulativeCost(ignoreLv)
     const budget = totalPoints.value - ignoreUsed
 
-    const alloc = {}
-    for (const id of relevantIds) alloc[id] = 0
-
-    function allocUsed() {
-      let s = 0
-      for (const id of relevantIds) s += hyperCumulativeCost(alloc[id])
-      return s
+    const currentBag = {}
+    for (const s of HYPER_STATS) {
+      if (s.id === 'ignoreDef') continue
+      const lv = state[s.id] || 0
+      if (!lv) continue
+      const v = s.valueAt(lv)
+      for (const [k, val] of Object.entries(v)) currentBag[k] = (currentBag[k] || 0) + val
     }
 
-    function currentHyperBag() {
-      const bag = {}
-      for (const s of HYPER_STATS) {
-        if (s.id === 'ignoreDef') continue
-        const lv = state[s.id] || 0
-        if (!lv) continue
-        const v = s.valueAt(lv)
-        for (const [k, val] of Object.entries(v)) bag[k] = (bag[k] || 0) + val
+    const attKey = usesMatk ? 'matk' : 'atk'
+    const basePrimary = statTotal(primaryStat) - (currentBag[primaryStat] || 0)
+    const baseSecondary = statTotal(secondaryStat) - (currentBag[secondaryStat] || 0)
+    const baseAtt = statTotal(attKey) - (currentBag[attKey] || 0)
+    const baseDmgPct = statTotal('dmgPct') - (currentBag.dmgPct || 0)
+    const baseBossDmg = statTotal('bossDmg') - (currentBag.bossDmg || 0)
+    const baseCritDmg = statTotal('critDmg') - (currentBag.critDmg || 0)
+    const finalDmg = statTotal('finalDmg')
+    const fm = 1 + finalDmg / 100
+    const critBase = 1.5 + 1.2 * (mastery / 100)
+
+    const maxLevels = relevantIds.map(id => HYPER_STATS_BY_ID[id].maxLevel)
+    const costs = relevantIds.map(id => {
+      const arr = [0]
+      for (let lv = 1; lv <= HYPER_STATS_BY_ID[id].maxLevel; lv++) arr.push(hyperCumulativeCost(lv))
+      return arr
+    })
+
+    const deltas = relevantIds.map(id => {
+      const stat = HYPER_STATS_BY_ID[id]
+      const arr = []
+      for (let lv = 0; lv <= stat.maxLevel; lv++) {
+        const bag = lv > 0 ? stat.valueAt(lv) : {}
+        arr.push({
+          p: bag[primaryStat] || 0,
+          s: bag[secondaryStat] || 0,
+          att: bag[attKey] || 0,
+          dmg: bag.dmgPct || 0,
+          boss: bag.bossDmg || 0,
+          crit: bag.critDmg || 0,
+        })
       }
-      return bag
-    }
+      return arr
+    })
 
-    const currentBag = currentHyperBag()
+    let bestAvg = -1
+    let bestLevels = new Array(relevantIds.length).fill(0)
 
-    function calcBossAvg(a) {
-      let deltaPrimary = 0, deltaSecondary = 0, deltaAtk = 0, deltaMatk = 0
-      let deltaDmgPct = 0, deltaBossDmg = 0, deltaCritDmg = 0
-
-      for (const id of relevantIds) {
-        const lv = a[id]
-        if (!lv) continue
-        const stat = HYPER_STATS_BY_ID[id]
-        const bag = stat.valueAt(lv)
-        if (bag[primaryStat]) deltaPrimary += bag[primaryStat]
-        if (bag[secondaryStat]) deltaSecondary += bag[secondaryStat]
-        if (bag.atk) deltaAtk += bag.atk
-        if (bag.matk) deltaMatk += bag.matk
-        if (bag.dmgPct) deltaDmgPct += bag.dmgPct
-        if (bag.bossDmg) deltaBossDmg += bag.bossDmg
-        if (bag.critDmg) deltaCritDmg += bag.critDmg
-      }
-
-      const pVal = statTotal(primaryStat) - (currentBag[primaryStat] || 0) + deltaPrimary
-      const sVal = statTotal(secondaryStat) - (currentBag[secondaryStat] || 0) + deltaSecondary
-      const attKey = usesMatk ? 'matk' : 'atk'
-      const attVal = statTotal(attKey) - (currentBag[attKey] || 0) + (usesMatk ? deltaMatk : deltaAtk)
-      const dmgPct = statTotal('dmgPct') - (currentBag.dmgPct || 0) + deltaDmgPct
-      const bossDmg = statTotal('bossDmg') - (currentBag.bossDmg || 0) + deltaBossDmg
-      const critDmg = statTotal('critDmg') - (currentBag.critDmg || 0) + deltaCritDmg
-      const finalDmg = statTotal('finalDmg')
-
-      const base = (pVal * 4 + sVal) * (attVal / 100) * weaponConst
-      const fm = 1 + finalDmg / 100
-      const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
-      const bossMax = boss * (1.5 + critDmg / 100)
-      const bossMin = boss * (1.2 + critDmg / 100) * (mastery / 100)
-      return (bossMax + bossMin) / 2
-    }
-
-    while (true) {
-      let bestId = null, bestGain = 0
-      const used = allocUsed()
-      const remaining = budget - used
-
-      for (const id of relevantIds) {
-        const stat = HYPER_STATS_BY_ID[id]
-        if (alloc[id] >= stat.maxLevel) continue
-        const cost = HYPER_STAT_COSTS[alloc[id]] || Infinity
-        if (cost > remaining) continue
-
-        const before = calcBossAvg(alloc)
-        alloc[id]++
-        const after = calcBossAvg(alloc)
-        alloc[id]--
-
-        const gain = (after - before) / cost
-        if (gain > bestGain) {
-          bestGain = gain
-          bestId = id
+    function search(idx, usedPts, dP, dS, dAtt, dDmg, dBoss, dCrit) {
+      if (idx === relevantIds.length) {
+        const pVal = basePrimary + dP
+        const sVal = baseSecondary + dS
+        const attVal = baseAtt + dAtt
+        const bossBase = (pVal * 4 + sVal) * (attVal / 100) * weaponConst * (1 + (baseDmgPct + dDmg + baseBossDmg + dBoss) / 100) * fm
+        const cd = baseCritDmg + dCrit
+        const avg = bossBase * (critBase + 2 * cd / 100) / 2
+        if (avg > bestAvg) {
+          bestAvg = avg
+          for (let i = 0; i < relevantIds.length; i++) bestLevels[i] = currentSearch[i]
         }
+        return
       }
 
-      if (!bestId) break
-      alloc[bestId]++
+      const remaining = budget - usedPts
+      for (let lv = 0; lv <= maxLevels[idx]; lv++) {
+        const c = costs[idx][lv]
+        if (c > remaining) break
+        const d = deltas[idx][lv]
+        currentSearch[idx] = lv
+        search(idx + 1, usedPts + c, dP + d.p, dS + d.s, dAtt + d.att, dDmg + d.dmg, dBoss + d.boss, dCrit + d.crit)
+      }
     }
 
+    const currentSearch = new Array(relevantIds.length).fill(0)
+    search(0, 0, 0, 0, 0, 0, 0, 0)
+
+    const alloc = {}
+    for (let i = 0; i < relevantIds.length; i++) alloc[relevantIds[i]] = bestLevels[i]
     return alloc
   }
 
