@@ -807,6 +807,20 @@ export function useCpDamage() {
     return floor(zones.total)
   }
 
+  // 暴露每個 stat 的原始分量 { normalFlat, fixedFlat, pct }
+  // 用途:求解器/模擬器可直接讀取 base 分量,加上 delta 後重算 statTotal
+  //   非 % stat: final = floor(normalFlat × (1 + pct/100)) + fixedFlat
+  //   % stat:    final = normalFlat + fixedFlat + pct
+  //   相乘 stat: combineIgnorePct(所有來源)
+  function statComponents(key) {
+    const bd = breakdownFor(key)
+    return {
+      normalFlat: bd.flatTotal,
+      fixedFlat: bd.fixedFlatTotal,
+      pct: bd.pctTotal,
+    }
+  }
+
   return {
     // 常數 / 資訊
     PCT_KEYS,
@@ -826,6 +840,7 @@ export function useCpDamage() {
     statTotalForCp,
     flatTotalForCp,
     pctTotalForCp,
+    statComponents,
     // 重點輸出
     attStatsInfo,
     cpZones,

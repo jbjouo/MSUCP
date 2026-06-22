@@ -124,7 +124,7 @@ export function useHyperStat() {
   })
 
   function solveOptimal(ctx) {
-    const { primaryStat, statTotal, mastery, weaponConst, usesMatk } = ctx
+    const { primaryStat, statComponents, mastery, weaponConst, usesMatk } = ctx
 
     const secondaryStat = SECONDARY_MAP[primaryStat] || 'dex'
     const relevantIds = [primaryStat, secondaryStat, 'critDmg', 'damage', 'bossDmg', 'attMatk']
@@ -134,29 +134,45 @@ export function useHyperStat() {
     const ignoreUsed = hyperCumulativeCost(ignoreLv)
     const budget = totalPoints.value - ignoreUsed
 
-    // 暫時歸零 hyper stat（保留 ignoreDef），讀取不含 hyper 的 base 值
-    const saved = {}
+    const attKey = usesMatk ? 'matk' : 'atk'
+
+    // 讀取各屬性的原始分量（含當前 hyper stat 貢獻）
+    const primaryComp = statComponents(primaryStat)
+    const secondaryComp = statComponents(secondaryStat)
+    const attComp = statComponents(attKey)
+    const dmgComp = statComponents('dmgPct')
+    const bossComp = statComponents('bossDmg')
+    const critComp = statComponents('critDmg')
+    const finalComp = statComponents('finalDmg')
+
+    // 扣除當前 hyper stat 的貢獻，得到不含 hyper 的 base 分量
+    const currentBag = {}
     for (const s of HYPER_STATS) {
-      saved[s.id] = state[s.id] || 0
-      if (s.id !== 'ignoreDef') state[s.id] = 0
+      if (s.id === 'ignoreDef') continue
+      const lv = state[s.id] || 0
+      if (!lv) continue
+      const v = s.valueAt(lv)
+      for (const [k, val] of Object.entries(v)) currentBag[k] = (currentBag[k] || 0) + val
     }
 
-    const attKey = usesMatk ? 'matk' : 'atk'
-    const attPctKey = usesMatk ? 'matkPct' : 'atkPct'
-    const basePrimary = statTotal(primaryStat)
-    const baseSecondary = statTotal(secondaryStat)
-    const baseAtt = statTotal(attKey)
-    const baseAttPct = statTotal(attPctKey)
-    const baseDmgPct = statTotal('dmgPct')
-    const baseBossDmg = statTotal('bossDmg')
-    const baseCritDmg = statTotal('critDmg')
-    const finalDmg = statTotal('finalDmg')
+    // 主副屬是 fixed → 從 fixedFlat 扣; ATT/MATK 是 normalFlat → 從 normalFlat 扣; % stat 從 pct 扣
+    const pNormal = primaryComp.normalFlat
+    const pFixed = primaryComp.fixedFlat - (currentBag[primaryStat] || 0)
+    const pPct = primaryComp.pct
 
-    // 還原
-    for (const s of HYPER_STATS) state[s.id] = saved[s.id]
+    const sNormal = secondaryComp.normalFlat
+    const sFixed = secondaryComp.fixedFlat - (currentBag[secondaryStat] || 0)
+    const sPct = secondaryComp.pct
 
-    // ATT/MATK % 乘數：hyper 的 ATK/MATK 是 non-fixed，要被 % 放大
-    const attMultiplier = 1 + baseAttPct / 100
+    const attNormal = attComp.normalFlat - (currentBag[attKey] || 0)
+    const attFixed = attComp.fixedFlat
+    const attPct = attComp.pct
+
+    const baseDmgPct = dmgComp.normalFlat + dmgComp.fixedFlat + dmgComp.pct - (currentBag.dmgPct || 0)
+    const baseBossDmg = bossComp.normalFlat + bossComp.fixedFlat + bossComp.pct - (currentBag.bossDmg || 0)
+    const baseCritDmg = critComp.normalFlat + critComp.fixedFlat + critComp.pct - (currentBag.critDmg || 0)
+    const finalDmg = finalComp.normalFlat + finalComp.fixedFlat + finalComp.pct
+
     const fm = 1 + finalDmg / 100
     const masteryRatio = mastery / 100
 
@@ -189,9 +205,10 @@ export function useHyperStat() {
 
     function search(idx, usedPts, dP, dS, dAtt, dDmg, dBoss, dCrit) {
       if (idx === relevantIds.length) {
-        const pVal = basePrimary + dP
-        const sVal = baseSecondary + dS
-        const attVal = baseAtt + Math.floor(dAtt * attMultiplier)
+        // 主副屬: fixed → 直接加; ATT: normalFlat → 被 % 放大
+        const pVal = Math.floor(pNormal * (1 + pPct / 100)) + pFixed + dP
+        const sVal = Math.floor(sNormal * (1 + sPct / 100)) + sFixed + dS
+        const attVal = Math.floor((attNormal + dAtt) * (1 + attPct / 100)) + attFixed
         const boss = (pVal * 4 + sVal) * (attVal / 100) * weaponConst * (1 + (baseDmgPct + dDmg + baseBossDmg + dBoss) / 100) * fm
         const cd = baseCritDmg + dCrit
         const bossMax = boss * (1.5 + cd / 100)

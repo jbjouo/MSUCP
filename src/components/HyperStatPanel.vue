@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useHyperStat } from '../composables/useHyperStat.js'
 import { useCharacter } from '../composables/useCharacter.js'
@@ -20,7 +21,7 @@ const {
 } = useHyperStat()
 
 const { state: charState, primaryStat } = useCharacter()
-const { statTotal } = useCpDamage()
+const { statTotal, statComponents } = useCpDamage()
 
 const JOB_ATT_META = {
   beginner: { weaponConst: 1.20, mastery: 50, usesMatk: false },
@@ -54,20 +55,46 @@ const JOB_ATT_META = {
   ark: { weaponConst: 1.70, mastery: 95, usesMatk: false },
 }
 
+function getSolverCtx() {
+  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
+  return {
+    primaryStat: primaryStat.value,
+    statComponents,
+    mastery: meta.mastery,
+    weaponConst: meta.weaponConst,
+    usesMatk: meta.usesMatk,
+  }
+}
+
 function onReset() {
   resetAll()
 }
 
 function onAutoAllocate() {
-  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
-  autoAllocate({
-    primaryStat: primaryStat.value,
-    statTotal,
-    mastery: meta.mastery,
-    weaponConst: meta.weaponConst,
-    usesMatk: meta.usesMatk,
-  })
+  autoAllocate(getSolverCtx())
 }
+
+const SECONDARY_MAP = { str: 'dex', dex: 'str', int: 'luk', luk: 'dex' }
+
+const currentBossAvg = computed(() => {
+  const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
+  const primary = primaryStat.value
+  const secondary = SECONDARY_MAP[primary] || 'dex'
+  const pVal = statTotal(primary)
+  const sVal = statTotal(secondary)
+  const attVal = statTotal(meta.usesMatk ? 'matk' : 'atk')
+  const dmgPct = statTotal('dmgPct')
+  const bossDmg = statTotal('bossDmg')
+  const critDmg = statTotal('critDmg')
+  const finalDmg = statTotal('finalDmg')
+
+  const base = (pVal * 4 + sVal) * (attVal / 100) * meta.weaponConst
+  const fm = 1 + finalDmg / 100
+  const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
+  const bossMax = boss * (1.5 + critDmg / 100)
+  const bossMin = boss * (1.2 + critDmg / 100) * (meta.mastery / 100)
+  return Math.round((bossMax + bossMin) / 2)
+})
 
 const PCT_KEYS_HYPER = new Set([
   'hpPct', 'mpPct', 'critRate', 'critDmg', 'ignoreDef',
