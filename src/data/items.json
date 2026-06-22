@@ -2037,6 +2037,52 @@
         "luk": 35
       },
       "imageUrl": "/msucp/images/items/1472122.png"
+    },
+    {
+      "id": "cape_arcane_umbra_mage_cape",
+      "apiItemId": 1102941,
+      "name": "Arcane Umbra Mage Cape",
+      "nameEn": "Arcane Umbra Mage Cape",
+      "type": "cape",
+      "level": 200,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 450
+      },
+      "imageUrl": "/msucp/images/items/1102941.png"
+    },
+    {
+      "id": "shoes_arcane_umbra_mage_shoes",
+      "apiItemId": 1073159,
+      "name": "Arcane Umbra Mage Shoes",
+      "nameEn": "Arcane Umbra Mage Shoes",
+      "type": "shoes",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 9,
+        "int": 40,
+        "luk": 40,
+        "def": 250,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073159.png"
     }
   ]
 }
