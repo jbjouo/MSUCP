@@ -2083,6 +2083,40 @@
         "jump": 7
       },
       "imageUrl": "/msucp/images/items/1073159.png"
+    },
+    {
+      "id": "wpn_genesis_staff",
+      "apiItemId": 1382274,
+      "name": "Genesis Staff",
+      "nameEn": "Genesis Staff",
+      "type": "weapon",
+      "subType": "staff",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "fixedStars": 22,
+      "luckyItem": true,
+      "bonusTiersTable": "genesis",
+      "attackSpeed": 8,
+      "stats": {
+        "atk": 251,
+        "matk": 406,
+        "int": 150,
+        "luk": 150,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "equipSkill": {
+        "finalDmg": 10
+      },
+      "defaultPotentialTier": "rare",
+      "defaultBonusPotentialTier": "rare",
+      "imageUrl": "/msucp/images/items/1382274.png"
     }
   ]
 }

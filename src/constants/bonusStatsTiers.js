@@ -40,7 +40,7 @@ export const LV150_WEAPON_BONUS_TIERS = {
   204: [9, 17, 25, 36, 50, 66, 84],  // 種類10
 }
 
-// Lv200 神秘武器 — base ATT/MATK → [等級1..等級7]
+// Lv200 神秘武器 (Arcane Umbra) — base ATT/MATK → [等級1..等級7]
 export const LV200_WEAPON_BONUS_TIERS = {
   149: [9,  18, 27, 40, 55,  72,  92],   // 種類1
   216: [13, 26, 39, 58, 79,  104, 133],  // 種類2
@@ -54,11 +54,30 @@ export const LV200_WEAPON_BONUS_TIERS = {
   353: [22, 43, 64, 94, 129, 170, 218],  // 種類10
 }
 
+// Lv200 創世武器 (Genesis) — base ATT/MATK → [等級1..等級7]
+export const LV200_GENESIS_WEAPON_BONUS_TIERS = {
+  172: [11, 21, 31, 46,  63,  83,  106],  // 種類1
+  249: [15, 30, 45, 66,  91,  120, 154],  // 種類2
+  255: [16, 31, 46, 68,  93,  123, 157],  // 種類3
+  304: [19, 37, 55, 81,  111, 146, 187],  // 種類4
+  318: [20, 39, 58, 84,  116, 153, 196],  // 種類5
+  326: [20, 40, 59, 87,  119, 157, 201],  // 種類6
+  340: [21, 41, 62, 90,  124, 163, 210],  // 種類7
+  348: [21, 42, 63, 92,  127, 167, 214],  // 種類8
+  400: [24, 48, 72, 106, 146, 192, 246],  // 種類9
+  406: [25, 49, 74, 108, 148, 195, 250],  // 種類10
+}
+
 // 依等級索引各 Lv 的表,之後擴充直接加入即可
 export const WEAPON_BONUS_TIERS_BY_LEVEL = {
   140: LV140_WEAPON_BONUS_TIERS,
   150: LV150_WEAPON_BONUS_TIERS,
   200: LV200_WEAPON_BONUS_TIERS,
+}
+
+// 具名星火表 — item.bonusTiersTable 指定時優先使用
+const NAMED_BONUS_TIERS = {
+  genesis: LV200_GENESIS_WEAPON_BONUS_TIERS,
 }
 
 // 回傳此武器在指定 bonus stat key (atk / matk) 下可選的等級值
@@ -71,6 +90,10 @@ export function weaponBonusTiersFor(item, statKey) {
   if (statKey !== 'atk' && statKey !== 'matk') return null
   const base = Number(item.stats?.[statKey]) || 0
   if (base <= 0) return null
+  if (item.bonusTiersTable) {
+    const named = NAMED_BONUS_TIERS[item.bonusTiersTable]
+    if (named?.[base]) return named[base]
+  }
   const table = WEAPON_BONUS_TIERS_BY_LEVEL[item.level]
   if (table?.[base]) return table[base]
   return computeFlameByFormula(base, item.level)

@@ -243,21 +243,49 @@ export function getMemberDisplay(member) {
   }
 }
 
+// 幸運道具優先級:全身僅一件生效;帽子 > 武器
+const LUCKY_PRIORITY = ['hat', 'weapon']
+
+// 決定全域唯一的生效幸運道具
+// — 依優先級排序,選出「能對至少一個套裝貢獻」的最高優先幸運道具
+export function determineActiveLuckyItem(equippedItems) {
+  const luckyItems = equippedItems
+    .filter((it) => it?.luckyItem)
+    .sort((a, b) => {
+      const ai = LUCKY_PRIORITY.indexOf(a.type)
+      const bi = LUCKY_PRIORITY.indexOf(b.type)
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+    })
+  if (!luckyItems.length) return null
+  const equippedIds = new Set(equippedItems.map((it) => it?.id).filter(Boolean))
+  for (const lucky of luckyItems) {
+    for (const set of ITEM_SETS) {
+      let count = 0
+      for (const id of set.itemIds) if (equippedIds.has(id)) count++
+      if (count < 3) continue
+      const memberIds = new Set(set.itemIds)
+      const memberTypes = new Set(set.members.map((m) => m.type).filter(Boolean))
+      if (!memberIds.has(lucky.id) && memberTypes.has(lucky.type)) return lucky
+    }
+  }
+  return null
+}
+
 // 計算套裝生效件數(含「幸運道具」加成)
-export function countActiveSet(set, equippedItems) {
+// activeLucky 由外層 determineActiveLuckyItem() 統一決定
+export function countActiveSet(set, equippedItems, activeLucky = null) {
   const equippedIds = new Set()
   for (const it of equippedItems) if (it?.id) equippedIds.add(it.id)
   let count = 0
   for (const id of set.itemIds) if (equippedIds.has(id)) count++
-  if (count >= 3) {
+  if (count >= 3 && activeLucky) {
     const memberIds = new Set(set.itemIds)
     const memberTypes = new Set(
       set.members.map((m) => m.type).filter(Boolean),
     )
-    const hasLucky = equippedItems.some(
-      (it) => it?.luckyItem && !memberIds.has(it.id) && memberTypes.has(it.type),
-    )
-    if (hasLucky) count += 1
+    if (!memberIds.has(activeLucky.id) && memberTypes.has(activeLucky.type)) {
+      count += 1
+    }
   }
   return count
 }

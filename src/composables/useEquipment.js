@@ -11,10 +11,12 @@ import {
   POTENTIAL_TIERS,
   findPotentialOptionForLine,
   itemHasPotentialPool,
+  getPotentialOptionsForLine,
 } from '../constants/potentials.js'
 import {
   findBonusPotentialOptionForLine,
   itemHasBonusPotentialPool,
+  getBonusPotentialOptionsForLine,
 } from '../constants/bonusPotentials.js'
 
 // 資料模型 v3:「entry」為使用者實例 (含 itemId + 強化狀態),與型錄 (items.json) 分離
@@ -68,6 +70,7 @@ function makeInitialState() {
 }
 
 function clampStars(stars, item) {
+  if (Number.isFinite(item?.fixedStars)) return item.fixedStars
   const s = Number(stars) || 0
   // 依等級的架構上限 (100→8、110→10、120→15、130→20、140+→25)
   const levelCap = maxStarsForLevel(item?.level || 0)
@@ -76,6 +79,37 @@ function clampStars(stars, item) {
   // 硬上限:UI 封頂 STAR_SETTABLE_CAP (23);24/25 不允許設
   const cap = Math.max(0, Math.min(itemCap, levelCap, STAR_SETTABLE_CAP))
   return Math.min(Math.max(0, Math.floor(s)), cap)
+}
+
+function rollRandomLines(item, tier, getOptionsFn) {
+  return [0, 1, 2].map((lineIndex) => {
+    const pool = getOptionsFn(item, tier, lineIndex)
+    if (!pool.length) return null
+    const totalWeight = pool.reduce((s, o) => s + (o.weight || 1), 0)
+    let r = Math.random() * totalWeight
+    for (const opt of pool) {
+      r -= opt.weight || 1
+      if (r <= 0) return opt.label
+    }
+    return pool[pool.length - 1].label
+  })
+}
+
+function generateDefaultPotentials(item) {
+  const result = {}
+  if (item.defaultPotentialTier) {
+    result.potential = {
+      tier: item.defaultPotentialTier,
+      lines: rollRandomLines(item, item.defaultPotentialTier, getPotentialOptionsForLine),
+    }
+  }
+  if (item.defaultBonusPotentialTier) {
+    result.bonusPotential = {
+      tier: item.defaultBonusPotentialTier,
+      lines: rollRandomLines(item, item.defaultBonusPotentialTier, getBonusPotentialOptionsForLine),
+    }
+  }
+  return result
 }
 
 function sanitizePotential(raw, item = null) {
@@ -259,6 +293,7 @@ function addToInventory(itemId, stars = 0) {
   state.entries[uid] = {
     itemId,
     stars: clampStars(stars, item),
+    ...generateDefaultPotentials(item),
   }
   state.inventory.push(uid)
   persist()
@@ -281,6 +316,7 @@ function removeEntry(uid) {
 function setStars(uid, stars) {
   const entry = resolveEntry(uid)
   if (!entry) return false
+  if (Number.isFinite(entry.item.fixedStars)) return false
   const next = clampStars(stars, entry.item)
   if (state.entries[uid].stars === next) return false
   state.entries[uid].stars = next

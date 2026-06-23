@@ -111,6 +111,8 @@ watch(
   { immediate: true },
 )
 
+const starsLocked = computed(() => Number.isFinite(item.value?.fixedStars))
+
 const potentialSupported = computed(() => itemHasPotentialPool(item.value))
 const potentialLineOptions = computed(() => [
   getPotentialOptionsForLine(item.value, draft.value.potential.tier, 0),
@@ -253,6 +255,21 @@ function onKey(e) {
             <div v-if="maxStars === 0" class="panel__note">
               {{ t('equipment.editor.starNotSupported') }}
             </div>
+            <template v-else-if="starsLocked">
+              <div class="panel__label">
+                {{ t('equipment.editor.currentStars') }}
+                <strong class="panel__max">{{ draft.stars }} / {{ maxStars }}</strong>
+              </div>
+              <div class="panel__bar">
+                <StarBar
+                  :stars="draft.stars"
+                  :max="maxStars"
+                  :editable-max="draft.stars"
+                  size="large"
+                />
+              </div>
+              <p class="panel__hint">{{ t('equipment.editor.starLocked') }}</p>
+            </template>
             <template v-else>
               <div class="panel__label">
                 {{ t('equipment.editor.currentStars') }}

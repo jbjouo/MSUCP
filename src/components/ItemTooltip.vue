@@ -2,7 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StarBar from './StarBar.vue'
-import { setsForItem, countActiveSet, getMemberDisplay } from '../constants/itemSets.js'
+import { setsForItem, countActiveSet, determineActiveLuckyItem, getMemberDisplay } from '../constants/itemSets.js'
 import { ITEMS_BY_ID, useEquipment } from '../composables/useEquipment.js'
 import { useCpDamage } from '../composables/useCpDamage.js'
 import { computeStarStats } from '../constants/starForce.js'
@@ -28,8 +28,24 @@ const equippedItems = computed(() => {
   }
   return arr
 })
+const activeLucky = computed(() => determineActiveLuckyItem(equippedItems.value))
 function activeSetCount(set) {
-  return countActiveSet(set, equippedItems.value)
+  return countActiveSet(set, equippedItems.value, activeLucky.value)
+}
+// 幸運道具在此套裝替代的成員 id（未穿戴且 type 匹配的第一個成員）
+function luckyReplacedMemberId(set) {
+  const lucky = activeLucky.value
+  if (!lucky) return null
+  const count = activeSetCount(set) - 1
+  if (count < 3) return null
+  const memberIds = new Set(set.itemIds)
+  const memberTypes = new Set(set.members.map((m) => m.type))
+  if (memberIds.has(lucky.id) || !memberTypes.has(lucky.type)) return null
+  const equipped = equippedIds.value
+  for (const m of set.members) {
+    if (m.type === lucky.type && !equipped.has(m.id)) return m.id
+  }
+  return null
 }
 
 const props = defineProps({
@@ -422,10 +438,19 @@ function formatTierStats(stats) {
         v-for="m in set.members"
         :key="m.id"
         class="tip-set__member"
-        :class="{ 'tip-set__member--active': equippedIds.has(m.id) }"
+        :class="{
+          'tip-set__member--active': equippedIds.has(m.id),
+          'tip-set__member--lucky': luckyReplacedMemberId(set) === m.id,
+        }"
       >
-        <span class="tip-set__name">{{ getMemberDisplay(m).name }}</span>
-        <span class="tip-set__slot">({{ t(`equipment.types.${getMemberDisplay(m).type}`) }})</span>
+        <template v-if="luckyReplacedMemberId(set) === m.id">
+          <span class="tip-set__name">{{ activeLucky.name }}</span>
+          <span class="tip-set__slot">({{ t(`equipment.types.${getMemberDisplay(m).type}`) }})</span>
+        </template>
+        <template v-else>
+          <span class="tip-set__name">{{ getMemberDisplay(m).name }}</span>
+          <span class="tip-set__slot">({{ t(`equipment.types.${getMemberDisplay(m).type}`) }})</span>
+        </template>
       </li>
     </ul>
     <div class="tip-set__tiers">
@@ -505,6 +530,10 @@ function formatTierStats(stats) {
 }
 .tip-set__member--active {
   color: #e9edf5; /* 穿上:白字亮起 */
+  font-weight: 600;
+}
+.tip-set__member--lucky {
+  color: #ffcc33;
   font-weight: 600;
 }
 .tip-set__name {

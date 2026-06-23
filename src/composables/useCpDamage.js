@@ -21,7 +21,7 @@ import { useCpToggles } from './useCpToggles.js'
 import { BUFFS } from '../constants/buffs.js'
 import { SKILLS } from '../constants/skills.js'
 import { TITLES } from '../constants/titles.js'
-import { ITEM_SETS, countActiveSet } from '../constants/itemSets.js'
+import { ITEM_SETS, countActiveSet, determineActiveLuckyItem } from '../constants/itemSets.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
 import { findBonusPotentialOptionForLine } from '../constants/bonusPotentials.js'
 import { LEGION_TIER_LABELS } from '../constants/legion.js'
@@ -301,6 +301,14 @@ export function useCpDamage() {
       }
       for (const [k, v] of Object.entries(itemFlatBag)) addFlat(k, name, v)
       for (const [k, v] of Object.entries(itemPctBag)) addPct(k, name, v)
+      // 裝備自帶技能 (如 Genesis 武器 finalDmgPct)
+      if (entry.item.equipSkill) {
+        const skillLabel = t('cp.tip.equipSkillPrefix', { name })
+        for (const [k, v] of Object.entries(entry.item.equipSkill)) {
+          if (PCT_KEYS.has(k)) addPct(k, skillLabel, v)
+          else addFlat(k, skillLabel, v)
+        }
+      }
     }
 
     // 3) Buff
@@ -340,8 +348,9 @@ export function useCpDamage() {
     for (const ent of equippedEntries) {
       if (ent?.item?.id) equippedItems.push(ent.item)
     }
+    const activeLucky = determineActiveLuckyItem(equippedItems)
     for (const set of ITEM_SETS) {
-      const count = countActiveSet(set, equippedItems)
+      const count = countActiveSet(set, equippedItems, activeLucky)
       if (!count) continue
       const setBag = {}
       for (const tier of set.tiers) {
@@ -561,8 +570,8 @@ export function useCpDamage() {
     const normalFlatTotal = sub(flatTotal, fixedFlatTotal)
 
     let final
-    const isMultiplicative = MULTIPLICATIVE_KEYS.has(key)
-    if (isMultiplicative) {
+    const isMultiplicative = MULTIPLICATIVE_KEYS.has(key) || key === 'finalDmg'
+    if (MULTIPLICATIVE_KEYS.has(key)) {
       // 相乘疊加 (無視/減傷):1 − Π(1 − xᵢ/100)
       const all = [
         ...pct.map((s) => Math.abs(s.value)),
@@ -570,6 +579,11 @@ export function useCpDamage() {
       ]
       const base = combineIgnorePct(...all)
       final = key === 'damageTaken' ? -base : base
+    } else if (key === 'finalDmg') {
+      // 終傷:各來源相乘 Π(1 + xᵢ/100)
+      let fm = 1
+      for (const s of [...pct, ...flat]) fm = mul(fm, clean(1 + s.value / 100))
+      final = clean((fm - 1) * 100)
     } else if (PCT_KEYS.has(key)) {
       final = add(pctTotal, flatTotal)
     } else {
@@ -635,6 +649,16 @@ export function useCpDamage() {
   }
   function statTotalForCp(key) { return statTotalForCpFrom(breakdowns.value, key) }
 
+  // 終傷乘法:每個來源 (1+x/100) 相乘,回傳 { fm, pct }
+  //   fm  = Π(1 + src/100)     — 乘數 (用於公式)
+  //   pct = (fm − 1) × 100     — 顯示用百分比
+  function finalDmgMultFrom(bd, cpOnly) {
+    const entries = (bd.finalDmg?.pct || []).filter((x) => (cpOnly ? !x.cpExclude : true))
+    let fm = 1
+    for (const src of entries) fm = mul(fm, clean(1 + src.value / 100))
+    return { fm, pct: clean((fm - 1) * 100) }
+  }
+
   // ─── ATT STATS (含實際傷害 bossMax/Min/Avg) ────────────────────────────
   const attStatsInfo = computed(() => {
     const meta = JOB_ATT_META[charState.job] || JOB_ATT_META.beginner
@@ -647,7 +671,7 @@ export function useCpDamage() {
     const bossDmg = statTotal('bossDmg')
     const normalMobDmg = statTotal('normalMobDmg')
     const abnormalMobDmg = statTotal('abnormalMobDmg')
-    const finalDmg = statTotal('finalDmg')
+    const { fm: finalDmgFm, pct: finalDmg } = finalDmgMultFrom(breakdowns.value, false)
     const ignoreDef = statTotal('ignoreDef')  // 多來源已用相乘疊加合併
     // 冷卻 — 正值表「減少量」(convention: 潛能 / 聯盟 存入負值,這裡取絕對值)
     const cooldownReductionSec = Math.abs(statTotal('cooldownReductionSec') || 0)
@@ -658,7 +682,7 @@ export function useCpDamage() {
     }
     const statFactor = add(mul(primaryVal, 4), secondaryVal)
     const base = mul(statFactor, attVal / 100, meta.weaponConst)
-    const fm = clean(1 + finalDmg / 100)
+    const fm = finalDmgFm
     const basic = mul(applyPct(base, dmgPct), fm)
     const normal = mul(applyPct(base, add(dmgPct, normalMobDmg)), fm)
     const boss = mul(applyPct(base, add(dmgPct, bossDmg)), fm)
@@ -781,13 +805,14 @@ export function useCpDamage() {
     const z3 = attMul
     const z4 = clean((135 + critDmg) / 100)
     const z5 = clean((100 + dmgPct + bossDmg) / 100)
-    const z6 = 1
+    const { fm: z6, pct: equipFinalDmg } = finalDmgMultFrom(bd, true)
     const z2z3 = sub(mul(z2, z3), z2Diff)
     return {
       z1, z2, z3, z4, z5, z6, z2z3,
       attKey,
       inputs: {
         primary, secondary, flatAtt, flatAttForCp, pctAtt, critDmg, dmgPct, bossDmg,
+        equipFinalDmg,
         z2A, z2B, z2Diff,
         weaponDelta: delta,                        // canonical − bow(顯示用)
         actualW: contribs?.actualW || 0,

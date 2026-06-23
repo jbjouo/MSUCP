@@ -5,7 +5,7 @@ import { useEquipment } from '../composables/useEquipment.js'
 import { useCharacter } from '../composables/useCharacter.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
 import { findBonusPotentialOptionForLine } from '../constants/bonusPotentials.js'
-import { ITEM_SETS, countActiveSet } from '../constants/itemSets.js'
+import { ITEM_SETS, countActiveSet, determineActiveLuckyItem } from '../constants/itemSets.js'
 import { BUFFS } from '../constants/buffs.js'
 import { SKILLS } from '../constants/skills.js'
 import { TITLES } from '../constants/titles.js'
@@ -80,7 +80,10 @@ const simAttStats = computed(() => {
   const attVal = statTotal(attKey) + (avg[attKey] || 0)
   const dmgPct = statTotal('dmgPct') + (avg.dmgPct || 0)
   const bossDmg = statTotal('bossDmg') + (avg.bossDmg || 0)
-  const finalDmg = statTotal('finalDmg') + (avg.finalDmgPct || 0)
+  // 終傷:各來源相乘
+  let fmRecord = finalDmgMultAll().fm
+  if (avg.finalDmgPct) fmRecord *= (1 + avg.finalDmgPct / 100)
+  const finalDmg = (fmRecord - 1) * 100
   const critDmg = statTotal('critDmg') + (avg.critDmg || 0)
 
   const baseIgnoreDef = statTotal('ignoreDef')
@@ -94,7 +97,7 @@ const simAttStats = computed(() => {
 
   const statFactor = primaryVal * 4 + secondaryVal
   const base = statFactor * (attVal / 100) * meta.weaponConst
-  const fm = 1 + finalDmg / 100
+  const fm = fmRecord
   const basic = base * (1 + dmgPct / 100) * fm
   const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
   const bossMax = boss * (1.5 + critDmg / 100)
@@ -305,13 +308,13 @@ function computeWeaponContribsForCp(attKey) {
   }
 }
 
-// CP 公式 — 共 6 個乘區,Zone 6 暫以 1 替代:
+// CP 公式 — 共 6 個乘區:
 //   Zone 1 : (4 × 主屬 + 副屬) / 100
 //   Zone 2 : ATT (僅 flat,不吃 % 加成)
 //   Zone 3 : 1 + 攻擊力 % / 100
 //   Zone 4 : (135 + 爆擊傷害%) / 100
 //   Zone 5 : (100 + Damage% + Boss Damage%) / 100
-//   Zone 6 : 終傷乘區 (目前終傷僅 skill 來源,已排除;裝備來源未實作)  → 1
+//   Zone 6 : 1 + 裝備終傷% / 100 (來源:equipSkill.finalDmgPct)
 //
 // 武器係數差值 — 在 Zone 2 × Zone 3 完成後扣除:
 //   差值 = round(ATT × (1 + ATT%/100), 2dp) − floor((ATT − 69) × (1 + ATT%/100))
@@ -350,7 +353,7 @@ const cpZones = computed(() => {
   const z3 = attMul
   const z4 = (135 + critDmg) / 100
   const z5 = (100 + dmgPct + bossDmg) / 100
-  const z6 = 1
+  const { fm: z6, pct: equipFinalDmg } = finalDmgMultForCp()
   const z2z3 = z2 * z3 - z2Diff
 
   return {
@@ -358,6 +361,7 @@ const cpZones = computed(() => {
     attKey,
     inputs: {
       primary, secondary, flatAtt, flatAttForCp, pctAtt, critDmg, dmgPct, bossDmg,
+      equipFinalDmg,
       z2A, z2B, z2Diff,
       weaponDelta: delta,
       actualW: contribs?.actualW || 0,
@@ -492,6 +496,14 @@ const breakdowns = computed(() => {
 
     for (const [k, v] of Object.entries(itemFlatBag)) addFlat(k, name, v)
     for (const [k, v] of Object.entries(itemPctBag)) addPct(k, name, v)
+    // 裝備自帶技能 (如 Genesis 武器 finalDmgPct)
+    if (entry.item.equipSkill) {
+      const skillLabel = t('cp.tip.equipSkillPrefix', { name })
+      for (const [k, v] of Object.entries(entry.item.equipSkill)) {
+        if (PCT_KEYS.has(k)) addPct(k, skillLabel, v)
+        else addFlat(k, skillLabel, v)
+      }
+    }
   }
 
   // 3) Buff (啟用中)
@@ -529,14 +541,15 @@ const breakdowns = computed(() => {
   }
 
   // 3-set) 裝備套裝 — 同一套裝所有已觸發階層的屬性合計為「一條來源」,避免多階重複列
-  // countActiveSet 會處理「幸運道具」規則:持有 luckyItem 且本套裝已達 ≥3 件 → 再 +1
+  // 幸運道具:全身僅一件生效,優先級 hat > weapon
   const equippedItems = []
   for (const uid of Object.values(equipState.equipped)) {
     const ent = resolveEntry(uid)
     if (ent?.item?.id) equippedItems.push(ent.item)
   }
+  const activeLucky = determineActiveLuckyItem(equippedItems)
   for (const set of ITEM_SETS) {
-    const count = countActiveSet(set, equippedItems)
+    const count = countActiveSet(set, equippedItems, activeLucky)
     if (!count) continue
     // 累加該套裝所有已觸發 tier 的 stats
     const setBag = {}
@@ -775,8 +788,8 @@ function breakdownFor(key) {
   // (MapleStory 正式公式,多來源不是單純相加)
   // 範例:30% + 40% 實際 = 58%,而非 70%
   let final
-  const isMultiplicative = MULTIPLICATIVE_KEYS.has(key)
-  if (isMultiplicative) {
+  const isMultiplicative = MULTIPLICATIVE_KEYS.has(key) || key === 'finalDmg'
+  if (MULTIPLICATIVE_KEYS.has(key)) {
     let survival = 1
     for (const s of pct) {
       survival *= (1 - Math.abs(s.value) / 100)
@@ -786,6 +799,10 @@ function breakdownFor(key) {
     }
     const base = (1 - survival) * 100
     final = key === 'damageTaken' ? -base : base
+  } else if (key === 'finalDmg') {
+    let fm = 1
+    for (const s of [...pct, ...flat]) fm *= (1 + s.value / 100)
+    final = (fm - 1) * 100
   } else if (PCT_KEYS.has(key)) {
     final = pctTotal + flatTotal
   } else {
@@ -930,6 +947,17 @@ function statTotalForCp(key) {
   return Math.floor(normalFlatTotal * (1 + pctTotal / 100)) + fixedFlatTotal
 }
 
+// 終傷乘法:每個來源 (1+x/100) 相乘
+function finalDmgMult(cpOnly) {
+  const entries = (breakdowns.value.finalDmg?.pct || [])
+    .filter((x) => (cpOnly ? !x.cpExclude : true))
+  let fm = 1
+  for (const src of entries) fm *= (1 + src.value / 100)
+  return { fm, pct: (fm - 1) * 100 }
+}
+function finalDmgMultForCp() { return finalDmgMult(true) }
+function finalDmgMultAll() { return finalDmgMult(false) }
+
 // ────────────────────────────────────────────────────────────────
 // ATT STATS 專用資訊 (職業 → 武器 / 武器常數 / 熟練度)
 // ────────────────────────────────────────────────────────────────
@@ -979,7 +1007,9 @@ const attStatsInfo = computed(() => {
   const dmgPct = statTotal('dmgPct')
   const bossDmg = statTotal('bossDmg')
   const normalMobDmg = statTotal('normalMobDmg')
-  const finalDmg = statTotal('finalDmg')
+  // 終傷:多來源相乘 (1+a)×(1+b)
+  const finalDmgMult = finalDmgMultAll()
+  const finalDmg = finalDmgMult.pct
 
   // 顯示用的熟練度 (僅供 tooltip,**不再進入傷害公式**)
   let mastery = meta.mastery
@@ -989,14 +1019,13 @@ const attStatsInfo = computed(() => {
 
   // 傷害公式:
   //   base   = (主屬 × 4 + 副屬) × ATT/100 × 武器常數
-  //   fm     = 1 + Final Damage% / 100        ← 獨立乘區
+  //   fm     = Π(1 + 終傷來源% / 100)        ← 各來源相乘
   //   basic  = base × (1 + Damage% / 100)                                × fm
   //   normal = base × (1 + (Damage% + Normal Mob Damage%) / 100)         × fm
   //   boss   = base × (1 + (Damage% + Boss Damage%) / 100)               × fm
-  // (一般 / 首領 與 Damage% 為**相加**;Final Damage 為獨立乘區,**相乘**)
   const statFactor = primaryVal * 4 + secondaryVal
   const base = statFactor * (attVal / 100) * meta.weaponConst
-  const fm = 1 + finalDmg / 100
+  const fm = finalDmgMult.fm
   const basic = base * (1 + dmgPct / 100) * fm
   const normal = base * (1 + (dmgPct + normalMobDmg) / 100) * fm
   const boss = base * (1 + (dmgPct + bossDmg) / 100) * fm
@@ -1025,6 +1054,8 @@ const attStatsInfo = computed(() => {
     bossMin: Math.round(bossMin),
     bossAvg: Math.round(bossAvg),
     critDmg,
+    finalDmg,
+    fm,
   }
 })
 
@@ -1185,8 +1216,8 @@ function onPanelOut(e) {
             </li>
             <li class="cp-zones__row">
               <span class="cp-zones__label">Zone 6</span>
-              <span class="cp-zones__formula">終傷乘區 (待裝備來源)</span>
-              <span class="cp-zones__val">{{ cpZones.z6.toFixed(2) }}</span>
+              <span class="cp-zones__formula">1 + {{ (cpZones.inputs.equipFinalDmg || 0).toFixed(2) }}% / 100</span>
+              <span class="cp-zones__val">{{ cpZones.z6.toFixed(4) }}</span>
             </li>
           </ul>
           <div class="cp-zones__total">
@@ -1248,7 +1279,7 @@ function onPanelOut(e) {
         <div class="stat-row">
           <div class="stat-cell" data-stat="finalDmg" data-label="Final Damage">
             <span class="k">Final Damage</span>
-            <span class="v">{{ fmtPct(statTotal('finalDmg')) }}</span>
+            <span class="v">{{ fmtPct(attStatsInfo.finalDmg) }}</span>
           </div>
           <div class="stat-cell" data-stat="bossDmg" data-label="Boss Damage">
             <span class="k">Boss Damage</span>
