@@ -436,14 +436,18 @@ function formatTierStats(stats) {
     <ul class="tip-set__members">
       <li
         v-for="m in set.members"
-        :key="m.id"
+        :key="m.group ? m.nameKey : m.id"
         class="tip-set__member"
         :class="{
-          'tip-set__member--active': equippedIds.has(m.id),
-          'tip-set__member--lucky': luckyReplacedMemberId(set) === m.id,
+          'tip-set__member--active': m.group ? m.ids.some(id => equippedIds.has(id)) : equippedIds.has(m.id),
+          'tip-set__member--lucky': !m.group && luckyReplacedMemberId(set) === m.id,
         }"
       >
-        <template v-if="luckyReplacedMemberId(set) === m.id">
+        <template v-if="m.group">
+          <span class="tip-set__name">{{ t(m.nameKey) }}</span>
+          <span class="tip-set__slot">({{ t(`equipment.types.${m.type}`) }})</span>
+        </template>
+        <template v-else-if="luckyReplacedMemberId(set) === m.id">
           <span class="tip-set__name">{{ activeLucky.name }}</span>
           <span class="tip-set__slot">({{ t(`equipment.types.${getMemberDisplay(m).type}`) }})</span>
         </template>

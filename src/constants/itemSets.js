@@ -52,12 +52,24 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.pitched_boss.name',
     members: [
       { id: 'face_berserked', name: 'Berserked', type: 'face' },
+      {
+        group: true,
+        nameKey: 'itemSet.pitched_boss.cursed_spellbook',
+        type: 'pocket',
+        ids: [
+          'pocket_cursed_red_spellbook',
+          'pocket_cursed_blue_spellbook',
+          'pocket_cursed_green_spellbook',
+          'pocket_cursed_yellow_spellbook',
+        ],
+      },
       { id: 'belt_dreamy_belt', name: 'Dreamy Belt', type: 'belt' },
       { id: 'eye_magic_eyepatch', name: 'Magic Eyepatch', type: 'eye' },
     ],
     tiers: [
       { count: 2, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, bossDmg: 10 } },
       { count: 3, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, def: 250, ignoreDef: 10 } },
+      { count: 4, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, critDmg: 5 } },
     ],
   },
   {
@@ -213,9 +225,9 @@ export const ITEM_SETS = [
   },
 ]
 
-// 向後相容:產生 itemIds 供現有邏輯使用
+// 產生 itemIds 供現有邏輯使用;group 成員展開為多個 id
 for (const set of ITEM_SETS) {
-  set.itemIds = set.members.map((m) => m.id)
+  set.itemIds = set.members.flatMap((m) => m.group ? m.ids : [m.id])
 }
 
 export const ITEM_SETS_BY_ID = Object.fromEntries(ITEM_SETS.map((s) => [s.id, s]))
@@ -277,7 +289,13 @@ export function countActiveSet(set, equippedItems, activeLucky = null) {
   const equippedIds = new Set()
   for (const it of equippedItems) if (it?.id) equippedIds.add(it.id)
   let count = 0
-  for (const id of set.itemIds) if (equippedIds.has(id)) count++
+  for (const m of set.members) {
+    if (m.group) {
+      if (m.ids.some((id) => equippedIds.has(id))) count++
+    } else {
+      if (equippedIds.has(m.id)) count++
+    }
+  }
   if (count >= 3 && activeLucky) {
     const memberIds = new Set(set.itemIds)
     const memberTypes = new Set(

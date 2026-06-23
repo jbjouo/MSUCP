@@ -2117,6 +2117,86 @@
       "defaultPotentialTier": "unique",
       "defaultBonusPotentialTier": "epic",
       "imageUrl": "/msucp/images/items/1382274.png"
+    },
+    {
+      "id": "pocket_cursed_red_spellbook",
+      "apiItemId": 1162080,
+      "name": "Cursed Red Spellbook",
+      "nameEn": "Cursed Red Spellbook",
+      "type": "pocket",
+      "level": 160,
+      "maxStars": 0,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 20,
+        "dex": 10,
+        "int": 10,
+        "luk": 10,
+        "hp": 100,
+        "mp": 100
+      },
+      "imageUrl": "/msucp/images/items/1162080.png"
+    },
+    {
+      "id": "pocket_cursed_blue_spellbook",
+      "apiItemId": 1162081,
+      "name": "Cursed Blue Spellbook",
+      "nameEn": "Cursed Blue Spellbook",
+      "type": "pocket",
+      "level": 160,
+      "maxStars": 0,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 10,
+        "dex": 10,
+        "int": 20,
+        "luk": 10,
+        "hp": 100,
+        "mp": 100
+      },
+      "imageUrl": "/msucp/images/items/1162081.png"
+    },
+    {
+      "id": "pocket_cursed_green_spellbook",
+      "apiItemId": 1162082,
+      "name": "Cursed Green Spellbook",
+      "nameEn": "Cursed Green Spellbook",
+      "type": "pocket",
+      "level": 160,
+      "maxStars": 0,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 10,
+        "dex": 20,
+        "int": 10,
+        "luk": 10,
+        "hp": 100,
+        "mp": 100
+      },
+      "imageUrl": "/msucp/images/items/1162082.png"
+    },
+    {
+      "id": "pocket_cursed_yellow_spellbook",
+      "apiItemId": 1162083,
+      "name": "Cursed Yellow Spellbook",
+      "nameEn": "Cursed Yellow Spellbook",
+      "type": "pocket",
+      "level": 160,
+      "maxStars": 0,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 20,
+        "hp": 100,
+        "mp": 100
+      },
+      "imageUrl": "/msucp/images/items/1162083.png"
     }
   ]
 }

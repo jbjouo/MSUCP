@@ -443,7 +443,8 @@
       "name": "AbsoLab Set (Magician)"
     },
     "pitched_boss": {
-      "name": "Pitched Boss Set"
+      "name": "Pitched Boss Set",
+      "cursed_spellbook": "Select 1 from Cursed Spellbook"
     },
     "root_abyss_thief": {
       "name": "Root Abyss Set (Thief)"
