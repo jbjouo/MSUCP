@@ -403,7 +403,7 @@ function formatTierStats(stats) {
     <!-- 潛能 -->
     <section v-if="potentialLines.length" class="tip__section">
       <header class="tip__section-head">
-        <span class="tag-l" :class="`tag-l--${potential.tier}`">L</span>
+        <span class="tag-l" :class="`tag-l--${potential.tier}`">{{ potential.tier[0].toUpperCase() }}</span>
         <span class="tip__section-title">{{ t('equipment.tip.potential') }}</span>
       </header>
       <ul class="tip__section-list">
@@ -414,7 +414,7 @@ function formatTierStats(stats) {
     <!-- 附加潛能 -->
     <section v-if="bonusPotentialLines.length" class="tip__section">
       <header class="tip__section-head">
-        <span class="tag-l" :class="`tag-l--${bonusPotential.tier}`">L</span>
+        <span class="tag-l" :class="`tag-l--${bonusPotential.tier}`">{{ bonusPotential.tier[0].toUpperCase() }}</span>
         <span class="tip__section-title">{{ t('equipment.tip.bonusPotential') }}</span>
       </header>
       <ul class="tip__section-list">
