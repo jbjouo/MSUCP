@@ -45,6 +45,25 @@
 - `maxStars` 用 `common.maxStarforce` 判斷(不用 `enableStarforce`)
 - **禁用** `rarity` 欄位
 
+#### 創世武器 (Genesis) 專用欄位
+
+```jsonc
+{
+  "fixedStars": 22,                    // 固定星力,不可調整
+  "luckyItem": true,                   // 幸運道具(套裝 +1)
+  "bonusTiersTable": "genesis",        // 指定星火查表(NAMED_BONUS_TIERS)
+  "equipSkill": { "finalDmg": 10 },   // 裝備自帶技能 → 納入 breakdown
+  "defaultPotentialTier": "rare",      // 新增時自動隨機產生潛能
+  "defaultBonusPotentialTier": "rare"  // 新增時自動隨機產生附加潛能
+}
+```
+
+- `fixedStars`: `clampStars()` 直接回傳此值;`setStars()` 拒絕修改;UI 顯示但鎖定
+- `luckyItem`: 幸運道具,穿戴後對符合 type 的套裝 +1 件數(需套裝已達 ≥3 件)
+- `bonusTiersTable`: 星火查表 key,對應 `bonusStatsTiers.js` 中的 `NAMED_BONUS_TIERS`
+- `equipSkill`: 裝備自帶技能,key/value 納入 CP breakdown(如 `finalDmg: 10`)
+- `defaultPotentialTier` / `defaultBonusPotentialTier`: `addToInventory()` 時依 weight 加權隨機產生
+
 ### Entry (`useEquipment.js`)
 
 ```js
@@ -84,7 +103,7 @@ state.equipped  = { [slotKey]: uid | null }
 | Lv140 | 16-22★ 完整(全屬+9/星, ATT: 8/8/9/10/10/11/12) | 16-23★ 完整 |
 | Lv150 | 16-23★ 完整 | 同 |
 | Lv160 | 16-23★ 完整 | 16-25★ 完整 |
-| Lv200 | 武器完整;防具/手套/飾品暫用 Lv160 | 同 |
+| Lv200 | 武器完整;防具/手套/飾品 +15 屬性, ATT 12-21 | 同 |
 
 ## 星火 (`bonusStatsTiers.js`)
 
@@ -93,15 +112,26 @@ state.equipped  = { [slotKey]: uid | null }
 ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 ```
 
-- 已建表:Lv140 / Lv150 / Lv200
+- 已建表:Lv140 / Lv150 / Lv200(Arcane Umbra) / Lv200 Genesis
+- 具名表:`NAMED_BONUS_TIERS` — item 設 `bonusTiersTable: "genesis"` 則優先使用對應表
 - 表中找不到的 base 值 → `computeFlameByFormula()` 自動計算
-- `weaponBonusTiersFor(item, statKey)`:查表優先,fallback 公式
+- `weaponBonusTiersFor(item, statKey)`:具名表 → 等級表 → 公式 → null(自由輸入)
 
 ## 套裝 (`itemSets.js`)
 
 - 成員可預先寫入(items.json 尚未新增的裝備),未來加入時自動配對
 - `fetch-items.mjs --append` 新增裝備時自動查 API set → 比對 itemSets.js → 插入成員
 - 若 set 不存在,輸出完整 set 資訊(成員、效果)供手動新增
+
+### 幸運道具 (Lucky Item)
+
+- 裝備設 `luckyItem: true` 即為幸運道具(如 Chaos Vellum Helm、Genesis 武器)
+- 穿戴幸運道具時,對已達 ≥3 件的套裝且該套裝包含同 type 成員 → 件數 +1
+- **全身僅一件生效**:即使多件幸運道具能觸發不同套裝,也只有最高優先的那一件生效
+- 優先級:`hat > weapon`(`LUCKY_PRIORITY` in `itemSets.js`)
+- `determineActiveLuckyItem(equippedItems)`:依優先級找出能對至少一個套裝貢獻的最高優先幸運道具
+- `countActiveSet(set, equippedItems, activeLucky)`:計算套裝件數,含幸運道具加成
+- 套裝面板中,被幸運道具替代的成員以**黃色字**顯示幸運道具名稱
 
 ## 子系統
 
@@ -139,13 +169,14 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 
 ### MULTIPLICATIVE_KEYS
 
-`ignoreDef / damageTaken` 走 `1 − Π(1 − x/100)`
+- `ignoreDef / damageTaken` 走 `1 − Π(1 − x/100)`
+- `finalDmg` 走 `Π(1 + x/100) − 1`(**所有終傷來源皆相乘,不存在相加**)
 
 ### ATT STATS 公式
 
 ```
 base = (4 × 主屬 + 副屬) × ATT/100 × 武器常數
-fm   = 1 + Final Damage% / 100
+fm   = Π(1 + 終傷來源% / 100)       ← 各來源相乘
 basic = base × (1 + Damage%/100) × fm
 boss  = base × (1 + (Damage% + Boss Dmg%)/100) × fm
 ```
@@ -158,7 +189,7 @@ Zone 2 = ATT (僅 flat)
 Zone 3 = 1 + ATT% / 100
 Zone 4 = (135 + 爆擊傷害%) / 100
 Zone 5 = (100 + Damage% + Boss Damage%) / 100
-Zone 6 = 終傷乘區 (未實作) → 1
+Zone 6 = Π(1 + 裝備終傷來源% / 100)  ← 僅含非 cpExclude 的 finalDmg(裝備 equipSkill)
 CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 ```
 
@@ -296,3 +327,15 @@ per-character key 格式:`msucp.char.<charId>.<suffix>`
   1. `npx vite build` → `cp dist/index.html dist/404.html`
   2. `git -C dist init -b main -q` → add → commit → push -f → `rm -rf dist/.git`
 - 必須維持:`vite.config.js` 的 `base: '/msucp/'`、`public/.nojekyll`
+
+### 部署認證
+
+- 電腦預設存 jbjouo 帳號(osxkeychain),正式站用 wasaizanla 帳號
+- osxkeychain(系統級)優先於 `.git-credentials`(global),直接 push 會被 jbjouo 認證擋住
+- **解法**:push 時在 URL 中直接帶 PAT,繞過 credential helper:
+  ```bash
+  TOKEN=$(grep wasaizanla ~/.git-credentials | sed 's|https://wasaizanla:\(.*\)@github.com.*|\1|' | tr -d '\n')
+  git -C dist push -f "https://wasaizanla:${TOKEN}@github.com/wasaizanla/msucp.git" main
+  ```
+- PAT 存於 `~/.git-credentials`,格式:`https://wasaizanla:<PAT>@github.com`
+- 若 PAT 失效(401),請使用者到 GitHub 重新產生(需 `repo` scope)
