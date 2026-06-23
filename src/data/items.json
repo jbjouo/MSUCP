@@ -2197,6 +2197,314 @@
         "mp": 100
       },
       "imageUrl": "/msucp/images/items/1162083.png"
+    },
+    {
+      "id": "shoulder_arcane_umbra_knight_shoulder",
+      "apiItemId": 1152196,
+      "name": "Arcane Umbra Knight Shoulder",
+      "nameEn": "Arcane Umbra Knight Shoulder",
+      "type": "shoulder",
+      "level": 200,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 20,
+        "matk": 20,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1152196.png"
+    },
+    {
+      "id": "shoulder_arcane_umbra_mage_shoulder",
+      "apiItemId": 1152197,
+      "name": "Arcane Umbra Mage Shoulder",
+      "nameEn": "Arcane Umbra Mage Shoulder",
+      "type": "shoulder",
+      "level": 200,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 20,
+        "matk": 20,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1152197.png"
+    },
+    {
+      "id": "shoulder_arcane_umbra_archer_shoulder",
+      "apiItemId": 1152198,
+      "name": "Arcane Umbra Archer Shoulder",
+      "nameEn": "Arcane Umbra Archer Shoulder",
+      "type": "shoulder",
+      "level": 200,
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 20,
+        "matk": 20,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1152198.png"
+    },
+    {
+      "id": "shoulder_arcane_umbra_thief_shoulder",
+      "apiItemId": 1152199,
+      "name": "Arcane Umbra Thief Shoulder",
+      "nameEn": "Arcane Umbra Thief Shoulder",
+      "type": "shoulder",
+      "level": 200,
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 20,
+        "matk": 20,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1152199.png"
+    },
+    {
+      "id": "shoulder_arcane_umbra_pirate_shoulder",
+      "apiItemId": 1152200,
+      "name": "Arcane Umbra Pirate Shoulder",
+      "nameEn": "Arcane Umbra Pirate Shoulder",
+      "type": "shoulder",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 20,
+        "matk": 20,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1152200.png"
+    },
+    {
+      "id": "shoes_arcane_umbra_knight_shoes",
+      "apiItemId": 1073158,
+      "name": "Arcane Umbra Knight Shoes",
+      "nameEn": "Arcane Umbra Knight Shoes",
+      "type": "shoes",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073158.png"
+    },
+    {
+      "id": "glove_arcane_umbra_knight_gloves",
+      "apiItemId": 1082695,
+      "name": "Arcane Umbra Knight Gloves",
+      "nameEn": "Arcane Umbra Knight Gloves",
+      "type": "glove",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1082695.png"
+    },
+    {
+      "id": "cape_arcane_umbra_knight_cape",
+      "apiItemId": 1102940,
+      "name": "Arcane Umbra Knight Cape",
+      "nameEn": "Arcane Umbra Knight Cape",
+      "type": "cape",
+      "level": 200,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 450
+      },
+      "imageUrl": "/msucp/images/items/1102940.png"
+    },
+    {
+      "id": "shoes_arcane_umbra_archer_shoes",
+      "apiItemId": 1073160,
+      "name": "Arcane Umbra Archer Shoes",
+      "nameEn": "Arcane Umbra Archer Shoes",
+      "type": "shoes",
+      "level": 200,
+      "req": {
+        "dex": 600
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073160.png"
+    },
+    {
+      "id": "glove_arcane_umbra_archer_gloves",
+      "apiItemId": 1082697,
+      "name": "Arcane Umbra Archer Gloves",
+      "nameEn": "Arcane Umbra Archer Gloves",
+      "type": "glove",
+      "level": 200,
+      "req": {
+        "dex": 600
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1082697.png"
+    },
+    {
+      "id": "cape_arcane_umbra_archer_cape",
+      "apiItemId": 1102942,
+      "name": "Arcane Umbra Archer Cape",
+      "nameEn": "Arcane Umbra Archer Cape",
+      "type": "cape",
+      "level": 200,
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 450
+      },
+      "imageUrl": "/msucp/images/items/1102942.png"
+    },
+    {
+      "id": "shoes_arcane_umbra_pirate_shoes",
+      "apiItemId": 1073162,
+      "name": "Arcane Umbra Pirate Shoes",
+      "nameEn": "Arcane Umbra Pirate Shoes",
+      "type": "shoes",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073162.png"
+    },
+    {
+      "id": "glove_arcane_umbra_pirate_gloves",
+      "apiItemId": 1082699,
+      "name": "Arcane Umbra Pirate Gloves",
+      "nameEn": "Arcane Umbra Pirate Gloves",
+      "type": "glove",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 40,
+        "dex": 40,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1082699.png"
+    },
+    {
+      "id": "cape_arcane_umbra_pirate_cape",
+      "apiItemId": 1102944,
+      "name": "Arcane Umbra Pirate Cape",
+      "nameEn": "Arcane Umbra Pirate Cape",
+      "type": "cape",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 6,
+        "matk": 6,
+        "str": 35,
+        "dex": 35,
+        "int": 35,
+        "luk": 35,
+        "def": 450
+      },
+      "imageUrl": "/msucp/images/items/1102944.png"
     }
   ]
 }

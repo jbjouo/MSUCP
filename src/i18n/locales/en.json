@@ -455,11 +455,20 @@
     "ifias_treasure": {
       "name": "Ifia's Treasure Set"
     },
+    "arcane_umbra_warrior": {
+      "name": "Arcane Umbra Set (Warrior)"
+    },
     "arcane_umbra_magician": {
       "name": "Arcane Umbra Set (Magician)"
     },
+    "arcane_umbra_bowman": {
+      "name": "Arcane Umbra Set (Bowman)"
+    },
     "arcane_umbra_thief": {
       "name": "Arcane Umbra Set (Thief)"
+    },
+    "arcane_umbra_pirate": {
+      "name": "Arcane Umbra Set (Pirate)"
     },
     "raven_horn": {
       "name": "Raven Horn Set"

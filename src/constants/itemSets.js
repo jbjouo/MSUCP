@@ -175,6 +175,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_magician.name',
     members: [
       { id: 'shoes_arcane_umbra_mage_shoes', name: 'Arcane Umbra Mage Shoes', type: 'shoes' },
+      { id: 'shoulder_arcane_umbra_mage_shoulder', name: 'Arcane Umbra Mage Shoulder', type: 'shoulder' },
       { id: 'glove_arcane_umbra_mage_gloves', name: 'Arcane Umbra Mage Gloves', type: 'glove' },
       { id: 'cape_arcane_umbra_mage_cape', name: 'Arcane Umbra Mage Cape', type: 'cape' },
       { id: 'wpn_arcane_umbra_staff', name: 'Arcane Umbra Staff', type: 'weapon' },
@@ -184,6 +185,7 @@ export const ITEM_SETS = [
       { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
       { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
       { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
+      { count: 5, stats: { hp: 2000, mp: 2000, atk: 30, matk: 30, bossDmg: 10 } },
     ],
   },
   {
@@ -191,6 +193,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_thief.name',
     members: [
       { id: 'shoes_arcane_umbra_thief_shoes', name: 'Arcane Umbra Thief Shoes', type: 'shoes' },
+      { id: 'shoulder_arcane_umbra_thief_shoulder', name: 'Arcane Umbra Thief Shoulder', type: 'shoulder' },
       { id: 'wpn_arcane_umbra_guards', name: 'Arcane Umbra Guards', type: 'weapon' },
       { id: 'glove_arcane_umbra_thief_gloves', name: 'Arcane Umbra Thief Gloves', type: 'glove' },
       { id: 'cape_arcane_umbra_thief_cape', name: 'Arcane Umbra Thief Cape', type: 'cape' },
@@ -200,6 +203,57 @@ export const ITEM_SETS = [
       { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
       { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
       { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
+      { count: 5, stats: { hp: 2000, mp: 2000, atk: 30, matk: 30, bossDmg: 10 } },
+    ],
+  },
+  {
+    id: 'arcane_umbra_warrior',
+    nameKey: 'itemSet.arcane_umbra_warrior.name',
+    members: [
+      { id: 'shoes_arcane_umbra_knight_shoes', name: 'Arcane Umbra Knight Shoes', type: 'shoes' },
+      { id: 'shoulder_arcane_umbra_knight_shoulder', name: 'Arcane Umbra Knight Shoulder', type: 'shoulder' },
+      { id: 'glove_arcane_umbra_knight_gloves', name: 'Arcane Umbra Knight Gloves', type: 'glove' },
+      { id: 'cape_arcane_umbra_knight_cape', name: 'Arcane Umbra Knight Cape', type: 'cape' },
+    ],
+    tiers: [
+      { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
+      { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
+      { count: 5, stats: { hp: 2000, mp: 2000, atk: 30, matk: 30, bossDmg: 10 } },
+    ],
+  },
+  {
+    id: 'arcane_umbra_bowman',
+    nameKey: 'itemSet.arcane_umbra_bowman.name',
+    members: [
+      { id: 'shoes_arcane_umbra_archer_shoes', name: 'Arcane Umbra Archer Shoes', type: 'shoes' },
+      { id: 'shoulder_arcane_umbra_archer_shoulder', name: 'Arcane Umbra Archer Shoulder', type: 'shoulder' },
+      { id: 'glove_arcane_umbra_archer_gloves', name: 'Arcane Umbra Archer Gloves', type: 'glove' },
+      { id: 'cape_arcane_umbra_archer_cape', name: 'Arcane Umbra Archer Cape', type: 'cape' },
+      { id: 'wpn_arcane_umbra_bow', name: 'Arcane Umbra Bow', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
+      { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
+      { count: 5, stats: { hp: 2000, mp: 2000, atk: 30, matk: 30, bossDmg: 10 } },
+    ],
+  },
+  {
+    id: 'arcane_umbra_pirate',
+    nameKey: 'itemSet.arcane_umbra_pirate.name',
+    members: [
+      { id: 'shoes_arcane_umbra_pirate_shoes', name: 'Arcane Umbra Pirate Shoes', type: 'shoes' },
+      { id: 'shoulder_arcane_umbra_pirate_shoulder', name: 'Arcane Umbra Pirate Shoulder', type: 'shoulder' },
+      { id: 'glove_arcane_umbra_pirate_gloves', name: 'Arcane Umbra Pirate Gloves', type: 'glove' },
+      { id: 'cape_arcane_umbra_pirate_cape', name: 'Arcane Umbra Pirate Cape', type: 'cape' },
+      { id: 'wpn_arcane_umbra_knuckle', name: 'Arcane Umbra Knuckle', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 3, stats: { atk: 30, matk: 30, def: 400, ignoreDef: 10 } },
+      { count: 4, stats: { allStat: 50, atk: 35, matk: 35, bossDmg: 10 } },
+      { count: 5, stats: { hp: 2000, mp: 2000, atk: 30, matk: 30, bossDmg: 10 } },
     ],
   },
   {
