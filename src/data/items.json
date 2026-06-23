@@ -2114,8 +2114,8 @@
       "equipSkill": {
         "finalDmg": 10
       },
-      "defaultPotentialTier": "rare",
-      "defaultBonusPotentialTier": "rare",
+      "defaultPotentialTier": "unique",
+      "defaultBonusPotentialTier": "epic",
       "imageUrl": "/msucp/images/items/1382274.png"
     }
   ]
