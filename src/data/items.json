@@ -2505,6 +2505,25 @@
         "def": 450
       },
       "imageUrl": "/msucp/images/items/1102944.png"
+    },
+    {
+      "id": "face_twilight_mark",
+      "apiItemId": 1012757,
+      "name": "Twilight Mark",
+      "nameEn": "Twilight Mark",
+      "type": "face",
+      "level": 140,
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "matk": 5,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1012757.png"
     }
   ]
 }
