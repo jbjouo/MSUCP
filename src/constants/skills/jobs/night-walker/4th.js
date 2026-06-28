@@ -22,7 +22,7 @@ export const NIGHT_WALKER_4TH_SKILLS = [
     jobs: ['nightwalker'],
     advancement: 4,
     kind: 'passive',
-    stats: { atk: 30, ignoreDef: 15 },
+    stats: { atk: 30, ignoreDef: 15, finalDmg: 8 },
     cp: { role: 'passive' },
   },
 ]

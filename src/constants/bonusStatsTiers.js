@@ -133,6 +133,9 @@ export const REFERENCE_WEAPON_DATA = {
   dagger: {
     200: { atk: 276 },              // Arcane Umbra Dagger
   },
+  claw: {
+    200: { atk: 149 },              // Arcane Umbra Guards
+  },
 }
 
 // 職業 → CP 基準武器(subType + 主要 attKey)
@@ -142,7 +145,12 @@ export const JOB_CP_REFERENCE_WEAPON = {
   archmageFP: { subType: 'wand', attKey: 'matk' },
   archmageIL: { subType: 'wand', attKey: 'matk' },
   bishop:     { subType: 'wand', attKey: 'matk' },
-  // TODO:其他職業(bowman → bow / warrior → sword 等)未設定 → delta = 0
+  // Cygnus Thief
+  nightwalker: { subType: 'claw', attKey: 'atk' },
+  // Adventurer Thief
+  nightlord:   { subType: 'claw', attKey: 'atk' },
+  shadower:    { subType: 'dagger', attKey: 'atk' },
+  // TODO：其他職業(bowman → bow / warrior → sword 等)未設定 → delta = 0
 }
 
 // 取得某職業在指定等級下的基準武器資料(模板,與實際穿戴無關)
