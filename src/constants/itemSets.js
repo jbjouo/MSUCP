@@ -257,6 +257,42 @@ export const ITEM_SETS = [
     ],
   },
   {
+    id: 'royal_von_leon_magician',
+    nameKey: 'itemSet.royal_von_leon_magician.name',
+    members: [
+      { id: 'hat_royal_von_leon_magician_helm', name: 'Royal Von Leon Magician Helm', type: 'hat' },
+      { id: 'overall_royal_von_leon_mage_suit', name: 'Royal Von Leon Mage Suit', type: 'overall' },
+      { id: 'shoes_royal_von_leon_mage_boots', name: 'Royal Von Leon Mage Boots', type: 'shoes' },
+      { id: 'glove_royal_von_leon_mage_hands', name: 'Royal Von Leon Mage Hands', type: 'glove' },
+      { id: 'cape_royal_von_leon_mage_cape', name: 'Royal Von Leon Mage Cape', type: 'cape' },
+    ],
+    tiers: [
+      { count: 4, stats: { allStat: 6, def: 150, bossDmg: 10 } },
+      { count: 5, stats: { allStat: 9, atk: 10, matk: 10, def: 225 } },
+      { count: 6, stats: { allStat: 15, hpPct: 15, mpPct: 15, atk: 20, matk: 20, int: 10, luk: 10, def: 300, bossDmg: 10 } },
+    ],
+  },
+  {
+    id: 'dragon_tail_magician',
+    nameKey: 'itemSet.dragon_tail_magician.name',
+    members: [
+      { id: 'hat_dragon_tail_mage_sallet', name: 'Dragon Tail Mage Sallet', type: 'hat' },
+      { id: 'overall_dragon_tail_mage_robe', name: 'Dragon Tail Mage Robe', type: 'overall' },
+      { id: 'shoes_dragon_tail_mage_shoes', name: 'Dragon Tail Mage Shoes', type: 'shoes' },
+      { id: 'glove_dragon_tail_mage_gloves', name: 'Dragon Tail Mage Gloves', type: 'glove' },
+      { id: 'cape_dragon_tail_mage_cape', name: 'Dragon Tail Mage Cape', type: 'cape' },
+      { id: 'shoulder_dragon_tail_mage_shoulder', name: 'Dragon Tail Mage Shoulder', type: 'shoulder' },
+    ],
+    tiers: [
+      { count: 2, stats: { def: 300 } },
+      { count: 3, stats: { hpPct: 15, mpPct: 15 } },
+      { count: 4, stats: { matk: 15 } },
+      { count: 5, stats: { allStat: 20 } },
+      { count: 6, stats: { matk: 30, bossDmg: 30 } },
+      { count: 7, stats: { hpPct: 15, mpPct: 15, matk: 10 } },
+    ],
+  },
+  {
     id: 'raven_horn',
     nameKey: 'itemSet.raven_horn.name',
     members: [

@@ -2537,6 +2537,253 @@
         "atk": 29
       },
       "imageUrl": "/msucp/images/items/3152011.png"
+    },
+    {
+      "id": "hat_royal_von_leon_magician_helm",
+      "apiItemId": 1004235,
+      "name": "Royal Von Leon Magician Helm",
+      "nameEn": "Royal Von Leon Magician Helm",
+      "type": "hat",
+      "level": 130,
+      "req": {
+        "int": 368
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "int": 11,
+        "luk": 7,
+        "mp": 50,
+        "def": 105
+      },
+      "imageUrl": "/msucp/images/items/1004235.png"
+    },
+    {
+      "id": "overall_royal_von_leon_mage_suit",
+      "apiItemId": 1052805,
+      "name": "Royal Von Leon Mage Suit",
+      "nameEn": "Royal Von Leon Mage Suit",
+      "type": "overall",
+      "level": 130,
+      "req": {
+        "int": 355
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "int": 13,
+        "luk": 7,
+        "mp": 100,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1052805.png"
+    },
+    {
+      "id": "shoes_royal_von_leon_mage_boots",
+      "apiItemId": 1072973,
+      "name": "Royal Von Leon Mage Boots",
+      "nameEn": "Royal Von Leon Mage Boots",
+      "type": "shoes",
+      "level": 130,
+      "req": {
+        "int": 368
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "int": 8,
+        "luk": 5,
+        "mp": 15,
+        "def": 60,
+        "moveSpeed": 5
+      },
+      "imageUrl": "/msucp/images/items/1072973.png"
+    },
+    {
+      "id": "glove_royal_von_leon_mage_hands",
+      "apiItemId": 1082614,
+      "name": "Royal Von Leon Mage Hands",
+      "nameEn": "Royal Von Leon Mage Hands",
+      "type": "glove",
+      "level": 130,
+      "req": {
+        "int": 368
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "matk": 1,
+        "int": 8,
+        "luk": 7,
+        "mp": 40,
+        "def": 65
+      },
+      "imageUrl": "/msucp/images/items/1082614.png"
+    },
+    {
+      "id": "cape_royal_von_leon_mage_cape",
+      "apiItemId": 1102714,
+      "name": "Royal Von Leon Mage Cape",
+      "nameEn": "Royal Von Leon Mage Cape",
+      "type": "cape",
+      "level": 130,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "str": 3,
+        "dex": 3,
+        "int": 3,
+        "luk": 3,
+        "hp": 50,
+        "def": 120
+      },
+      "imageUrl": "/msucp/images/items/1102714.png"
+    },
+    {
+      "id": "hat_dragon_tail_mage_sallet",
+      "apiItemId": 1003173,
+      "name": "Dragon Tail Mage Sallet",
+      "nameEn": "Dragon Tail Mage Sallet",
+      "type": "hat",
+      "level": 140,
+      "req": {
+        "int": 420
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 1,
+        "int": 25,
+        "luk": 25,
+        "hp": 300,
+        "mp": 300,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1003173.png"
+    },
+    {
+      "id": "cape_dragon_tail_mage_cape",
+      "apiItemId": 1102276,
+      "name": "Dragon Tail Mage Cape",
+      "nameEn": "Dragon Tail Mage Cape",
+      "type": "cape",
+      "level": 140,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 1,
+        "int": 7,
+        "luk": 7,
+        "def": 100,
+        "moveSpeed": 10,
+        "jump": 5
+      },
+      "imageUrl": "/msucp/images/items/1102276.png"
+    },
+    {
+      "id": "glove_dragon_tail_mage_gloves",
+      "apiItemId": 1082296,
+      "name": "Dragon Tail Mage Gloves",
+      "nameEn": "Dragon Tail Mage Gloves",
+      "type": "glove",
+      "level": 140,
+      "req": {
+        "int": 420
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 5,
+        "int": 16,
+        "luk": 16,
+        "hp": 350,
+        "def": 30
+      },
+      "imageUrl": "/msucp/images/items/1082296.png"
+    },
+    {
+      "id": "overall_dragon_tail_mage_robe",
+      "apiItemId": 1052315,
+      "name": "Dragon Tail Mage Robe",
+      "nameEn": "Dragon Tail Mage Robe",
+      "type": "overall",
+      "level": 140,
+      "req": {
+        "int": 420
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 2,
+        "int": 30,
+        "luk": 30,
+        "def": 200
+      },
+      "imageUrl": "/msucp/images/items/1052315.png"
+    },
+    {
+      "id": "shoes_dragon_tail_mage_shoes",
+      "apiItemId": 1072486,
+      "name": "Dragon Tail Mage Shoes",
+      "nameEn": "Dragon Tail Mage Shoes",
+      "type": "shoes",
+      "level": 140,
+      "req": {
+        "int": 420
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 1,
+        "int": 15,
+        "luk": 15,
+        "def": 50,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1072486.png"
+    },
+    {
+      "id": "shoulder_dragon_tail_mage_shoulder",
+      "apiItemId": 1152110,
+      "name": "Dragon Tail Mage Shoulder",
+      "nameEn": "Dragon Tail Mage Shoulder",
+      "type": "shoulder",
+      "level": 140,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 11,
+        "dex": 11,
+        "int": 11,
+        "luk": 11,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152110.png"
     }
   ]
 }

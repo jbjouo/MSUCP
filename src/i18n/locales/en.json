@@ -518,6 +518,12 @@
     "arcane_umbra_pirate": {
       "name": "Arcane Umbra Set (Pirate)"
     },
+    "royal_von_leon_magician": {
+      "name": "Royal Von Leon Magician Set"
+    },
+    "dragon_tail_magician": {
+      "name": "Dragon Tail Set (Magician)"
+    },
     "raven_horn": {
       "name": "Raven Horn Set"
     }
@@ -967,6 +973,8 @@
       "decent_advanced_blessing": "Decent Advanced Blessing",
       "decent_speed_infusion": "Decent Speed Infusion",
       "blink": "Blink",
+      "phalanx_charge": "Phalanx Charge",
+      "nw_last_resort": "Last Resort",
       "erda_nova": "Erda Nova",
       "will_of_erda": "Will of Erda",
       "decent_holy_symbol": "Decent Holy Symbol",
