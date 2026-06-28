@@ -662,6 +662,7 @@
       "pocket": "口袋",
       "belt": "腰帶",
       "shoes": "鞋子",
+      "projectile": "彈藥",
       "android": "機器人",
       "heart": "心臟"
     },
@@ -686,6 +687,9 @@
       "pocket": "口袋道具",
       "belt": "腰帶",
       "shoes": "鞋子",
+      "star": "飛鏢",
+      "arrow": "箭矢",
+      "bullet": "子彈",
       "android": "機器人",
       "heart": "心臟"
     },

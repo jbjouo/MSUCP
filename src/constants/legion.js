@@ -88,6 +88,7 @@ export const LEGION_BRANCHES = [
   {
     key: 'flora',
     members: [
+      { id: 'adele', jobKey: 'adele', effects: mainStatTiers('str') },
       { id: 'ark', jobKey: 'ark', effects: mainStatTiers('str') },
     ],
   },

@@ -662,6 +662,7 @@
       "pocket": "Pocket",
       "belt": "Belt",
       "shoes": "Shoes",
+      "projectile": "Projectile",
       "android": "Android",
       "heart": "Heart"
     },
@@ -686,6 +687,9 @@
       "pocket": "Pocket Item",
       "belt": "Belt",
       "shoes": "Shoes",
+      "star": "Throwing Star",
+      "arrow": "Arrow",
+      "bullet": "Bullet",
       "android": "Android",
       "heart": "Heart"
     },

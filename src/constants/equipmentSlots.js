@@ -4,6 +4,9 @@
 export const EQUIP_GRID_COLS = 5
 export const EQUIP_GRID_ROWS = 6
 
+// 特殊彈藥欄位 — 僅特定職業顯示 (star=飛鏢 / arrow=箭矢 / bullet=子彈)
+export const PROJECTILE_TYPES = ['star', 'arrow', 'bullet']
+
 export const EQUIP_SLOTS = [
   // Row 1
   { key: 'ring1',     row: 1, col: 1, accepts: ['ring'] },
@@ -33,6 +36,7 @@ export const EQUIP_SLOTS = [
   { key: 'glove',     row: 5, col: 4, accepts: ['glove'] },
   { key: 'cape',      row: 5, col: 5, accepts: ['cape'] },
   // Row 6
+  { key: 'projectile', row: 6, col: 2, accepts: ['star', 'arrow', 'bullet'], conditional: true },
   { key: 'shoes',     row: 6, col: 3, accepts: ['shoes'] },
 ]
 

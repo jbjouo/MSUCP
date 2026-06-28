@@ -1,7 +1,10 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEquipment } from '../composables/useEquipment.js'
+import { useCharacter } from '../composables/useCharacter.js'
 import { EQUIP_GRID_COLS, EQUIP_GRID_ROWS } from '../constants/equipmentSlots.js'
+import { projectileTypeOf } from '../constants/jobs.js'
 
 const props = defineProps({
   selectedSlotKey: { type: String, default: null },
@@ -11,6 +14,12 @@ const emit = defineEmits(['slot-click', 'slot-hover'])
 
 const { t } = useI18n()
 const { state, EQUIP_SLOTS, resolveEntry } = useEquipment()
+const { state: charState } = useCharacter()
+
+const currentProjectile = computed(() => projectileTypeOf(charState.job))
+const visibleSlots = computed(() =>
+  EQUIP_SLOTS.filter((s) => !s.conditional || (s.key === 'projectile' && currentProjectile.value)),
+)
 
 function slotLabel(key) {
   return t(`equipment.slots.${key}`)
@@ -49,7 +58,7 @@ function onLeave() {
       }"
     >
       <div
-        v-for="slot in EQUIP_SLOTS"
+        v-for="slot in visibleSlots"
         :key="slot.key"
         class="equip-slot-wrap"
         :style="{ gridRow: slot.row, gridColumn: slot.col }"

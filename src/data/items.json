@@ -2524,6 +2524,19 @@
         "def": 100
       },
       "imageUrl": "/msucp/images/items/1012757.png"
+    },
+    {
+      "id": "star_flame_throwing_stars",
+      "apiItemId": 3152011,
+      "name": "Flame Throwing Stars",
+      "nameEn": "Flame Throwing Stars",
+      "type": "star",
+      "level": 130,
+      "maxStars": 0,
+      "stats": {
+        "atk": 29
+      },
+      "imageUrl": "/msucp/images/items/3152011.png"
     }
   ]
 }

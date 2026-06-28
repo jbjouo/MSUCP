@@ -41,16 +41,16 @@ export const JOB_BRANCHES = [
     key: 'bowman',
     classGroup: 'explorer',
     jobs: [
-      { key: 'bowmaster',   primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
-      { key: 'marksman',    primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
-      { key: 'pathfinder',  primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity' },
+      { key: 'bowmaster',   primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity', projectile: 'arrow' },
+      { key: 'marksman',    primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity', projectile: 'arrow' },
+      { key: 'pathfinder',  primary: 'dex', combatClass: 'bowman', linkSkill: 'adventurers_curiosity', projectile: 'arrow' },
     ],
   },
   {
     key: 'thief',
     classGroup: 'explorer',
     jobs: [
-      { key: 'nightlord',   primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
+      { key: 'nightlord',   primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning', projectile: 'star' },
       { key: 'shadower',    primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
       { key: 'dualblade',   primary: 'luk', combatClass: 'thief', linkSkill: 'thiefs_cunning' },
     ],
@@ -60,7 +60,7 @@ export const JOB_BRANCHES = [
     classGroup: 'explorer',
     jobs: [
       { key: 'buccaneer',   primary: 'str', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
-      { key: 'corsair',     primary: 'dex', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
+      { key: 'corsair',     primary: 'dex', combatClass: 'pirate', linkSkill: 'pirate_blessing', projectile: 'bullet' },
       { key: 'cannoneer',   primary: 'str', combatClass: 'pirate', linkSkill: 'pirate_blessing' },
     ],
   },
@@ -70,8 +70,8 @@ export const JOB_BRANCHES = [
     jobs: [
       { key: 'dawnwarrior',    primary: 'str', combatClass: 'warrior', linkSkill: 'cygnus_blessing' },
       { key: 'blazewizard',    primary: 'int', combatClass: 'magician', linkSkill: 'cygnus_blessing' },
-      { key: 'windarcher',     primary: 'dex', combatClass: 'bowman', linkSkill: 'cygnus_blessing' },
-      { key: 'nightwalker',    primary: 'luk', combatClass: 'thief', linkSkill: 'cygnus_blessing' },
+      { key: 'windarcher',     primary: 'dex', combatClass: 'bowman', linkSkill: 'cygnus_blessing', projectile: 'arrow' },
+      { key: 'nightwalker',    primary: 'luk', combatClass: 'thief', linkSkill: 'cygnus_blessing', projectile: 'star' },
       { key: 'thunderbreaker', primary: 'str', combatClass: 'pirate', linkSkill: 'cygnus_blessing' },
     ],
   },
@@ -127,6 +127,14 @@ export function combatClassOf(jobKey) {
   for (const branch of JOB_BRANCHES) {
     const job = branch.jobs.find((j) => j.key === jobKey)
     if (job) return job.combatClass || null
+  }
+  return null
+}
+
+export function projectileTypeOf(jobKey) {
+  for (const branch of JOB_BRANCHES) {
+    const job = branch.jobs.find((j) => j.key === jobKey)
+    if (job) return job.projectile || null
   }
   return null
 }
