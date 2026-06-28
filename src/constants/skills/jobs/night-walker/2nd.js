@@ -26,6 +26,16 @@ export const NIGHT_WALKER_2ND_SKILLS = [
     cp: { role: 'passive' },
   },
   {
+    id: 'agile_throwing',
+    name: 'Agile Throwing',
+    imageUrl: ICON('Agile_Throwing'),
+    jobs: ['nightwalker'],
+    advancement: 2,
+    kind: 'passive',
+    stats: { luk: 20 },
+    cp: { role: 'passive' },
+  },
+  {
     id: 'throwing_mastery',
     name: 'Throwing Mastery',
     imageUrl: ICON('Throwing_Mastery'),

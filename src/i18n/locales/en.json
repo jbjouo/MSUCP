@@ -385,6 +385,54 @@
       "mist_eruption_cooldown_cutter": {
         "name": "Mist Eruption - Cooldown Cutter",
         "desc": "Mist Eruption cooldown -50%."
+      },
+      "nw_quintuple_star_reinforce": {
+        "name": "Quintuple Star - Reinforce",
+        "desc": "Quintuple Star Damage +20%."
+      },
+      "nw_quintuple_star_boss_rush": {
+        "name": "Quintuple Star - Boss Rush",
+        "desc": "Quintuple Star Boss Damage +20%."
+      },
+      "nw_quintuple_star_critical_chance": {
+        "name": "Quintuple Star - Critical Chance",
+        "desc": "Quintuple Star Critical Rate +10%."
+      },
+      "nw_dark_omen_cooldown": {
+        "name": "Dark Omen - Cooldown Cutter",
+        "desc": "Dark Omen cooldown -50%."
+      },
+      "nw_dark_omen_spread": {
+        "name": "Dark Omen - Spread",
+        "desc": "Dark Omen Max Enemies Hit +9."
+      },
+      "nw_dark_omen_reinforce": {
+        "name": "Dark Omen - Reinforce",
+        "desc": "Dark Omen Damage +20%."
+      },
+      "nw_vitality_siphon_extra_point": {
+        "name": "Vitality Siphon - Extra Point",
+        "desc": "Protective Shield: +3% of Max HP."
+      },
+      "nw_vitality_siphon_reinforce": {
+        "name": "Vitality Siphon - Reinforce",
+        "desc": "ATT +60 when shield is active."
+      },
+      "nw_vitality_siphon_preparation": {
+        "name": "Vitality Siphon - Preparation",
+        "desc": "Status Resistance: +20."
+      },
+      "nw_dominion": {
+        "name": "Dominion",
+        "desc": "Max Enemies Hit: 15, Damage: 1000% x10. Throwing star skills Final Damage +25% for 30 sec."
+      },
+      "nw_glory_of_the_guardians": {
+        "name": "Glory of the Guardians",
+        "desc": "Damage +10% for 60 sec (Cygnus Knights & Mihile only)."
+      },
+      "nw_shadow_illusion": {
+        "name": "Shadow Illusion",
+        "desc": "Summon 3 shadows for 30 sec. Each shadow deals 70%/50%/30% of final damage."
       }
     }
   },

@@ -385,6 +385,54 @@
       "mist_eruption_cooldown_cutter": {
         "name": "Mist Eruption - Cooldown Cutter",
         "desc": "Mist Eruption 冷卻 -50%"
+      },
+      "nw_quintuple_star_reinforce": {
+        "name": "Quintuple Star - Reinforce",
+        "desc": "Quintuple Star 傷害 +20%"
+      },
+      "nw_quintuple_star_boss_rush": {
+        "name": "Quintuple Star - Boss Rush",
+        "desc": "Quintuple Star Boss Damage +20%"
+      },
+      "nw_quintuple_star_critical_chance": {
+        "name": "Quintuple Star - Critical Chance",
+        "desc": "Quintuple Star 爆擊機率 +10%"
+      },
+      "nw_dark_omen_cooldown": {
+        "name": "Dark Omen - Cooldown Cutter",
+        "desc": "Dark Omen 冷卻 -50%"
+      },
+      "nw_dark_omen_spread": {
+        "name": "Dark Omen - Spread",
+        "desc": "Dark Omen 最大攻擊對象 +9"
+      },
+      "nw_dark_omen_reinforce": {
+        "name": "Dark Omen - Reinforce",
+        "desc": "Dark Omen 傷害 +20%"
+      },
+      "nw_vitality_siphon_extra_point": {
+        "name": "Vitality Siphon - Extra Point",
+        "desc": "護罩 HP +3%"
+      },
+      "nw_vitality_siphon_reinforce": {
+        "name": "Vitality Siphon - Reinforce",
+        "desc": "護罩觸發時 ATT +60"
+      },
+      "nw_vitality_siphon_preparation": {
+        "name": "Vitality Siphon - Preparation",
+        "desc": "狀態異常抵抗 +20"
+      },
+      "nw_dominion": {
+        "name": "Dominion",
+        "desc": "15 體攻擊,1000% × 10 擊。30 秒內飛鏢技能終傷 +25%"
+      },
+      "nw_glory_of_the_guardians": {
+        "name": "Glory of the Guardians",
+        "desc": "60 秒 Damage +10%（僅皇家騎士團 & 米哈逸）"
+      },
+      "nw_shadow_illusion": {
+        "name": "Shadow Illusion",
+        "desc": "召喚 3 道影子,30 秒。各影子額外打出 70% / 50% / 30% 終傷"
       }
     }
   },

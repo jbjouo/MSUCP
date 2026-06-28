@@ -22,6 +22,9 @@ const visibleSlots = computed(() =>
 )
 
 function slotLabel(key) {
+  if (key === 'projectile' && currentProjectile.value) {
+    return t(`equipment.types.${currentProjectile.value}`)
+  }
   return t(`equipment.slots.${key}`)
 }
 

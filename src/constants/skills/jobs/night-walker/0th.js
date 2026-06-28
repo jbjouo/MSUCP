@@ -10,6 +10,17 @@ const NIGHT_WALKER_0TH_SKILLS = [
     stats: { atkPct: 10, matkPct: 10 },
     cp: { role: 'passive' },
   },
+  {
+    id: 'elemental_harmony_nw',
+    name: 'Elemental Harmony',
+    jobs: ['nightwalker'],
+    advancement: 0,
+    kind: 'passive',
+    contribute(ctx) {
+      return { luk: Math.floor((ctx.characterLevel || 0) / 2) }
+    },
+    cp: { role: 'passive' },
+  },
 ]
 
 export const NIGHT_WALKER_0TH_SIM_SKILLS = []
