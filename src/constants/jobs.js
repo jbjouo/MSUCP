@@ -98,6 +98,7 @@ export const JOB_BRANCHES = [
     key: 'flora',
     classGroup: 'flora',
     jobs: [
+      { key: 'adele', primary: 'str', combatClass: 'warrior', linkSkill: 'noble_fire' },
       { key: 'ark', primary: 'str', combatClass: 'pirate', linkSkill: 'solus' },
     ],
   },

@@ -246,6 +246,21 @@ export const LINK_SKILLS = {
       { level: 6, descKey: 'linkSkill.skills.thiefs_cunning.desc.6', stats: { damage: 18, duration: 10, cooldown: 20 } },
     ],
   },
+  noble_fire: {
+    id: 'noble_fire',
+    nameKey: 'linkSkill.skills.noble_fire.name',
+    flavorKey: 'linkSkill.skills.noble_fire.flavor',
+    icon: ASSET('skills/link/noble_fire.png'),
+    owners: ['adele'],
+    classGroup: 'flora',
+    uniqueByJob: true,
+    ownMaxLevel: 2,
+    maxTotalLevel: 2,
+    levels: [
+      { level: 1, descKey: 'linkSkill.skills.noble_fire.desc.1', stats: { bossDmg: 2, dmgPct: 1 } },
+      { level: 2, descKey: 'linkSkill.skills.noble_fire.desc.2', stats: { bossDmg: 4, dmgPct: 2 } },
+    ],
+  },
   solus: {
     id: 'solus',
     nameKey: 'linkSkill.skills.solus.name',

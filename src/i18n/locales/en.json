@@ -784,6 +784,7 @@
       "phantom": "Phantom",
       "luminous": "Luminous",
       "shade": "Shade",
+      "adele": "Adele",
       "ark": "Ark"
     }
   },
@@ -1158,6 +1159,14 @@
           "4": "When attacking, has a 21% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +2%, Enemy DEF Ignored per Stack: +2%\nEffect Duration: 10 sec, Stacks up to 3 times",
           "5": "When attacking, has a 23% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times",
           "6": "When attacking, has a 25% chance to identify the weakness of the enemy with the highest Max HP among those struck, granting:\nDamage per Stack: +3%, Enemy DEF Ignored per Stack: +3%\nEffect Duration: 10 sec, Stacks up to 3 times"
+        }
+      },
+      "noble_fire": {
+        "name": "Noble Fire",
+        "flavor": "Tap your noble spirit to protect your charges from powerful opponents.",
+        "desc": {
+          "1": "Boss Damage: +2%\nIncreases damage by 1% up to 4% for each party member, including yourself, on the same map.\nIf you are not in a party, you will be considered to be in your own party.",
+          "2": "Boss Damage: +4%\nIncreases damage by 2% up to 8% for each party member, including yourself, on the same map.\nIf you are not in a party, you will be considered to be in your own party."
         }
       },
       "solus": {
