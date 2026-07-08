@@ -92,6 +92,12 @@ export const LEGION_BRANCHES = [
       { id: 'ark', jobKey: 'ark', effects: mainStatTiers('str') },
     ],
   },
+  {
+    key: 'anima',
+    members: [
+      { id: 'hoyoung', jobKey: 'hoyoung', effects: mainStatTiers('luk') },
+    ],
+  },
 ]
 
 export const LEGION_MEMBERS = LEGION_BRANCHES.flatMap((b) => b.members)

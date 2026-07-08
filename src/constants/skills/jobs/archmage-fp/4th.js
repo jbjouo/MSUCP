@@ -276,9 +276,7 @@ export const ARCHMAGE_FP_4TH_SKILLS = [
       base: {
         durationSec: 40,
         baseFinalDmgPct: 70,
-        tickIntervalSec: 5,              // 正常間隔
-        tickDelayedIntervalSec: 10,      // 延遲間隔(伺服器延遲觸發)
-        tickServerDelayRate: 0.8,        // 延遲率 → 期望 = 0.2×5 + 0.8×10 = 9 秒/tick
+        tickIntervalSec: 6,
         tickIncreasePct: 3,
       },
       perLevelBonus: { durationSec: 1, baseFinalDmgPct: 1 },
