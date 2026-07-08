@@ -277,6 +277,21 @@ export const LINK_SKILLS = {
       { level: 2, descKey: 'linkSkill.skills.solus.desc.2', stats: { combatDuration: 5, maxStacks: 5, duration: 5, dmgPct: 1, dmgPctPerStack: 2 } },
     ],
   },
+  bravado: {
+    id: 'bravado',
+    nameKey: 'linkSkill.skills.bravado.name',
+    flavorKey: 'linkSkill.skills.bravado.flavor',
+    icon: ASSET('skills/link/bravado.png'),
+    owners: ['hoyoung'],
+    classGroup: 'anima',
+    uniqueByJob: true,
+    ownMaxLevel: 2,
+    maxTotalLevel: 2,
+    levels: [
+      { level: 1, descKey: 'linkSkill.skills.bravado.desc.1', stats: { ignoreDef: 5 } },
+      { level: 2, descKey: 'linkSkill.skills.bravado.desc.2', stats: { ignoreDef: 10 } },
+    ],
+  },
   empirical_knowledge: {
     id: 'empirical_knowledge',
     nameKey: 'linkSkill.skills.empirical_knowledge.name',

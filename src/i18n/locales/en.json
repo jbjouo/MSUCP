@@ -811,7 +811,8 @@
       "cygnus": "Cygnus Knights",
       "mihile": "Mihile",
       "heroes": "Heroes",
-      "flora": "Flora"
+      "flora": "Flora",
+      "anima": "Anima"
     },
     "jobs": {
       "beginner": "Beginner",
@@ -843,7 +844,8 @@
       "luminous": "Luminous",
       "shade": "Shade",
       "adele": "Adele",
-      "ark": "Ark"
+      "ark": "Ark",
+      "hoyoung": "Hoyoung"
     }
   },
   "pet": {
@@ -1227,6 +1229,14 @@
         "desc": {
           "1": "Boss Damage: +2%\nIncreases damage by 1% up to 4% for each party member, including yourself, on the same map.\nIf you are not in a party, you will be considered to be in your own party.",
           "2": "Boss Damage: +4%\nIncreases damage by 2% up to 8% for each party member, including yourself, on the same map.\nIf you are not in a party, you will be considered to be in your own party."
+        }
+      },
+      "bravado": {
+        "name": "Bravado",
+        "flavor": "You're confident even in the face of the strongest enemy. Ignore a portion of your enemy's Defense and inflict more damage against enemies that have full HP.",
+        "desc": {
+          "1": "Enemy DEF Ignored: +5%, Damage +9% against enemies with 100% HP.",
+          "2": "Enemy DEF Ignored: +10%, Damage +14% against enemies with 100% HP."
         }
       },
       "solus": {

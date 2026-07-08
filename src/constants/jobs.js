@@ -102,6 +102,13 @@ export const JOB_BRANCHES = [
       { key: 'ark', primary: 'str', combatClass: 'pirate', linkSkill: 'solus' },
     ],
   },
+  {
+    key: 'anima',
+    classGroup: 'anima',
+    jobs: [
+      { key: 'hoyoung', primary: 'luk', combatClass: 'thief', linkSkill: 'bravado' },
+    ],
+  },
 ]
 
 export const JOB_BRANCH_KEYS = JOB_BRANCHES.map((b) => b.key)
