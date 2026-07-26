@@ -426,8 +426,45 @@ export function useBattleBuffs() {
     return { mult, stacks, perStack }
   }
 
+  // 施放型 buff (source: 'skillCast') — 由戰鬥模擬的技能施放事件驅動 (useBattleSim emitCast 呼叫)
+  //   純顯示鏡像 (例:Creeping Toxin 圖騰 60s 倒數):不參與 autoTick / rollTriggers,
+  //   currentBonuses 對此 source 零貢獻 (無 stats 欄位,fallback 分支自動 continue)
+  function activateFromSkillCast(buffId, nowMs, durationMsOverride) {
+    const buff = BATTLE_BUFFS.find((b) => b.id === buffId)
+    if (!buff || buff.source !== 'skillCast') return
+    const s = state.stacks[buffId]
+    if (!s) return
+    // durationMsOverride — 呼叫端可傳入實際時長 (例:圖騰時長含 summonDuration% 加成)
+    const durationMs = durationMsOverride != null
+      ? durationMsOverride
+      : (Number(buff.durationSec) || 0) * 1000
+    if (durationMs <= 0) return
+    s.count = 1
+    s.activatedAt = nowMs
+    s.expireAt = nowMs + durationMs
+    s.durationMs = durationMs
+    s.level = buff.baseLevel || 1
+  }
+
   function buffInfo(buff, jobKey, nowMs, { dotCountOverride } = {}) {
     syncExpire(nowMs)
+    if (buff.source === 'skillCast') {
+      const s = state.stacks[buff.id] || {}
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
+      return {
+        level: s.level || buff.baseLevel || 0,
+        stats: null,
+        count: isActive ? 1 : 0,
+        expireAt: s.expireAt || 0,
+        active: isActive,
+        source: 'skillCast',
+        remainingMs,
+        onCooldown: false,
+        cooldownRemainingMs: 0,
+        durationMs: s.durationMs || 0,
+      }
+    }
     if (buff.source === 'activeToggle') {
       const s = state.stacks[buff.id] || {}
       const isActive = s.count > 0 && nowMs < s.expireAt
@@ -501,6 +538,7 @@ export function useBattleBuffs() {
     reset,
     rollTriggers,
     autoTick,
+    activateFromSkillCast,
     currentBonuses,
     dotSpecialFinalMult,
     buffInfo,

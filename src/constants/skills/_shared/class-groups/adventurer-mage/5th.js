@@ -14,7 +14,9 @@ export const ADVENTURER_MAGE_5TH_SKILLS = [
     imageUrl: ICON('Unreliable_Memory'),
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
     advancement: 5,
-    kind: 'passive',
+    // 戰鬥面向是 activeToggle buff (鏡像 Infinity),分組跟 Infinity 一致;
+    // CP 端的 +INT passive 由 vmatrix.passive 表達,與 kind 無關
+    kind: 'buff',
     vmatrix: { kind: 'skill', passive: { type: 'stat', statKey: 'int', per: 1 } },
     // 戰鬥模擬配置:鏡像 Infinity,Infinity expire 後自動觸發一次
     //   onceOnly: 戰鬥中只能施放一次

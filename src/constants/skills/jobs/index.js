@@ -16,6 +16,7 @@ import {
   ARCHMAGE_FP_VMATRIX_SKILLS,
   ARCHMAGE_FP_HYPER_SKILLS,
   ARCHMAGE_FP_LINK_SKILLS,
+  ARCHMAGE_FP_MECHANICS,
 } from './archmage-fp/index.js'
 
 import {
@@ -76,6 +77,8 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: ARCHMAGE_FP_VMATRIX_SKILLS,
     hyper: ARCHMAGE_FP_HYPER_SKILLS,
     link: ARCHMAGE_FP_LINK_SKILLS,
+    // 戰鬥模擬機制設定 (可選) — 無此欄位的職業,引擎跳過所有機制管線
+    mechanics: ARCHMAGE_FP_MECHANICS,
   },
   {
     jobKey: 'bishop',
@@ -126,6 +129,22 @@ export const JOB_SKILL_REGISTRY = [
     link: NIGHT_WALKER_LINK_SKILLS,
   },
 ]
+
+// 依 jobKey 取該職業的戰鬥模擬技能清單
+//   查無該職業 (或該職業尚未建立 sim 資料) → 回空陣列,戰鬥模擬器不排程任何技能
+export function simSkillsForJob(jobKey) {
+  const entry = JOB_SKILL_REGISTRY.find((j) => j.jobKey === jobKey)
+  return entry?.sim || []
+}
+
+// 依 jobKey 取該職業的戰鬥模擬機制設定 (mechanics.js) — 熱路徑用 Map 快取
+//   無設定的職業回 null,引擎跳過所有機制管線 (Final Attack / Ignite / DoT 被動)
+const MECHANICS_BY_JOB = new Map(
+  JOB_SKILL_REGISTRY.filter((j) => j.mechanics).map((j) => [j.jobKey, j.mechanics]),
+)
+export function mechanicsForJob(jobKey) {
+  return MECHANICS_BY_JOB.get(jobKey) || null
+}
 
 // 跨職業總合 — 直接餵給頂層 barrel 的命名 export
 export const ALL_JOBS_ALL_SKILLS        = JOB_SKILL_REGISTRY.flatMap((j) => j.all)

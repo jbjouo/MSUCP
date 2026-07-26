@@ -206,7 +206,7 @@
       },
       "creeping_toxin": {
         "name": "Creeping Toxin",
-        "description": "召喚毒霧圖騰擴散毒池,可引爆造成額外傷害。"
+        "description": "召喚毒霧圖騰(60 秒),周圍化為沿平台蔓延的毒池:池內敵人每 1 秒受 204% 傷害,持續 10 秒。毒池生成 1.5 秒內可被火系魔法引爆:200% 傷害 × 4 擊,最多 10 目標,並可連鎖引爆鄰近毒池;0.4 秒內接連發生的連鎖爆炸,首爆之後終傷 −60%。對一般怪物傷害 +50%。冷卻 10 秒。"
       },
       "elemental_adaptation": {
         "name": "Elemental Adaptation",

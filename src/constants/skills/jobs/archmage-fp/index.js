@@ -40,6 +40,9 @@ import {
   INFERNO_AURA,
 } from './hyper.js'
 
+// 戰鬥模擬職業機制設定 (useBattleSim 通用管線的掛載點)
+export { ARCHMAGE_FP_MECHANICS } from './mechanics.js'
+
 // ─── 所有火毒技能 — 1~6 + hyper-active 單一主列表 ──────────────────────────
 export const ARCHMAGE_FP_SKILLS = [
   ...ARCHMAGE_FP_1ST_SKILLS,

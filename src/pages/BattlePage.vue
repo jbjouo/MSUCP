@@ -18,6 +18,7 @@ import { useBattleRecord } from '../composables/useBattleRecord.js'
 
 const {
   state,
+  skills: jobSimSkills,
   sortedSkills,
   setDuration,
   start,
@@ -73,7 +74,7 @@ function isBuffFlashing(id) { return !!flashingBuffs.value[id] }
 const visibleBuffs = computed(() =>
   visibleBuffsForJob(charStateBattle.job)
     .map((b) => ({ buff: b, info: buffInfo(b, charStateBattle.job, state.elapsedMs) }))
-    .filter((x) => x.info.source === 'activeToggle' || (x.info.level > 0 && x.info.stats)),
+    .filter((x) => x.info.source === 'activeToggle' || x.info.source === 'skillCast' || (x.info.level > 0 && x.info.stats)),
 )
 
 // 統一的剩餘時間格式化:≥10s 顯示整數秒,<10s 顯示一位小數
@@ -129,11 +130,11 @@ function fmtCompact(n) {
 
 
 // 技能開關面板 — 依技能 kind 分類
-// 所有 SIM_SKILLS (排除 derived) + BATTLE_BUFFS 合併,去重後分三組
+// 當前職業的 sim 技能 (排除 derived) + BATTLE_BUFFS 合併,去重後分三組
 const allToggleEntries = computed(() => {
   const seen = new Set()
   const out = []
-  for (const s of SIM_SKILLS) {
+  for (const s of jobSimSkills.value) {
     if (s.sim?.role === 'derived') continue
     if (seen.has(s.id)) continue
     seen.add(s.id)
@@ -174,14 +175,25 @@ function runTestCast() {
 function clearTestCast() { singleCastResult.value = null }
 
 // 技能詳情分頁
-const SKILLS_PER_PAGE = 6
+const SKILLS_PER_PAGE = 5
 const skillsPage = ref(0)
+// 有結果時只顯示實際造成傷害的技能;未開始模擬時顯示全部
+// (讀 state.result 而非下方的 result computed — watch 會在 setup 時立即求值,避免 TDZ)
+const visibleDetailSkills = computed(() => {
+  const res = state.result
+  if (!res) return sortedSkills.value
+  return sortedSkills.value.filter((s) => (res.perSkill[s.id]?.total || 0) > 0)
+})
 const skillsPageCount = computed(() =>
-  Math.max(1, Math.ceil(sortedSkills.value.length / SKILLS_PER_PAGE)),
+  Math.max(1, Math.ceil(visibleDetailSkills.value.length / SKILLS_PER_PAGE)),
 )
 const pagedSkills = computed(() => {
   const p = Math.max(0, Math.min(skillsPage.value, skillsPageCount.value - 1))
-  return sortedSkills.value.slice(p * SKILLS_PER_PAGE, (p + 1) * SKILLS_PER_PAGE)
+  return visibleDetailSkills.value.slice(p * SKILLS_PER_PAGE, (p + 1) * SKILLS_PER_PAGE)
+})
+// 過濾後頁數縮減時,把當前頁夾回有效範圍 (避免 pager 顯示超出頁數)
+watch(skillsPageCount, (n) => {
+  if (skillsPage.value > n - 1) skillsPage.value = Math.max(0, n - 1)
 })
 function skillsPrev() {
   skillsPage.value = Math.max(0, skillsPage.value - 1)
@@ -240,7 +252,7 @@ const timelineEvents = computed(() => {
 const activeSkillCds = computed(() => {
   const arr = []
   const elapsed = state.elapsedMs || 0
-  for (const sk of SIM_SKILLS) {
+  for (const sk of jobSimSkills.value) {
     if (sk.sim?.role !== 'attack') continue
     if (!(Number(sk.cooldown) > 0)) continue
     const endAt = state.cooldownEndAt?.[sk.id] ?? 0
@@ -1766,13 +1778,15 @@ const timelineRows = computed(() => {
   overflow-x: auto;
 }
 .bp-skills__table {
-  width: 100%;
+  /* 欄寬固定 — width: 1px + table-layout: fixed → 表格總寬 = 欄寬總和,
+     不因頁內技能數少而拉伸滿版 */
+  width: 1px;
   border-collapse: separate;
   border-spacing: 6px 4px;
   table-layout: fixed;
 }
 .bp-skills__col-group--label { width: 160px; }
-.bp-skills__col-group--skill { width: auto; }
+.bp-skills__col-group--skill { width: 150px; }
 .bp-skills__table th,
 .bp-skills__table td {
   background: linear-gradient(180deg, #5b6577 0%, #49525f 100%);

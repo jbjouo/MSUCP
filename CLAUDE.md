@@ -31,7 +31,7 @@
 {
   "id", "apiItemId",
   "name", "nameEn?",
-  "type": "weapon | hat | top | bottom | shoes | glove | cape | shoulder | belt | pocket | ring | pendant | earring | eye | face | emblem | badge | medal | secondary | overall",
+  "type": "weapon | hat | top | bottom | shoes | glove | cape | shoulder | belt | pocket | ring | pendant | earring | eye | face | emblem | badge | medal | secondary | overall | star | arrow | bullet",
   "subType", "level", "req?", "classes", "maxStars?", "attackSpeed",
   "stats": { "atk?", "matk?", "str?", "moveSpeed?", "jump?", "hpPct?", "mpPct?", ... },
   "dayBonus?": { "day": 0-6, "stats": { "ignoreDef": 10 } },
@@ -64,6 +64,12 @@
 - `equipSkill`: 裝備自帶技能,key/value 納入 CP breakdown(如 `finalDmg: 10`)
 - `defaultPotentialTier` / `defaultBonusPotentialTier`: `addToInventory()` 時依 weight 加權隨機產生
 
+#### 裝備欄位 (`equipmentSlots.js`)
+
+- 5 × 6 grid,`projectile` slot (`conditional: true`) 位於 Row 6 Col 2(腰帶下方)
+- 僅當前職業有 `projectile` 屬性時顯示,label 依 type 動態切換(飛鏢/箭矢/子彈)
+- `PROJECTILE_TYPES = ['star', 'arrow', 'bullet']`
+
 ### Entry (`useEquipment.js`)
 
 ```js
@@ -79,18 +85,19 @@ state.equipped  = { [slotKey]: uid | null }
 
 三層架構:
 
-- **classGroup**: 大類(explorer / cygnus / resistance / heroes / flora)
+- **classGroup**: 大類(explorer / cygnus / resistance / heroes / flora / anima)
 - **combatClass**: 職業分類(warrior / magician / bowman / thief / pirate)
-- **job key**: 具體職業(archmageFP / shadower / nightwalker / buccaneer ...)
+- **job key**: 具體職業(archmageFP / shadower / nightwalker / buccaneer / adele / hoyoung ...)
 
 ```js
 { key: 'cygnus', classGroup: 'cygnus', jobs: [
-  { key: 'nightwalker', primary: 'luk', combatClass: 'thief', linkSkill: 'cygnus_blessing' },
+  { key: 'nightwalker', primary: 'luk', combatClass: 'thief', linkSkill: 'cygnus_blessing', projectile: 'star' },
 ]}
 ```
 
 - 裝備 `classes` 和 CatalogPicker 過濾皆使用 `combatClass`
 - `combatClassOf(jobKey)` 取得職業分類
+- `projectileTypeOf(jobKey)`:回傳 `star` / `arrow` / `bullet` / `null`(特殊裝備欄位)
 
 ## 星力 (`starForce.js`)
 
@@ -116,12 +123,17 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 - 具名表:`NAMED_BONUS_TIERS` — item 設 `bonusTiersTable: "genesis"` 則優先使用對應表
 - 表中找不到的 base 值 → `computeFlameByFormula()` 自動計算
 - `weaponBonusTiersFor(item, statKey)`:具名表 → 等級表 → 公式 → null(自由輸入)
+- CP 基準武器(`JOB_CP_REFERENCE_WEAPON`):法師=wand / nightwalker,nightlord=claw / shadower=dagger
 
 ## 套裝 (`itemSets.js`)
 
 - 成員可預先寫入(items.json 尚未新增的裝備),未來加入時自動配對
 - `fetch-items.mjs --append` 新增裝備時自動查 API set → 比對 itemSets.js → 插入成員
 - 若 set 不存在,輸出完整 set 資訊(成員、效果)供手動新增
+- **group 成員**:多選一(如 Cursed Spellbooks),`{ group: true, nameKey, type, ids: [...] }`
+  - 套裝計數時 group 中多件只計 1 件
+  - 套裝面板合併為一行顯示
+- 已建立套裝:Root Abyss (法師/盜賊) / Pitched Boss / AbsoLab (法師/盜賊) / Seven Days / Boss Accessory / Ifia's Treasure / Arcane Umbra (5 職業) / Raven Horn / Royal Von Leon (法師) / Dragon Tail (法師)
 
 ### 幸運道具 (Lucky Item)
 
@@ -162,8 +174,8 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 所有來源收斂到每個 stat key 的 `{ flat: [], pct: [] }`,順序:
 
 1. 角色 base(主屬 Lv 公式、HP/MP、critRate 保底 5%)
-2. 已裝備裝備(base + star + bonusStats + potentials + bonusPotentials + dayBonus)
-3. 套裝加成
+2. 已裝備裝備(base + star + bonusStats + potentials + bonusPotentials + dayBonus + equipSkill)
+3. 套裝加成(含幸運道具 +1)
 4. 稱號(TITLE,互斥)
 5. 技能 SKILL / Buff / 圖鑑 / 聯盟 / Hyper Stat / 秘法 / 內潛 / V 矩陣 / Link Skill / 寵物
 
@@ -204,6 +216,29 @@ CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 
 `requestAnimationFrame` 逐 frame 推進。
 
+### 職業過濾與機制設定
+
+- 引擎只排程**當前職業**的 sim 技能:`simSkillsForJob(jobKey)`(查 `JOB_SKILL_REGISTRY`,無資料回空)
+- 職業專屬機制放 `jobs/<job>/mechanics.js`,registry entry 加 `mechanics` 欄位;無設定的職業自動跳過:
+  - `finalAttack` — 施放時機率追打(Meteor Shower)
+  - `ignite` — 指定屬性技能施放時機率生成火牆 DoT(`triggerElement` / `excludeSourceIds`)
+  - `dotPassive` — 場上 DoT ≥1 主擊終傷 + DoT 時長倍率(Burning Magic)
+  - `poisonRegion` — 毒池生成/引爆/補毒量化模型(Creeping Toxin;規格見 `POISON_REGION_SPEC.md`):
+    全域判定網格 ψ+n×0.922s、引爆=火屬攻擊的**命中時點**(延遲火球取每顆 orb fireAt)、
+    每週期只取第一個引爆、補毒=死區後第一個判定、左右池累積 ±drift/2 網格偏移(不可鎖同相)、
+    0.4s 連鎖爆炸 ×0.40;毒池 DoT 走 burn 管線(`fixedDuration` 不吃時長加成)
+  - `firstCastDebugSkillId` — debug 首次施放 snapshot 目標
+- 召喚/場地技能以 `sim.recastIntervalSec` 控制再施放週期(UI CD 面板仍顯示遊戲 CD)
+- `sim.recastReplaces: '<fillerId>'` — 開場即施放;到期後只在「本槽原本要放指定填充技、且插入後僅推遲該填充技」的靜默視窗頂替(寧可晚放,絕不影響現有循環)
+- `battle.source: 'skillCast'` — 施放型 buff 顯示鏡像:emitCast 驅動 buff 欄位倒數(純顯示,無數值效果)
+- 召喚物時長:`totem.durationSec × (1 + statTotal('summonDuration')/100)`(聯盟槍神等);只增時長,不改補放週期 — 多出的時長是找空檔的緩衝;`burn.durationFromTotem` 讓毒池 DoT 跟隨圖騰有效時長
+- 引擎 (`useBattleSim`) 不得出現職業技能字面 ID;新機制一律走 mechanics 設定
+
+### Infinity (魔力無限)
+
+- `tickIntervalSec: 6` — 固定 6 秒跳一次增傷(不再使用伺服器延遲模擬)
+- 波動記憶(Unreliable Memory)透過 `mirror: 'infinity'` 自動複製相同設定
+
 | composable | 職責 |
 |---|---|
 | `useCpDamage` | breakdowns / statTotal / attStatsInfo / cpZones,CP 頁與戰鬥頁共用 |
@@ -242,7 +277,8 @@ skills/jobs/<job-name>/
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`
 - 被動技能只收錄影響 CP 的屬性(排除:熟練度、狀態抗性、屬性抗性、damage taken、攻速、HP/MP)
 - 技能提升其他技能傷害的被動(如 Raging Serpent Assault +100%)暫不收錄,待戰鬥模擬時加入
-- 已建立:archmage-fp / bishop / shadower / buccaneer / night-walker
+- 已建立:archmage-fp / bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項)
+- 技能資料庫(scripts/skill-db):archmage-fp / bishop / shadower / buccaneer / night-walker / hoyoung
 
 ## MSU Open API 工具 (`scripts/`)
 
@@ -271,7 +307,7 @@ skills/jobs/<job-name>/
 ### 新增裝備流程
 1. `fetch-items.mjs --append <itemId>` 或 `fetch-character-items.mjs --append <assetKey>`
 2. 自動:轉換 API 格式 → 寫入 items.json(含 `apiItemId`) → 下載圖片 → 套裝配對
-3. API category 對應:`tier1=Weapon` + `tier2=Secondary Weapon` → secondary;`Outfit` → overall;`Shoulder Accessory` → shoulder
+3. API category 對應:`tier1=Weapon` + `tier2=Secondary Weapon` → secondary;`Outfit` → overall;`Shoulder Accessory` → shoulder;`Pocket Item` → pocket;`Throwing Stars` → star;`Arrow` → arrow;`Bullet` → bullet
 
 ### 技能資料庫 (`scripts/skill-db/<job>/`)
 - `_character.json` + `0th~5th.json` + `hyper.json` + `vmatrix.json`

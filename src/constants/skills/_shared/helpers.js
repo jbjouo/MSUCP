@@ -5,11 +5,12 @@
 // 職業檔案只存 data,計算一律走這裡。
 
 // 依等級計算技能實際的 主傷 / DoT 百分比
+//   damage 欄位可缺省 (例:Creeping Toxin 施放本身無直擊,傷害全在 burn / detonation) → hit 回 0
 export function skillDamagePct(skill, level) {
   const lv = Math.max(skill.baseLevel, Number(level) || skill.baseLevel)
   const delta = lv - skill.baseLevel
   return {
-    hit: skill.damage.base + delta * skill.damage.perLevel,
+    hit: (skill.damage?.base ?? 0) + delta * (skill.damage?.perLevel ?? 0),
     burn: skill.burn ? skill.burn.base + delta * skill.burn.perLevel : 0,
   }
 }

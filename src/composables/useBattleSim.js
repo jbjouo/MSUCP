@@ -1,5 +1,5 @@
 import { reactive, computed } from 'vue'
-import { SIM_SKILLS } from '../constants/battleSim.js'
+import { SIM_SKILLS, simSkillsForJob, mechanicsForJob } from '../constants/battleSim.js'
 import {
   skillDamagePct,
   skillVmatrixBonus,
@@ -8,8 +8,7 @@ import {
   skillExplosionCount,
   skillFinalAttackPcts,
   skillIgnitePcts,
-  BURNING_MAGIC,
-} from '../constants/skills/archmageFP.js'
+} from '../constants/skills/_shared/helpers.js'
 import {
   ENEMY_ELEM_RESIST_PCT,
   ELEM_IGNORE_BY_JOB,
@@ -26,6 +25,48 @@ import { useHyperSkills } from './useHyperSkills.js'
 import { clean, add, sub, mul, applyPct, combineIgnorePct, floor } from '../utils/numerics.js'
 
 const SKILL_BY_ID = Object.fromEntries(SIM_SKILLS.map((s) => [s.id, s]))
+
+// ─── simContext — 每場模擬的內部狀態,start() 時整組重建 ────────────────────
+// 不進 reactive:rAF 熱路徑高頻讀寫,只在 syncNextCastAt / refreshDerived
+// 匯出快照到 state 供 UI 讀取。
+function createSimContext() {
+  return {
+    rng: null,             // mulberry32 — start() 以 state.seed 建立
+    startedAt: 0,          // performance.now() 起點
+    lastRefreshMs: 0,      // refreshDerived 節流 — 衍生統計每秒才算一次
+    // 當前模擬使用的技能子集 — start() 時依角色職業快照
+    //   排程 / DoT tick / cast lock 一律以此為準;SKILL_BY_ID 仍為全職業索引 (僅查表用)
+    activeSkills: SIM_SKILLS,
+    // scheduler 下次可施放時間 (含動畫鎖) { [skillId]: ms }
+    nextCastAt: {},
+    // 「遊戲 CD 結束時間」— 與 sim.nextCastAt 分開記錄,避免動畫鎖汙染 UI CD 顯示
+    //   - 施放後:sim.cooldownEndAt[id] = tCast + effCdMs (純遊戲 CD,不含 animDelay)
+    //   - 被其他技能 reset:sim.cooldownEndAt[target] = tCast (立即 ready)
+    cooldownEndAt: {},
+    // DoT 狀態 { [skillId]: { nextTickAt, expireAt, intervalMs, dmg } }
+    burnState: {},
+    // 場地技能持續時間 { [skillId]: { expireAt } } (例:Poison Mist)
+    fieldState: {},
+    // 最近一次施放時間 — 供 waitForSkillCast / cloudDetonate 等跨技能排程規則使用
+    //   { [skillId]: tCast (ms) };無 entry 表示本場戰鬥未曾施放
+    lastCastAt: {},
+    // 最近一次 cloudDetonate 引爆時間 — 供「雲是否已消耗」判斷
+    //   { [sourceSkillId]: tLastDetonate }
+    //   場上是否仍有雲:sim.lastCastAt[src] != null && sim.cloudDetonatedAt[src] < sim.lastCastAt[src]
+    cloudDetonatedAt: {},
+    // Ignite 火牆清單 — 每次 proc 生成一面獨立火牆,互不干擾
+    //   [{ sourceSkillId, spawnAt, nextTickAt, expireAt, tickIntervalMs, tickPct, hitsPerTick }]
+    igniteWalls: [],
+    // 延遲命中的火球 — 施放時 schedule,tick 到期才觸發傷害 / useCount / Final Attack / Ignite
+    //   [{ skillId, fireAt, orbIndex, fd, attacksPerOrb }]
+    pendingOrbHits: [],
+    // Poison Region (mechanics.poisonRegion;例:Creeping Toxin) — 毒池區域狀態
+    //   { cfg, psi, expireAt, lastVisibleAt, pools: [{ side, spawnAt, armedAt }] }
+    //   null = 尚未施放;引爆 / 補毒邏輯見 poisonRegionOnDetonator
+    poisonRegion: null,
+  }
+}
+let sim = createSimContext()
 
 // DoT 通用係數 — 直接乘進所有 DoT tick (不影響主擊)
 const DOT_COEFFICIENT = 1.5
@@ -67,16 +108,18 @@ function emptyResult(durationSec) {
     igniteProcs: {},
     // 第一次 Megiddo Flame 施放的 snapshot(debug 面板用)— null 表尚未施放
     megiddoFirstCast: null,
+    // Poison Region 除錯統計 — 爆炸總數 / 吃 0.4s 連鎖衰減的次數
+    poisonRegion: { explosions: 0, decayed: 0 },
   }
 }
 
 // mulberry32 — 32-bit 種子、品質遠優於 Numerical Recipes LCG。
 // 原本用的 LCG (a=1664525,c=1013904223,m=2^32) 在固定 seed + 固定 stride 下有明顯 bias
-// (例:seed=42 + Flame Sweep 每 cast ~18 rng 的採樣節奏,proc roll 平均落在 0.7+,觀察 proc 率 ≈ 20-40%)。
+// (例:seed=42 + Flame Sweep 每 cast ~18 次 rng 的採樣節奏,proc roll 平均落在 0.7+,觀察 proc 率 ≈ 20-40%)。
 // mulberry32 通過所有常見 PRNG 檢測 (BigCrush 除外,對遊戲模擬足夠)。
 function makeRng(seed) {
   let a = seed >>> 0 || 1
-  return function rng() {
+  return function () {
     a = (a + 0x6D2B79F5) >>> 0
     let t = a
     t = Math.imul(t ^ (t >>> 15), t | 1)
@@ -100,12 +143,12 @@ const state = reactive({
   skillLevels: defaultSkillLevels(),         // { [skillId]: level }
   disabledSkills: new Set(),                 // 被停用的技能 id (含 sim skill + battle buff)
   // 給 UI 使用的「下次可施放時間」reactive 快照 — tick() 結束時同步一次
-  //   remainingMs = max(0, nextCastAt[id] - elapsedMs)
-  //   讀源是模組級 nextCastAt,避免每 frame 寫進 reactive 影響效能
+  //   remainingMs = max(0, sim.nextCastAt[id] - elapsedMs)
+  //   讀源是模組級 sim.nextCastAt,避免每 frame 寫進 reactive 影響效能
   nextCastAt: {},
   // CD 面板專用 — 只反映「遊戲 CD」(不含 scheduler 的動畫鎖 / cast lock)
   //   Mist Eruption 重置 Flame Haze CD 後,flame_haze 這裡會回到 tCast (remaining=0),
-  //   即使 scheduler nextCastAt 還被 Mist Eruption 的動畫鎖延後 720ms
+  //   即使 scheduler sim.nextCastAt 還被 Mist Eruption 的動畫鎖延後 720ms
   cooldownEndAt: {},
 })
 
@@ -120,54 +163,27 @@ function vmatrixLevelOf(skillId) {
 }
 
 let rafId = null
-let startedAt = 0
-// Ignite 火牆清單 — 每次 proc 生成一面獨立火牆,互不干擾
-//   [{ sourceSkillId, spawnAt, nextTickAt, expireAt, tickIntervalMs, tickPct, hitsPerTick }]
-let igniteWalls = []
-// refreshDerived 節流 — 衍生統計 (share / avgPerSec / avgDmgPerSec / avgPerCast / avgPerHit)
-// 每秒才算一次,避免在 rAF (~60Hz) 頻率下頻繁閃動。raw counter (total / useCount /
-// attackCount / maxHit / minHit) 由 emitHit / emitCast 即時寫入,不受此節流影響。
-let lastRefreshMs = 0
 
-// 模組級「遊戲 CD 結束時間」— 與 nextCastAt 分開記錄,避免動畫鎖汙染 UI CD 顯示
-//   - 施放後:cooldownEndAt[id] = tCast + effCdMs (純遊戲 CD,不含 animDelay)
-//   - 被其他技能 reset:cooldownEndAt[target] = tCast (立即 ready)
-let cooldownEndAt = {}
-
-// 同步模組級 nextCastAt / cooldownEndAt → state,供 UI CD 面板讀取
+// 同步 sim.nextCastAt / sim.cooldownEndAt → state,供 UI CD 面板讀取
 function syncNextCastAt() {
   const out1 = {}
-  for (const k of Object.keys(nextCastAt)) out1[k] = nextCastAt[k]
+  for (const k of Object.keys(sim.nextCastAt)) out1[k] = sim.nextCastAt[k]
   state.nextCastAt = out1
   const out2 = {}
-  for (const k of Object.keys(cooldownEndAt)) out2[k] = cooldownEndAt[k]
+  for (const k of Object.keys(sim.cooldownEndAt)) out2[k] = sim.cooldownEndAt[k]
   state.cooldownEndAt = out2
 }
-let rng = null
-let nextCastAt = {}
-let burnState = {}       // { [skillId]: { nextTickAt, expireAt, intervalMs } }
-let fieldState = {}      // { [skillId]: { expireAt } } — 場地技能持續時間(例:Poison Mist)
-// 最近一次施放時間 — 供 waitForSkillCast / cloudDetonate 等跨技能排程規則使用
-//   { [skillId]: tCast (ms) };-Infinity 表示本場戰鬥未曾施放
-let lastCastAt = {}
-// 最近一次 cloudDetonate 引爆時間 — 供「雲是否已消耗」判斷
-//   { [sourceSkillId]: tLastDetonate }
-//   場上是否仍有雲:lastCastAt[src] != null && cloudDetonatedAt[src] < lastCastAt[src]
-let cloudDetonatedAt = {}
-// 延遲命中的火球 — 施放時 schedule,tick 到期才觸發傷害 / useCount / Meteor Shower / Ignite
-//   [{ skillId, fireAt, orbIndex, fd, attacksPerOrb }]
-let pendingOrbHits = []
 
 // Poison Nova 毒雲衰減公式:t<grace → 0(不可引爆) / t≥grace → max(0, initial − floor((t−grace)/decay))
 //   讀 skill.sim.clouds 設定 (initialCount / detonateGraceMs / decayIntervalMs)
-//   若 cloudDetonatedAt[src] >= lastCastAt[src] → 雲已被引爆消耗,返回 0
+//   若 sim.cloudDetonatedAt[src] >= sim.lastCastAt[src] → 雲已被引爆消耗,返回 0
 function cloudCountOf(sourceSkillId, tNow) {
   const src = SKILL_BY_ID[sourceSkillId]
   const cfg = src?.sim?.clouds
   if (!cfg) return 0
-  const lastCast = lastCastAt[sourceSkillId]
+  const lastCast = sim.lastCastAt[sourceSkillId]
   if (lastCast == null || lastCast === -Infinity) return 0
-  const lastDetonate = cloudDetonatedAt[sourceSkillId]
+  const lastDetonate = sim.cloudDetonatedAt[sourceSkillId]
   if (lastDetonate != null && lastDetonate >= lastCast) return 0
   const elapsedSinceCast = tNow - lastCast
   const grace = cfg.detonateGraceMs || 0
@@ -179,20 +195,26 @@ function cloudCountOf(sourceSkillId, tNow) {
 
 // 場上是否仍有特定來源技能的雲(未被引爆消耗)
 function hasActiveCloudsOf(sourceSkillId) {
-  const lastCast = lastCastAt[sourceSkillId]
+  const lastCast = sim.lastCastAt[sourceSkillId]
   if (lastCast == null || lastCast === -Infinity) return false
-  const lastDetonate = cloudDetonatedAt[sourceSkillId]
+  const lastDetonate = sim.cloudDetonatedAt[sourceSkillId]
   if (lastDetonate != null && lastDetonate >= lastCast) return false
   return true
 }
 
-// burnState 異動後立刻同步到 useDotTracker
+// sim.burnState 異動後立刻同步到 useDotTracker
 // — 同一 tick 內後續的 emitCast / 冷卻檢查 / Fervent Drain 疊層都能讀到當下數字
 function syncDotCount() {
-  useDotTracker().setActiveDotCount(Object.keys(burnState).length)
+  useDotTracker().setActiveDotCount(Object.keys(sim.burnState).length)
 }
 let currentArcMult = 1   // 每一 tick 重新取得
 let currentJobKey = ''   // 當前玩家職業 (用於屬性無視查表)
+
+// 當前職業的戰鬥模擬機制設定 (jobs/<job>/mechanics.js)
+//   無設定的職業回空物件 — 所有機制管線 (Final Attack / Ignite / DoT 被動) 自動跳過
+function currentMechanics() {
+  return mechanicsForJob(currentJobKey) || {}
+}
 let currentCharLevel = 0  // 角色等級 (等差終傷查表用)
 let currentEnemyLevel = 0 // 怪物等級 (等差終傷查表用)
 let cpAttStats = null    // useCpDamage().attStatsInfo (lazy init)
@@ -325,9 +347,9 @@ function mainHitDmg(skill, elemMult, enemy, att, pctOverride) {
   const explosionMult = clean(1 + explosionFdPct / 100)
 
   const range = Math.max(0, sub(bossMaxRaw, bossMinRaw))
-  const bossBase = add(bossMinRaw, mul(rng(), range))
+  const bossBase = add(bossMinRaw, mul(sim.rng(), range))
   const pct = pctOverride != null ? pctOverride : skillPctOf(skill).hit
-  const bmMult = burningMagicFinalDmgMult()
+  const bmMult = dotPassiveFinalDmgMult()
   const ldMult = levelDiffMainMult()
   return mul(bossBase, pct / 100, elemMult, currentArcMult,
              skillFinalMult, buffBonuses.finalDmgMult, defMult, explosionMult, bmMult, ldMult)
@@ -340,36 +362,41 @@ function levelDiffMainMult() {
   return clean(1 + pct / 100)
 }
 
-// Burning Magic (火毒 passive, Lv10) — 場上 DoT 計數 ≥ 1 時 主擊終傷 +20% (與其他終傷相乘)
+// DoT 被動 (mechanics.dotPassive;例:火毒 Burning Magic Lv10)
+//   場上 DoT 計數 ≥ 1 時 主擊終傷 +N% (與其他終傷相乘)
 //   DoT 計數讀 useDotTracker (與 Mist Eruption 爆炸終傷、Fervent Drain 疊層同源)
-//   僅 jobs 內的職業生效 (目前只 archmageFP);DoT tick 不吃 (遵循「DoT 不吃通用終傷」規則)
-function burningMagicFinalDmgMult() {
-  if (!BURNING_MAGIC?.jobs?.includes(currentJobKey)) return 1
+//   無 dotPassive 設定的職業回 1;DoT tick 不吃 (遵循「DoT 不吃通用終傷」規則)
+function dotPassiveFinalDmgMult() {
+  const cfg = currentMechanics().dotPassive
+  if (!cfg) return 1
   let dotCount = 0
   try { dotCount = useDotTracker().state.activeDotCount } catch {}
   if (dotCount < 1) return 1
-  const pct = Number(BURNING_MAGIC.finalDmgPctWhenDotActive) || 0
+  const pct = Number(cfg.finalDmgPctWhenDotActive) || 0
   return clean(1 + pct / 100)
 }
 
-// Burning Magic — DoT 持續時間倍率 (Lv10 = ×2);套用順序:(base + hyper flat) × mult
-//   僅 jobs 內的職業生效
-function burningMagicDotDurationMult() {
-  if (!BURNING_MAGIC?.jobs?.includes(currentJobKey)) return 1
-  const m = Number(BURNING_MAGIC.dotDurationMult)
+// DoT 被動 — DoT 持續時間倍率 (Burning Magic Lv10 = ×2);套用順序:(base + hyper flat) × mult
+//   無 dotPassive 設定的職業回 1
+function dotPassiveDotDurationMult() {
+  const cfg = currentMechanics().dotPassive
+  if (!cfg) return 1
+  const m = Number(cfg.dotDurationMult)
   return Number.isFinite(m) && m > 0 ? m : 1
 }
 
-// Ignite — 火屬技能施放時機率生成火牆
-//   觸發條件:skill.element === 'fire' 且 skill.id !== 'inferno_aura' (依 MS 描述排除)
-//   Ignite 本身是 passive,不會 emitCast,所以不會自我觸發
+// Ignite 型火牆管線 (mechanics.ignite) — 指定屬性技能施放時機率生成火牆
+//   觸發條件:skill.element === cfg.triggerElement 且不在 cfg.excludeSourceIds 內
+//   火牆技能本身是 passive,不會 emitCast,所以不會自我觸發
 //   每次觸發生成一面獨立火牆 → 之後由 processIgniteWalls tick
 function maybeProcIgnite(skill, tCast, res) {
   if (!skill) return
-  if (state.disabledSkills.has('ignite')) return
-  if (skill.id === 'inferno_aura') return
-  if (skill.element !== 'fire') return
-  const ignite = SKILL_BY_ID['ignite']
+  const cfg = currentMechanics().ignite
+  if (!cfg) return
+  if (state.disabledSkills.has(cfg.skillId)) return
+  if (cfg.excludeSourceIds?.includes(skill.id)) return
+  if (skill.element !== cfg.triggerElement) return
+  const ignite = SKILL_BY_ID[cfg.skillId]
   if (!ignite) return
   const lvl = effSkillLevel(ignite)
   if (lvl <= 0) return
@@ -377,13 +404,13 @@ function maybeProcIgnite(skill, tCast, res) {
   if (!info || info.procRate <= 0 || info.damage <= 0) return
 
   const procProb = clean(Math.min(1, Math.max(0, info.procRate / 100)))
-  const roll = rng()
+  const roll = sim.rng()
   const success = roll < procProb
   const ip = res.igniteProcs[skill.id] || { rolls: 0, procs: 0, dmg: 0 }
   ip.rolls += 1
   if (success) {
     ip.procs += 1
-    igniteWalls.push({
+    sim.igniteWalls.push({
       sourceSkillId: skill.id,
       spawnAt: tCast,
       nextTickAt: tCast + info.tickIntervalSec * 1000,
@@ -399,22 +426,23 @@ function maybeProcIgnite(skill, tCast, res) {
     console.log(
       `[IG] src=${skill.id.padEnd(14)} t=${Math.floor(tCast)}ms ` +
       `roll=${roll.toFixed(4)} prob=${procProb.toFixed(3)} ` +
-      `${success ? 'PROC' : 'miss'} (walls=${igniteWalls.length})`
+      `${success ? 'PROC' : 'miss'} (walls=${sim.igniteWalls.length})`
     )
   }
 }
 
 // Ignite 火牆 tick 處理:每次 tick 走主擊 pipeline,useCount +=1, attackCount +=hitsPerTick
 function processIgniteWalls(elapsed, enemy, att) {
-  if (igniteWalls.length === 0) return false
-  const ignite = SKILL_BY_ID['ignite']
+  if (sim.igniteWalls.length === 0) return false
+  const cfg = currentMechanics().ignite
+  const ignite = cfg ? SKILL_BY_ID[cfg.skillId] : null
   if (!ignite) return false
   const res = state.result
   const mStats = res.perSkill[ignite.id]
   if (!mStats) return false
   const elem = elemMultFor(ignite, enemy)
   let changed = false
-  for (const wall of igniteWalls) {
+  for (const wall of sim.igniteWalls) {
     const capped = Math.min(elapsed, wall.expireAt)
     while (wall.nextTickAt <= capped) {
       for (let h = 0; h < wall.hitsPerTick; h++) {
@@ -431,30 +459,139 @@ function processIgniteWalls(elapsed, enemy, att) {
     }
   }
   // 清掉 tick 完畢 (nextTickAt > expireAt) 的火牆
-  igniteWalls = igniteWalls.filter((w) => w.nextTickAt <= w.expireAt)
+  sim.igniteWalls = sim.igniteWalls.filter((w) => w.nextTickAt <= w.expireAt)
   return changed
 }
 
-// Meteor Shower — Final Attack proc 判定
+// ─── Poison Region 管線 (mechanics.poisonRegion;例:Creeping Toxin) ─────────
+// 量化模型:根目錄 POISON_REGION_SPEC.md。事件驅動實作:
+//   - 施放 → initPoisonRegion 建立區域 (判定網格相位 ψ = tCast + castAnim)
+//   - 火屬主動攻擊的每個「命中時點」→ poisonRegionOnDetonator 檢查引爆
+//   - 補毒時刻在爆炸當下直接算出 (死區後的第一個全域判定),不需逐 tick 推進
+
+// 召喚物實際持續時間 (ms) — totem.durationSec × (1 + 召喚獸持續時間%/100)
+//   時長加成來源走 CP statTotal('summonDuration') (例:聯盟槍神 +4~12%)
+//   注意:只影響「持續多久」,不影響 recastIntervalSec 補放週期 —
+//   多出的時長是補放尋找空檔的緩衝 (寧可晚放,不打斷循環)
+function totemDurationMs(skill) {
+  const baseSec = Number(skill?.totem?.durationSec) || 0
+  if (baseSec <= 0) return 0
+  const pct = cpStatTotal ? Number(cpStatTotal('summonDuration')) || 0 : 0
+  return baseSec * (1 + pct / 100) * 1000
+}
+
+// 施放毒池技能 — 建立/重置區域狀態
+function initPoisonRegion(skill, tCast) {
+  const cfg = currentMechanics().poisonRegion
+  if (!cfg || skill.id !== cfg.skillId) return
+  const psi = tCast + cfg.castAnimSec * 1000
+  const J = cfg.judgeIntervalSec * 1000
+  const pools = []
+  const n = Math.max(1, cfg.poolCount || 2)
+  for (let i = 0; i < n; i++) {
+    // L1/R1 於第 1 次判定 (ψ) 生成;L2/R2 於第 2 次判定 (ψ+J) …依序向外推
+    const side = i % 2 === 0 ? 'L' : 'R'
+    const ring = Math.floor(i / 2)
+    const spawnAt = psi + ring * J
+    // gridOffset — 每爆一輪累積 ±drift/2 的網格相位偏移 (見 poisonRegionOnDetonator)
+    pools.push({ side, spawnAt, armedAt: spawnAt + cfg.armDelaySec * 1000, gridOffset: 0 })
+  }
+  sim.poisonRegion = {
+    cfg,
+    psi,
+    // 圖騰有效時長含召喚時長加成 (summonDuration%)
+    expireAt: tCast + (totemDurationMs(skill) || 60000),
+    pools,
+    lastVisibleAt: -Infinity,
+  }
+}
+
+// 引爆判定 — 在每個火屬主動攻擊的命中時點呼叫 (一般技能=施放瞬間;延遲火球=每顆 orb fireAt)
+//   規格不變式:
+//   - 一個生成週期只爆一次 (爆炸後 spawn/armed 立即推進到下一輪,期間事件自然略過)
+//   - 補毒 = 死區後的第一個全域判定 ψ + k×J;respawn_gap 是輸出不是常數
+//   - 左右池死區 ±drift/2 → 累積出 41ms/cycle 的週期差 (不可鎖同相)
+//   - 0.4s 連鎖衰減:依 visible (tHit + triggerLag) 排序,與前一爆間隔 ≤0.4s → ×0.40
+function poisonRegionOnDetonator(detSkill, tHit, enemy, att) {
+  const region = sim.poisonRegion
+  if (!region) return
+  const cfg = region.cfg
+  if (!detSkill || detSkill.id === cfg.skillId) return
+  if (detSkill.element !== cfg.detonator.triggerElement) return
+  if (detSkill.sim?.role !== 'attack') return
+  const src = SKILL_BY_ID[cfg.skillId]
+  const det = src?.detonation
+  if (!src || !det) return
+  if (state.disabledSkills.has(cfg.skillId)) return
+  const stats = state.result?.perSkill[cfg.skillId]
+  if (!stats) return
+
+  const elem = elemMultFor(src, enemy)
+  const lv = effSkillLevel(src)
+  const delta = Math.max(0, lv - (src.baseLevel || 0))
+  const detPct = (det.damage?.base || 0) + delta * (det.damage?.perLevel || 0)
+  if (detPct <= 0) return
+  const J = cfg.judgeIntervalSec * 1000
+  const halfDriftMs = ((cfg.sideDriftSecPerCycle || 0) * 1000) / 2
+  const dbg = state.result.poisonRegion
+
+  for (const pool of region.pools) {
+    if (!Number.isFinite(pool.armedAt) || tHit < pool.armedAt) continue
+    // 引爆:0.4s 連鎖衰減以 visible 時點與前一爆比較 (同一命中引爆兩池 → 第二池必衰減)
+    const visible = tHit + cfg.triggerLagSec * 1000
+    const decayed = visible - region.lastVisibleAt <= cfg.chainDecay.windowSec * 1000
+    const decayMult = decayed ? cfg.chainDecay.multiplier : 1
+    region.lastVisibleAt = visible
+    for (let h = 0; h < (det.hitsPerCast || 0); h++) {
+      emitHit(stats, mainHitDmg(src, elem, enemy, att, detPct) * decayMult)
+    }
+    stats.useCount += 1
+    if (dbg) {
+      dbg.explosions += 1
+      if (decayed) dbg.decayed += 1
+    }
+    // 41ms/cycle 左右週期差 — 以「每輪累積 ±drift/2 網格相位偏移」實作 (R 池週期較短、領先):
+    //   規格 §6 實測:前幾輪同幀爆炸 → 相對偏移累積跨過一個引爆間隔後永久分岔,
+    //   之後極少再同幀 (~14/128 次衰減)。若把偏移做在死區上,補毒 snap 回全域網格會
+    //   吃掉偏移 → 左右鎖同相、約半數爆炸吃衰減 → 低估傷害 (規格 §6 最壞情境 70%)。
+    //   驗證:drift=0 時等效滿傷 89.6 (=規格最壞值);drift=41ms 時 119.4 (規格實測 119.7)。
+    pool.gridOffset += pool.side === 'L' ? halfDriftMs : -halfDriftMs
+    // 補毒:死區後的第一個判定 (該池的相位 = ψ + gridOffset);超過圖騰時限則此池結束
+    const free = tHit + cfg.deadTimeSec * 1000
+    const poolPsi = region.psi + pool.gridOffset
+    const k = Math.ceil((free - poolPsi) / J)
+    const respawn = poolPsi + k * J
+    if (respawn >= region.expireAt) {
+      pool.spawnAt = Infinity
+      pool.armedAt = Infinity
+      continue
+    }
+    pool.spawnAt = respawn
+    pool.armedAt = respawn + cfg.armDelaySec * 1000
+  }
+}
+
+// Final Attack 管線 (mechanics.finalAttack;例:Meteor Shower) — proc 判定
 //   觸發來源:僅「主動施放」的主擊技能 (hitsPerCast > 0 且 sim.role === 'attack')
-//     → 排除 'passive' (Meteor Shower 自身,避免自串)
+//     → 排除 'passive' (Final Attack 技能自身,避免自串)
 //     → 排除 'derived' (Poison Mist 等衍生命中不觸發)
 //     → 排除 'aura'   (Inferno Aura / Ifrit 固定間隔自動觸發的場地/召喚命中不觸發)
 //   每次施放固定 1 次 roll(爆炸型如 Mist Eruption 也只算 1 次,不依爆炸數倍增)
-function meteorTriggerRolls(skill, meteor) {
-  if (!skill || !meteor) return 0
-  if (skill.id === meteor.id) return 0
+function finalAttackTriggerRolls(skill, faSkill) {
+  if (!skill || !faSkill) return 0
+  if (skill.id === faSkill.id) return 0
   const role = skill.sim?.role
   if (role === 'passive' || role === 'derived' || role === 'aura') return 0
   if (!skill.hitsPerCast) return 0
   return 1
 }
 
-// Meteor Shower — 執行 N 次 proc roll,成功則以 Meteor Shower 主擊管線追加 1 擊
+// Final Attack — 執行 N 次 proc roll,成功則以 Final Attack 技能主擊管線追加 1 擊
 //   emitCast 施放時用(一般技能 1 次、爆炸型 N 次);延遲火球時每顆獨立呼叫(rolls=1)
-function rollMeteorShowerTriggers(sourceSkill, rolls, tCast, enemy, att) {
+function rollFinalAttackTriggers(sourceSkill, rolls, tCast, enemy, att) {
   if (rolls <= 0) return
-  const meteor = SKILL_BY_ID['meteor_shower']
+  const faCfg = currentMechanics().finalAttack
+  const meteor = faCfg ? SKILL_BY_ID[faCfg.skillId] : null
   if (!meteor) return
   const mlv = effSkillLevel(meteor)
   const fa = skillFinalAttackPcts(meteor, mlv)
@@ -466,7 +603,7 @@ function rollMeteorShowerTriggers(sourceSkill, rolls, tCast, enemy, att) {
   const mp = res.meteorProcs[sourceSkill.id] || { rolls: 0, procs: 0, dmg: 0 }
   mp.rolls += rolls
   for (let r = 0; r < rolls; r++) {
-    const roll = rng()
+    const roll = sim.rng()
     const success = roll < procProb
     if (typeof window !== 'undefined' && window.__METEOR_DEBUG) {
       console.log(
@@ -524,7 +661,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   const res = state.result
   res.events.push({ time: tCast, skillId: skill.id, type: 'cast' })
   // 記錄最近一次施放時間 — 供 waitForSkillCast / cloudDetonate 等跨技能規則使用
-  lastCastAt[skill.id] = tCast
+  sim.lastCastAt[skill.id] = tCast
   // Poison Nova 排程追蹤 — 開啟 `window.__POISON_NOVA_DEBUG = true` 後
   //   每次 emitCast 輸出一行到 console,★ 標記 Poison Nova 自身、✦ 標記引爆 (Mist Eruption)
   //   其它技能以空白標記,方便 Ctrl+F 掃描;可看前後技能的時間點、animDelay 範圍、雲數
@@ -549,7 +686,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     } else if (skill.sim?.cloudDetonate) {
       const srcId = skill.sim.cloudDetonate.sourceSkillId
       const N = cloudCountOf(srcId, tCast)
-      const srcLast = lastCastAt[srcId]
+      const srcLast = sim.lastCastAt[srcId]
       const dt = srcLast != null && Number.isFinite(srcLast) ? (tCast - srcLast) : null
       extras = `src=${srcId} N=${N}${dt != null ? ` (Δ${dt}ms since src)` : ' (src not cast)'}`
     }
@@ -562,7 +699,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   const orbs = skill.sim?.orbs
   // 延遲火球型 (例:DoT Punisher / Megiddo Flame) — 施放瞬間不算傷害 / useCount / Meteor Shower / Ignite,
   //   全部延後到每顆 orb 的 fireAt 觸發 (見 processOrbHits)。
-  //   依然保留:timeline cast 事件 / rollTriggers / burn 登記 / onHitSpawn / onHitResetCooldown / fieldState
+  //   依然保留:timeline cast 事件 / rollTriggers / burn 登記 / onHitSpawn / onHitResetCooldown / sim.fieldState
   //
   // 兩種模式:
   //   uniform: orbs.hitDelayRange       → 每顆在 [min,max] ms 內均勻隨機 (DoT Punisher)
@@ -585,7 +722,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   // 實戰 buff: 本次施放先 roll,命中則增加 1 層,後續傷害用新層數計算
   // 若 proc 成功且 buff 標記 appliesDebuff → 連鎖觸發 linkCycle/triggerOn='debuffApplied'(例:Thief's Cunning)
   // linkCycle 屬被動型 buff,不寫進 timeline(僅透過 buff 圖示呈現)
-  useBattleBuffs().rollTriggers(rng, currentJobKey, tCast)
+  useBattleBuffs().rollTriggers(sim.rng, currentJobKey, tCast)
   const hs = hyperBagFor(skill.id)
   // 爆炸型:總擊數 = 固定爆炸數 × 每爆擊數 (與 DoT 層數無關)
   const baseHits = (skill.hitsPerCast || 0) * explosionsN
@@ -606,7 +743,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
         const toSpawn = Math.min(currentGenCount, maxTotal - orbIndex)
         for (let g = 0; g < toSpawn; g++) {
           const fd = (orbIndex === 0) ? 1 : subFd
-          pendingOrbHits.push({
+          sim.pendingOrbHits.push({
             skillId: skill.id,
             fireAt: t,
             orbIndex,
@@ -634,8 +771,8 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
         const span = Math.max(0, maxMs - minMs)
         for (let o = 0; o < totalOrbs; o++) {
           const fd = (o === 0) ? 1 : subFd
-          const delay = minMs + rng() * span
-          pendingOrbHits.push({
+          const delay = minMs + sim.rng() * span
+          sim.pendingOrbHits.push({
             skillId: skill.id,
             fireAt: tCast + delay,
             orbIndex: o,
@@ -686,23 +823,23 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
           srcStats.useCount += 1
         }
         // 標記該來源的雲已被引爆消耗 — 阻止同一批雲被重複計算
-        cloudDetonatedAt[cd.sourceSkillId] = tCast
+        sim.cloudDetonatedAt[cd.sourceSkillId] = tCast
       }
     }
   }
   // Mist Eruption 等技能命中時重置指定技能 CD (例:→ Flame Haze)
   //   scheduler 下一次可施放 = 本施放的動畫完成後 (避免施放重疊) — 由下面的 cast lock 統一處理
-  //   UI CD 面板讀 cooldownEndAt → 立即設為 tCast,反映「遊戲 CD 已清零」
+  //   UI CD 面板讀 sim.cooldownEndAt → 立即設為 tCast,反映「遊戲 CD 已清零」
   const onHitResetCooldown = skill.sim?.onHitResetCooldown
   if (Array.isArray(onHitResetCooldown) && onHitResetCooldown.length) {
     for (const targetId of onHitResetCooldown) {
-      nextCastAt[targetId] = tCast + Math.floor(rng() * 40)
-      cooldownEndAt[targetId] = tCast
+      sim.nextCastAt[targetId] = tCast + Math.floor(sim.rng() * 40)
+      sim.cooldownEndAt[targetId] = tCast
     }
   }
-  // 場地技能 — 記錄到 fieldState 供 requiresField 檢查(例:Poison Mist)
+  // 場地技能 — 記錄到 sim.fieldState 供 requiresField 檢查(例:Poison Mist)
   if (skill.fieldDurationSec) {
-    fieldState[skill.id] = { expireAt: tCast + skill.fieldDurationSec * 1000 }
+    sim.fieldState[skill.id] = { expireAt: tCast + skill.fieldDurationSec * 1000 }
   }
   // 衍生技能 — 於同 tCast 一併施放(例:Flame Haze → Poison Mist)
   const onHitSpawn = skill.sim?.onHitSpawn
@@ -713,21 +850,29 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     }
   }
   if (skill.burn) {
-    // DoT 實際時長 = (base + hyper flat) × Burning Magic 倍率
-    const baseDurationSec = skill.burn.durationSec + (hs.burnDurationBonusSec || 0)
-    const burnDurationSec = baseDurationSec * burningMagicDotDurationMult()
+    // DoT 實際時長 = (base + hyper flat) × DoT 被動倍率 (例:Burning Magic ×2)
+    //   fixedDuration (例:Creeping Toxin 毒池=圖騰時長) — 場地屬性,不吃 DoT 時長加成;
+    //   durationFromTotem — 時長改由圖騰有效時長決定 (含 summonDuration% 召喚加成)
+    const fixedDur = !!skill.burn.fixedDuration
+    let baseDurationSec = skill.burn.durationSec + (fixedDur ? 0 : (hs.burnDurationBonusSec || 0))
+    if (skill.burn.durationFromTotem && skill.totem) {
+      baseDurationSec = totemDurationMs(skill) / 1000
+    }
+    const burnDurationSec = fixedDur ? baseDurationSec : baseDurationSec * dotPassiveDotDurationMult()
     const burnMs = burnDurationSec * 1000
     const ivMs = skill.burn.tickIntervalSec * 1000
-    const cur = burnState[skill.id]
-    if (cur) {
+    const cur = sim.burnState[skill.id]
+    if (cur && tCast < cur.expireAt) {
       // 續接(DoT 尚未結束前再次施放):只延長 expireAt,傷害快照不動
       cur.expireAt = tCast + burnMs
     } else {
+      // 新 DoT — 含「舊 DoT 已過期但同 tick 尚未被 processBurnTicks 清掉」的邊界:
+      //   以當下面板重新快照 (例:Creeping Toxin 60s 圖騰到期後補放)
       // 新 DoT 開始 — 以「當下」面板快照傷害,後續 tick 一律沿用此值
       //   即使 Fervent Drain 層數 / VM 等級 / buff 變動,也不會影響這段 DoT 的傷害
       //   結束後若再觸發,新的一段 DoT 才會重新以當下面板計算
       const snapshotDmg = dotTickDmg(skill, enemy, att)
-      burnState[skill.id] = {
+      sim.burnState[skill.id] = {
         nextTickAt: tCast + ivMs,
         expireAt: tCast + burnMs,
         intervalMs: ivMs,
@@ -737,8 +882,8 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     }
   }
 
-  // [DEBUG] Megiddo Flame — 僅捕捉戰鬥開始後第一次施放的 main hit / DoT snapshot
-  if (skill.id === 'megiddo_flame' && !res.megiddoFirstCast) {
+  // [DEBUG] 首次施放 snapshot — 目標技能由 mechanics.firstCastDebugSkillId 指定 (例:Megiddo Flame)
+  if (skill.id === currentMechanics().firstCastDebugSkillId && !res.megiddoFirstCast) {
     const sampleMain = mainHitDmg(skill, elemMult, enemy, att)
     const orbsMeta = skill.sim?.orbs
     const totalOrbs = orbsMeta?.maxTotal ?? 1
@@ -750,7 +895,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     const hitsSubOrbs = perOrb * Math.max(0, totalOrbs - 1)
     const mainTotalEst = Math.floor(firstOrbHit * hitsFirstOrb + subOrbHit * hitsSubOrbs)
 
-    const bs = burnState[skill.id]
+    const bs = sim.burnState[skill.id]
     const dotTick = bs?.dmg || 0
     const burnDurSec = (skill.burn?.durationSec || 0) + (hs.burnDurationBonusSec || 0)
     const tickIvSec = skill.burn?.tickIntervalSec || 1
@@ -775,24 +920,37 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     }
   }
 
-  // Meteor Shower 被動 Final Attack — 一般技能於施放瞬間 roll;延遲火球型於每顆 orb 的 fireAt roll
-  //   來源只要有 hitsPerCast 就會 roll;僅排除 Meteor Shower 自身 (type='passive')
-  //   成功則以 Meteor Shower 自身的傷害管線(含其屬性 / VM / buff / defMult)追加 1 擊
+  // Final Attack 被動追打 — 一般技能於施放瞬間 roll;延遲火球型於每顆 orb 的 fireAt roll
+  //   來源只要有 hitsPerCast 就會 roll;僅排除 Final Attack 技能自身 (type='passive')
+  //   成功則以 Final Attack 技能自身的傷害管線(含其屬性 / VM / buff / defMult)追加 1 擊
   //   註:cloudDetonate 的「額外雲引爆」不另外觸發追打(只 emitHit 到 sourceSkill),
   //       但引爆技能本身的主 hit 仍照常 roll 一次。
   if (!hasDelayedOrbs) {
-    const meteor = SKILL_BY_ID['meteor_shower']
-    rollMeteorShowerTriggers(skill, meteorTriggerRolls(skill, meteor), tCast, enemy, att)
-    // Ignite — 火屬技能(非 Inferno Aura)施放時機率生成火牆
+    const faCfg = currentMechanics().finalAttack
+    const faSkill = faCfg ? SKILL_BY_ID[faCfg.skillId] : null
+    rollFinalAttackTriggers(skill, finalAttackTriggerRolls(skill, faSkill), tCast, enemy, att)
+    // Ignite 型火牆 — 指定屬性技能施放時機率生成 (mechanics.ignite)
     maybeProcIgnite(skill, tCast, res)
+    // Poison Region 引爆 — 一般火屬攻擊的命中時點=施放瞬間 (延遲火球型於 processOrbHits per-orb)
+    poisonRegionOnDetonator(skill, tCast, enemy, att)
+  }
+
+  // Poison Region — 施放毒池技能本身:建立/重置區域 (與引爆判定無關,毒屬不觸發引爆)
+  initPoisonRegion(skill, tCast)
+
+  // 施放型 buff 顯示鏡像 (battle.source === 'skillCast') — buff 欄位顯示持續倒數
+  //   有 totem 的技能以圖騰有效時長為準 (含 summonDuration% 召喚加成)
+  if (skill.battle?.source === 'skillCast') {
+    const durOverride = skill.totem ? totemDurationMs(skill) : undefined
+    useBattleBuffs().activateFromSkillCast(skill.id, tCast, durOverride)
   }
 }
 
 function processBurnTicks(elapsed, enemy, att) {
   let changed = false
-  for (const skill of SIM_SKILLS) {
+  for (const skill of sim.activeSkills) {
     if (!skill.burn) continue
-    const bs = burnState[skill.id]
+    const bs = sim.burnState[skill.id]
     if (!bs) continue
     const capped = Math.min(elapsed, bs.expireAt)
     const stats = state.result.perSkill[skill.id]
@@ -807,22 +965,22 @@ function processBurnTicks(elapsed, enemy, att) {
       changed = true
     }
     if (elapsed >= bs.expireAt) {
-      delete burnState[skill.id]
+      delete sim.burnState[skill.id]
       syncDotCount()
     }
   }
   return changed
 }
 
-// 延遲火球處理 — 每 tick 檢查 pendingOrbHits,到期的 orb 觸發傷害 / useCount / MS / Ignite
+// 延遲火球處理 — 每 tick 檢查 sim.pendingOrbHits,到期的 orb 觸發傷害 / useCount / MS / Ignite
 // 每顆火球獨立:attacksPerOrb 次 mainHitDmg × fd,useCount +1,Meteor Shower 1 次 roll,
 // Ignite 1 次 roll (走 maybeProcIgnite)。
 function processOrbHits(elapsed, enemy, att) {
-  if (!pendingOrbHits.length) return false
+  if (!sim.pendingOrbHits.length) return false
   const res = state.result
   let changed = false
   const remaining = []
-  for (const p of pendingOrbHits) {
+  for (const p of sim.pendingOrbHits) {
     if (p.fireAt > elapsed) {
       remaining.push(p)
       continue
@@ -836,12 +994,13 @@ function processOrbHits(elapsed, enemy, att) {
       emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * p.fd)
     }
     stats.useCount += 1
-    // 每顆 orb 獨立觸發 Meteor Shower 1 次 + Ignite 1 次
-    rollMeteorShowerTriggers(skill, 1, p.fireAt, enemy, att)
+    // 每顆 orb 獨立觸發 Final Attack 1 次 + Ignite 1 次 + Poison Region 引爆判定
+    rollFinalAttackTriggers(skill, 1, p.fireAt, enemy, att)
     maybeProcIgnite(skill, p.fireAt, res)
+    poisonRegionOnDetonator(skill, p.fireAt, enemy, att)
     changed = true
   }
-  pendingOrbHits = remaining
+  sim.pendingOrbHits = remaining
   return changed
 }
 
@@ -868,7 +1027,7 @@ function tick() {
 
   const now = performance.now()
   const totalMs = state.durationSec * 1000
-  const elapsed = Math.min(now - startedAt, totalMs)
+  const elapsed = Math.min(now - sim.startedAt, totalMs)
   state.elapsedMs = elapsed
 
   const { arcInfo, state: enemy } = useEnemySettings()
@@ -905,7 +1064,7 @@ function tick() {
   }
   // 全域施放排程:每回合取「最早已可施放」的技能 fire(同時多個 ready → priority 高者先)
   // fire 後:
-  //   - 主動型:依自身 animDelay 鎖定其他所有主動技能的 nextCastAt (≥ tCast + animDelay)
+  //   - 主動型:依自身 animDelay 鎖定其他所有主動技能的 sim.nextCastAt (≥ tCast + animDelay)
   //   - Aura 型:僅更新自身 (+ intervalSec),不鎖定其他技能、也不受鎖影響
   //   - Derived 型:永不直接排程 (靠 onHitSpawn)
   let safety = 500
@@ -913,11 +1072,13 @@ function tick() {
     let pick = null
     let pickTime = Infinity
     let pickPriority = -Infinity
-    for (const s of SIM_SKILLS) {
+    for (const s of sim.activeSkills) {
       const role = s.sim?.role
       if (role === 'derived' || role === 'passive') continue
       if (state.disabledSkills.has(s.id)) continue
-      const t = nextCastAt[s.id]
+      // recastReplaces 型:首次照常排程 (開場);之後只透過「頂替填充技槽」施放 (見 pick 後的替換檢查)
+      if (s.sim?.recastReplaces && sim.lastCastAt[s.id] != null) continue
+      const t = sim.nextCastAt[s.id]
       if (t == null || t > elapsed) continue
       const pri = s.sim?.priority || 0
       if (t < pickTime || (t === pickTime && pri > pickPriority)) {
@@ -927,13 +1088,44 @@ function tick() {
       }
     }
     if (!pick) break
-    const skill = pick
+    let skill = pick
+    // recastReplaces 替換檢查 — 到期的替換型技能 (例:Creeping Toxin 每 60s 補圖騰)
+    //   只在「本槽原本要施放的是其指定填充技」時頂替該槽施放,避免打斷連技;
+    //   被頂替的填充技 nextCastAt 不動 → 會被本次 cast lock 推後,緊接著補回
+    for (const s of sim.activeSkills) {
+      const rep = s.sim?.recastReplaces
+      if (!rep || rep !== skill.id) continue
+      if (state.disabledSkills.has(s.id)) continue
+      if (sim.lastCastAt[s.id] == null) continue
+      const due = sim.nextCastAt[s.id]
+      if (due == null || due > elapsed) continue
+      // 靜默視窗檢查:插入後只允許推遲填充技本身 — 替換技能的動畫期間內,
+      //   任何其他主動技能都不得有排定施放 (寧可晚放,絕不影響現有循環)。
+      //   aura / derived / passive 不受 cast lock 影響,不需檢查。
+      const repAnim = s.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 1000
+      const lockEnd = pickTime + repAnim
+      let disturbs = false
+      for (const other of sim.activeSkills) {
+        if (other === s || other.id === rep) continue
+        const otherRole = other.sim?.role
+        if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
+        if (state.disabledSkills.has(other.id)) continue
+        const ot = sim.nextCastAt[other.id]
+        if (ot != null && ot < lockEnd) {
+          disturbs = true
+          break
+        }
+      }
+      if (disturbs) continue
+      skill = s
+      break
+    }
     // 前置條件 requiresField — 不滿足就推後 200ms,回圈再選下一個
     const requiresField = skill.sim?.requiresField
     if (requiresField) {
-      const fs = fieldState[requiresField]
+      const fs = sim.fieldState[requiresField]
       if (!fs || elapsed >= fs.expireAt) {
-        nextCastAt[skill.id] = elapsed + 200
+        sim.nextCastAt[skill.id] = elapsed + 200
         continue
       }
     }
@@ -945,22 +1137,24 @@ function tick() {
       const targetId = waitCfg.skillId
       const cdBelowMs = waitCfg.cdBelowMs ?? 0
       const delayMs = waitCfg.delayAfterCastMs ?? 0
-      const targetCdEnd = cooldownEndAt[targetId] ?? 0
+      const targetCdEnd = sim.cooldownEndAt[targetId] ?? 0
       const targetCdRem = targetCdEnd - elapsed  // >0 表示還在 CD 中
-      const targetLastCast = lastCastAt[targetId]
+      const targetLastCast = sim.lastCastAt[targetId]
       const hasTargetCast = targetLastCast != null && Number.isFinite(targetLastCast)
       if (!hasTargetCast || targetCdRem <= cdBelowMs) {
         // 目標尚未施放 或 CD 即將歸零 — 等待其施放完成後再評估
-        nextCastAt[skill.id] = elapsed + 100
+        sim.nextCastAt[skill.id] = elapsed + 100
         continue
       }
       if (hasTargetCast && elapsed < targetLastCast + delayMs) {
         // 目標剛施放 — 推到 lastCast + delay
-        nextCastAt[skill.id] = targetLastCast + delayMs
+        sim.nextCastAt[skill.id] = targetLastCast + delayMs
         continue
       }
     }
-    const tCast = nextCastAt[skill.id]
+    // 施放時點 = 本槽時間 (pickTime)。一般路徑 = 該技能自己的 nextCastAt;
+    // recastReplaces 頂替時 = 被頂替填充技的槽時間 (替換技能自己的 due 已是過去式)
+    const tCast = pickTime
     emitCast(skill, tCast, elemMultFor(skill, enemy), enemy, att)
     changed = true
 
@@ -968,7 +1162,7 @@ function tick() {
     const auraSim = skill.sim?.aura
     if (auraSim) {
       const intervalMs = Math.max(50, (auraSim.intervalSec || 3) * 1000)
-      nextCastAt[skill.id] = tCast + intervalMs
+      sim.nextCastAt[skill.id] = tCast + intervalMs
       continue
     }
 
@@ -991,41 +1185,44 @@ function tick() {
           externalPctUsesBaseAsFlat: !!cdSim.externalPctUsesBaseAsFlat,
         }) * 1000
       : 0
-    const nextDelta = Math.max(animDelay, effCdMs)
-    nextCastAt[skill.id] = tCast + nextDelta + Math.floor(rng() * 40)
+    // recastIntervalSec — 召喚/場地型技能的實際再施放週期 (例:Creeping Toxin 以圖騰 60s 為週期)
+    //   UI CD 面板 (cooldownEndAt) 仍顯示真實遊戲 CD,不受此值影響
+    const recastMs = (skill.sim?.recastIntervalSec || 0) * 1000
+    const nextDelta = Math.max(animDelay, effCdMs, recastMs)
+    sim.nextCastAt[skill.id] = tCast + nextDelta + Math.floor(sim.rng() * 40)
     // 遊戲 CD 結束時間 — 僅 effCdMs (不含 animDelay),給 UI CD 面板
-    cooldownEndAt[skill.id] = tCast + effCdMs
+    sim.cooldownEndAt[skill.id] = tCast + effCdMs
 
     // 鎖定其他主動技能至 tCast + animDelay (aura / derived 不受影響)
-    //   cooldownEndAt 不受 cast lock 影響 — CD 面板應反映真實遊戲 CD
+    //   sim.cooldownEndAt 不受 cast lock 影響 — CD 面板應反映真實遊戲 CD
     const lockUntil = tCast + animDelay
-    for (const other of SIM_SKILLS) {
+    for (const other of sim.activeSkills) {
       if (other === skill) continue
       const otherRole = other.sim?.role
       if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
-      const cur = nextCastAt[other.id]
-      if (cur != null && cur < lockUntil) nextCastAt[other.id] = lockUntil
+      const cur = sim.nextCastAt[other.id]
+      if (cur != null && cur < lockUntil) sim.nextCastAt[other.id] = lockUntil
     }
     // 雲守衛:如果本次 animEnd 落在 grace end 前 0~200ms 內,
     //   本次允許施放,但把「所有非引爆的主動技能」(含剛施放的自己)推到 graceEnd 之後 —
     //   讓出 Mist Eruption 的引爆時點(否則 CD 短 / 無 CD 的技能會在 animEnd 後又被 pick)
     //   僅對非 cloudDetonate 技能的 cast 生效
     if (!skill.sim?.cloudDetonate) {
-      for (const srcId of Object.keys(lastCastAt)) {
+      for (const srcId of Object.keys(sim.lastCastAt)) {
         if (!hasActiveCloudsOf(srcId)) continue
         const srcSkill = SKILL_BY_ID[srcId]
         const pnCloudsCfg = srcSkill?.sim?.clouds
         if (!pnCloudsCfg) continue
-        const graceEnd = lastCastAt[srcId] + (pnCloudsCfg.detonateGraceMs || 0)
+        const graceEnd = sim.lastCastAt[srcId] + (pnCloudsCfg.detonateGraceMs || 0)
         const timeUntilGrace = graceEnd - lockUntil
         if (timeUntilGrace > 0 && timeUntilGrace < 200) {
-          const holdUntil = graceEnd + Math.floor(rng() * 40)
-          for (const other of SIM_SKILLS) {
+          const holdUntil = graceEnd + Math.floor(sim.rng() * 40)
+          for (const other of sim.activeSkills) {
             if (other.sim?.cloudDetonate) continue  // 引爆技能保留其 waitForSkillCast 排程
             const otherRole = other.sim?.role
             if (otherRole === 'aura' || otherRole === 'derived' || otherRole === 'passive') continue
-            const cur = nextCastAt[other.id]
-            if (cur != null && cur < holdUntil) nextCastAt[other.id] = holdUntil
+            const cur = sim.nextCastAt[other.id]
+            if (cur != null && cur < holdUntil) sim.nextCastAt[other.id] = holdUntil
           }
           break
         }
@@ -1036,18 +1233,18 @@ function tick() {
   if (processBurnTicks(elapsed, enemy, att)) changed = true
   if (processIgniteWalls(elapsed, enemy, att)) changed = true
 
-  // 更新 DoT 數量追蹤:burnState 剩下未過期的 key 數量 = 當前目標身上生效中的 DoT 數
-  useDotTracker().setActiveDotCount(Object.keys(burnState).length)
+  // 更新 DoT 數量追蹤:sim.burnState 剩下未過期的 key 數量 = 當前目標身上生效中的 DoT 數
+  useDotTracker().setActiveDotCount(Object.keys(sim.burnState).length)
 
   if (changed) state.result.events.sort((a, b) => a.time - b.time)
 
-  // 每 tick 同步 nextCastAt → state,供 CD 面板讀取最新冷卻狀態
+  // 每 tick 同步 sim.nextCastAt → state,供 CD 面板讀取最新冷卻狀態
   if (changed) syncNextCastAt()
 
   // 衍生統計節流:每秒才重算一次(或自然結束時最後一次)
-  if (elapsed - lastRefreshMs >= 1000 || elapsed >= totalMs) {
+  if (elapsed - sim.lastRefreshMs >= 1000 || elapsed >= totalMs) {
     refreshDerived()
-    lastRefreshMs = elapsed
+    sim.lastRefreshMs = elapsed
     if (onTickCallback) onTickCallback(elapsed, state.result)
   }
 
@@ -1089,25 +1286,20 @@ export function useBattleSim() {
   }
   function start() {
     if (state.running) return
+    // 每場模擬整組重建內部狀態 (simContext)
+    sim = createSimContext()
+    // 依當前角色職業快照本場模擬的技能子集 — 職業無 sim 資料時為空 (不排程)
+    sim.activeSkills = simSkillsForJob(useCharacter().state.job)
+    sim.rng = makeRng(state.seed)
     state.result = emptyResult(state.durationSec)
     state.elapsedMs = 0
-    lastRefreshMs = 0
-    rng = makeRng(state.seed)
-    nextCastAt = {}
-    cooldownEndAt = {}
-    burnState = {}
-    fieldState = {}
-    igniteWalls = []
-    pendingOrbHits = []
-    lastCastAt = {}
-    cloudDetonatedAt = {}
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
     // 開場排程:
     //   derived 型(例 Poison Mist)→ 完全不排程,靠 onHitSpawn 觸發
     //   aura 型(開關持續技)→ 首次觸發在 firstHitWindowSec 內隨機,不進 priority cascade
     //   一般型                → 依 priority 遞減累加 animDelay,避免同 tick 齊發
-    const schedulable = SIM_SKILLS.filter((s) => s.sim?.role !== 'derived' && s.sim?.role !== 'passive' && !state.disabledSkills.has(s.id))
+    const schedulable = sim.activeSkills.filter((s) => s.sim?.role !== 'derived' && s.sim?.role !== 'passive' && !state.disabledSkills.has(s.id))
     const auraSkills = schedulable.filter((s) => s.sim?.aura)
     const normalSkills = schedulable.filter((s) => !s.sim?.aura)
     const ordered = [...normalSkills].sort((a, b) => (b.sim?.priority || 0) - (a.sim?.priority || 0))
@@ -1115,17 +1307,19 @@ export function useBattleSim() {
     for (const skill of ordered) {
       const anim = skill.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 1000
       cursor += anim
-      nextCastAt[skill.id] = cursor + Math.floor(rng() * 40)
+      // recastReplaces 型 (例:Creeping Toxin):戰鬥開始即施放 (t≈0);
+      //   cursor 照常累加 — 其後技能的開場槽位不變,cast lock 會與其動畫銜接
+      sim.nextCastAt[skill.id] = (skill.sim?.recastReplaces ? 0 : cursor) + Math.floor(sim.rng() * 40)
     }
     for (const skill of auraSkills) {
       const auraCfg = skill.sim.aura
       const [minSec, maxSec] = auraCfg.firstHitWindowSec || [0, auraCfg.intervalSec || 3]
       const minMs = Math.max(0, minSec) * 1000
       const maxMs = Math.max(minMs, maxSec * 1000)
-      nextCastAt[skill.id] = minMs + Math.floor(rng() * Math.max(1, maxMs - minMs))
+      sim.nextCastAt[skill.id] = minMs + Math.floor(sim.rng() * Math.max(1, maxMs - minMs))
     }
     syncNextCastAt()
-    startedAt = performance.now()
+    sim.startedAt = performance.now()
     state.running = true
     rafId = requestAnimationFrame(tick)
   }
@@ -1148,7 +1342,7 @@ export function useBattleSim() {
 
   // 測試用 — 以當前設定跑一次技能施放,回傳每擊傷害明細。
   // 不影響主模擬器狀態 (不寫入 state.result、不觸發 timeline)
-  function simulateSingleCast(skillId = SIM_SKILLS[0]?.id) {
+  function simulateSingleCast(skillId = simSkillsForJob(useCharacter().state.job)[0]?.id) {
     const skill = SKILL_BY_ID[skillId]
     if (!skill) return null
     const { arcInfo, state: enemy } = useEnemySettings()
@@ -1170,8 +1364,8 @@ export function useBattleSim() {
     const vm = skillVmatrixBonus(skill, vmatrixLevelOf(skill.id))
     let testDotCount = skill.burn ? 1 : 0
     if (state.running) {
-      const existing = Object.keys(burnState).length
-      const selfInState = !!burnState[skill.id]
+      const existing = Object.keys(sim.burnState).length
+      const selfInState = !!sim.burnState[skill.id]
       testDotCount = existing + (skill.burn && !selfInState ? 1 : 0)
     }
     const buffBonuses = useBattleBuffs().currentBonuses(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount })
@@ -1196,8 +1390,9 @@ export function useBattleSim() {
     const explosionsN = skillExplosionCount(skill)
     const explosionFdPct = skillExplosionFinalDmgPct(skill, testDotCount)
     const explosionMult = clean(1 + explosionFdPct / 100)
-    const bmActive = !!(BURNING_MAGIC?.jobs?.includes(currentJobKey) && testDotCount >= 1)
-    const bmFdPct = bmActive ? (BURNING_MAGIC.finalDmgPctWhenDotActive || 0) : 0
+    const dotPassiveCfg = currentMechanics().dotPassive
+    const bmActive = !!(dotPassiveCfg && testDotCount >= 1)
+    const bmFdPct = bmActive ? (dotPassiveCfg.finalDmgPctWhenDotActive || 0) : 0
     const bmMult = clean(1 + bmFdPct / 100)
     const baseP = skillDamagePct(skill, lv)
     const pcts = { hit: baseP.hit, burn: baseP.burn }
@@ -1218,8 +1413,11 @@ export function useBattleSim() {
                         skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult)
       mainHits.push(Math.max(1, floor(value)))
     }
-    const bmDurMult = burningMagicDotDurationMult()
-    const baseBurnSec = add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
+    const fixedDur = !!skill.burn?.fixedDuration
+    const bmDurMult = fixedDur ? 1 : dotPassiveDotDurationMult()
+    const baseBurnSec = fixedDur
+      ? (skill.burn?.durationSec || 0)
+      : add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
     const burnDurationSec = clean(baseBurnSec * bmDurMult)
     const dotTickCount = floor(burnDurationSec / (skill.burn?.tickIntervalSec || 1)) || 0
     const dotBaseRaw = att.baseRaw || 0
@@ -1372,11 +1570,13 @@ export function useBattleSim() {
     }
   }
 
-  const skills = computed(() => SIM_SKILLS)
+  // 依當前角色職業反應式過濾 — 切職業時 UI 技能清單即時更新
+  const skills = computed(() => simSkillsForJob(useCharacter().state.job))
 
   const sortedSkills = computed(() => {
-    if (!state.result) return SIM_SKILLS
-    return [...SIM_SKILLS].sort(
+    const list = skills.value
+    if (!state.result) return list
+    return [...list].sort(
       (a, b) =>
         (state.result.perSkill[b.id]?.total || 0) -
         (state.result.perSkill[a.id]?.total || 0),

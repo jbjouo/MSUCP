@@ -5,6 +5,9 @@ import { COMBINED_SIM_SKILLS } from './skills/index.js'
 
 export const SIM_SKILLS = COMBINED_SIM_SKILLS
 
+// 依 jobKey 過濾戰鬥模擬技能 / 機制設定 (useBattleSim / BattlePage 消費)
+export { simSkillsForJob, mechanicsForJob } from './skills/index.js'
+
 // 時間 (ms) → "HH:MM:SS" (battle summary 用)
 export function fmtClock(ms) {
   const totalSec = Math.max(0, Math.floor(ms / 1000))
