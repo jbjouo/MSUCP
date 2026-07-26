@@ -64,6 +64,9 @@ function createSimContext() {
     //   { cfg, psi, expireAt, lastVisibleAt, pools: [{ side, spawnAt, armedAt }] }
     //   null = 尚未施放;引爆 / 補毒邏輯見 poisonRegionOnDetonator
     poisonRegion: null,
+    // aura 抑制截止時間 { [auraSkillId]: ms } — 變身/連擊技能期間指定 aura 停止攻擊
+    //   (例:Elemental Fury 期間 Ifrit 不攻擊;由 sim.suppressAuraIds 寫入)
+    auraSuppressedUntil: {},
   }
 }
 let sim = createSimContext()
@@ -215,10 +218,78 @@ let currentJobKey = ''   // 當前玩家職業 (用於屬性無視查表)
 function currentMechanics() {
   return mechanicsForJob(currentJobKey) || {}
 }
+
+// 戰鬥 buff 主屬 flat 加成 — 每 tick 快取一次 (rebuildAtt / dotTickDmg 熱路徑用)
+let currentBuffStatFlat = 0
+
+// statBoost 'mapleWarriorEnhance' 型 (例:Maple World Goddess's Blessing):
+//   提升% = floor(楓葉祝福% × 增幅%/100)   — 例 16% × 390% = 62.4 → 62%
+//   主屬 flat = floor(AP × 提升%/100)      — 與楓葉祝福同規則 (AP = CP baseStats 基礎主屬)
+//   楓葉祝福 (CP buff maple_warrior) 未開啟時無可增幅對象 → 0
+function computeBuffStatFlat(att) {
+  let boosts
+  try { boosts = useBattleBuffs().activeStatBoosts(currentJobKey, state.elapsedMs) } catch { return 0 }
+  if (!boosts.length) return 0
+  let flat = 0
+  for (const b of boosts) {
+    if (b.type !== 'mapleWarriorEnhance') continue
+    let mwOn = false
+    let coOn = false
+    try {
+      const toggles = useCpToggles()
+      mwOn = toggles.isBuffActive('maple_warrior')
+      coOn = toggles.isBuffActive('combat_orders')
+    } catch {}
+    if (!mwOn) continue
+    // 楓葉祝福:Lv30 = 15%,Combat Orders +1 級 → 16%
+    const mwPct = 15 + (coOn ? 1 : 0)
+    const boostPct = Math.floor((mwPct * b.pct) / 100)
+    const primaryKey = att?.primaryStat
+    const ap = primaryKey && cpBaseStats ? Number(cpBaseStats.value?.[primaryKey]) || 0 : 0
+    flat += Math.floor((ap * boostPct) / 100)
+  }
+  return flat
+}
+
+// buff 主屬 flat 反映到 baseRaw:baseRaw × (4×(主屬+flat)+副屬) / (4×主屬+副屬)
+//   主擊 (rebuildAtt) 與 DoT (dotTickDmg) 皆吃 — DoT 依快照規則,施放當下生效中才帶入
+function adjustedBaseRaw(att) {
+  const baseRaw = att?.baseRaw || 0
+  const flat = currentBuffStatFlat
+  if (!flat || !baseRaw) return baseRaw
+  const p = Number(att?.primaryVal) || 0
+  const s = Number(att?.secondaryVal) || 0
+  const denom = 4 * p + s
+  if (denom <= 0) return baseRaw
+  return mul(baseRaw, clean((4 * (p + flat) + s) / denom))
+}
+
+// V 技能核心 (vmatrix.kind === 'skill') 未配點 (面板等級 0) = 未習得 — 不排程
+//   boost core (kind 'boost') 不受此限:技能本體由轉職習得,VM 0 只是沒有強化
+function vSkillLearned(s) {
+  if (s?.vmatrix?.kind !== 'skill') return true
+  return vmatrixLevelOf(s.id) > 0
+}
+
+// requiresBuffStacks 施放門檻 — buff 層數達標才能施放
+//   { buffId, min, orMax } → 層數 ≥ min(min, buff 上限);orMax 讓「滿層」也算達標
+//   (例:Elemental Fury 需 Fervent Drain ≥5 層或滿層 — 未來層數上限變動時判定仍成立)
+function buffStacksGateOk(skill) {
+  const req = skill.sim?.requiresBuffStacks
+  if (!req) return true
+  try {
+    const { stacks, maxStacks } = useBattleBuffs().stackCountOf(req.buffId)
+    const threshold = req.orMax ? Math.min(req.min, maxStacks || req.min) : req.min
+    return stacks >= threshold
+  } catch {
+    return true
+  }
+}
 let currentCharLevel = 0  // 角色等級 (等差終傷查表用)
 let currentEnemyLevel = 0 // 怪物等級 (等差終傷查表用)
 let cpAttStats = null    // useCpDamage().attStatsInfo (lazy init)
 let cpStatTotal = null   // useCpDamage().statTotal (lazy init) — 讀 buffDuration%
+let cpBaseStats = null   // useCpDamage().baseStats (lazy init) — AP 基礎主屬 (statBoost 型 buff 用)
 
 // 針對單一技能計算屬性減傷係數:
 //   1 − 怪物屬性耐性% × (1 − 無視屬性耐性%/100) / 100
@@ -304,7 +375,7 @@ function defMultFor(enemy, totalIgnorePct) {
 // 以 (buff Damage% + 超技能 Damage%) 重算 boss / basic
 //   — Damage% 所有來源都相加後進同一個 (1 + Damage%/100) 乘區;不乘進技能 % 本身
 function rebuildAtt(att, extraDmgPct) {
-  const baseRaw = att?.baseRaw || 0
+  const baseRaw = adjustedBaseRaw(att)
   const fm = att?.fm || 1
   const totalDmg = add(att?.dmgPct || 0, extraDmgPct || 0)
   const bossDmg = att?.bossDmg || 0
@@ -644,7 +715,7 @@ function dotTickDmg(skill, enemy, att) {
   const { mult: specialMult } = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs)
   const pct = skillPctOf(skill).burn
   const enemyMult = dotEnemyMult(enemy)
-  return mul(att?.baseRaw || 0, pct / 100, skillFinalMult, specialMult, enemyMult, currentArcMult, DOT_COEFFICIENT)
+  return mul(adjustedBaseRaw(att), pct / 100, skillFinalMult, specialMult, enemyMult, currentArcMult, DOT_COEFFICIENT)
 }
 
 // 統一累加單次擊中 — 主擊與 DoT tick 都會流經此函式,
@@ -713,7 +784,9 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     && orbs?.splitDelayMs != null
     && orbs?.maxTotal
   )
-  const hasDelayedOrbs = hasUniformDelayedOrbs || hasCascadingOrbs
+  // channel (變身連擊,例:Elemental Fury):施放瞬間不打傷害,攻擊 tick 全走 pendingOrbHits
+  const hasChannel = !!skill.sim?.channel
+  const hasDelayedOrbs = hasUniformDelayedOrbs || hasCascadingOrbs || hasChannel
   // 爆炸型技能(Mist Eruption):每次爆炸視為一次使用 (useCount += 爆炸數)
   //   一般技能 skillExplosionCount 回傳 1,等同 +1
   //   延遲火球型 (DoT Punisher) 在 processOrbHits per-orb 累加,施放瞬間不加
@@ -789,6 +862,37 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
           }
         }
       }
+    }
+  } else if (hasChannel) {
+    // 變身連擊 (例:Elemental Fury):變身 delay 後,以固定頻率排入攻擊 tick
+    //   每 tick = hitsPerCast 擊,走 processOrbHits (per-tick 觸發 FA / Ignite / 毒池引爆)
+    const ch = skill.sim.channel
+    const stacks = ch.assumedFerventStacks || 0
+    const attackSec = (ch.baseAttackSec || 0) + (ch.perFerventSec || 0) * stacks
+    const perSec = ch.attacksPerSec || 1
+    const tickCount = Math.max(0, Math.round(attackSec * perSec))
+    const intervalMs = 1000 / perSec
+    const startAt = tCast + (ch.transformDelaySec || 0) * 1000
+    for (let i = 0; i < tickCount; i++) {
+      sim.pendingOrbHits.push({
+        skillId: skill.id,
+        fireAt: startAt + i * intervalMs,
+        orbIndex: i,
+        fd: 1,
+        attacksPerOrb: skill.hitsPerCast || 0,
+        // channel 觸發規則 (實測):Final Attack 僅施放當下 roll (見下方);
+        // Ignite / 毒池引爆 每 tick 照常 (25 次機會)
+        skipFinalAttack: true,
+      })
+    }
+    // Meteor Shower — 僅「使用當下」roll 1 次 (攻擊 tick 不再各自 roll)
+    const chFaCfg = currentMechanics().finalAttack
+    const chFaSkill = chFaCfg ? SKILL_BY_ID[chFaCfg.skillId] : null
+    rollFinalAttackTriggers(skill, finalAttackTriggerRolls(skill, chFaSkill), tCast, enemy, att)
+    // 技能期間 (變身 + 攻擊) 抑制指定 aura (例:Ifrit 停止攻擊)
+    const windowEnd = startAt + attackSec * 1000
+    for (const auraId of skill.sim.suppressAuraIds || []) {
+      sim.auraSuppressedUntil[auraId] = Math.max(sim.auraSuppressedUntil[auraId] || 0, windowEnd)
     }
   } else {
     for (let h = 0; h < hits; h++) {
@@ -995,7 +1099,8 @@ function processOrbHits(elapsed, enemy, att) {
     }
     stats.useCount += 1
     // 每顆 orb 獨立觸發 Final Attack 1 次 + Ignite 1 次 + Poison Region 引爆判定
-    rollFinalAttackTriggers(skill, 1, p.fireAt, enemy, att)
+    //   channel tick (skipFinalAttack) 例外:FA 僅施放當下 roll 過,tick 不再 roll
+    if (!p.skipFinalAttack) rollFinalAttackTriggers(skill, 1, p.fireAt, enemy, att)
     maybeProcIgnite(skill, p.fireAt, res)
     poisonRegionOnDetonator(skill, p.fireAt, enemy, att)
     changed = true
@@ -1051,6 +1156,9 @@ function tick() {
     getVmatrixLevel: vmatrixLevelOf,
   })
 
+  // buff 主屬 flat (statBoost 型,例:MWGB) — autoTick 後快取一次,供本 tick 所有傷害計算
+  currentBuffStatFlat = computeBuffStatFlat(att)
+
   let changed = false
   // 主動 buff 啟動寫入時間軸
   for (const act of buffActivations) {
@@ -1077,7 +1185,12 @@ function tick() {
       if (role === 'derived' || role === 'passive') continue
       if (state.disabledSkills.has(s.id)) continue
       // recastReplaces 型:首次照常排程 (開場);之後只透過「頂替填充技槽」施放 (見 pick 後的替換檢查)
-      if (s.sim?.recastReplaces && sim.lastCastAt[s.id] != null) continue
+      //   recastReplacesFirstCast — 連首次施放也只走頂替 (例:Elemental Fury 等 Fervent 疊滿才放)
+      if (s.sim?.recastReplaces && (sim.lastCastAt[s.id] != null || s.sim.recastReplacesFirstCast)) continue
+      // requiresSkillEnabled — 前置技能被面板停用時,本技能一併不排程 (例:Elemental Fury 需 Ifrit)
+      if (s.sim?.requiresSkillEnabled && state.disabledSkills.has(s.sim.requiresSkillEnabled)) continue
+      // V 技能核心未配點 = 未習得
+      if (!vSkillLearned(s)) continue
       const t = sim.nextCastAt[s.id]
       if (t == null || t > elapsed) continue
       const pri = s.sim?.priority || 0
@@ -1096,7 +1209,12 @@ function tick() {
       const rep = s.sim?.recastReplaces
       if (!rep || rep !== skill.id) continue
       if (state.disabledSkills.has(s.id)) continue
-      if (sim.lastCastAt[s.id] == null) continue
+      // recastReplacesFirstCast 型連首次都走頂替;一般型首次走正常排程
+      if (sim.lastCastAt[s.id] == null && !s.sim?.recastReplacesFirstCast) continue
+      // 前置技能停用 / V 核心未配點 / buff 層數門檻未達 → 本槽不頂替 (照常施放填充技,之後再試)
+      if (s.sim?.requiresSkillEnabled && state.disabledSkills.has(s.sim.requiresSkillEnabled)) continue
+      if (!vSkillLearned(s)) continue
+      if (!buffStacksGateOk(s)) continue
       const due = sim.nextCastAt[s.id]
       if (due == null || due > elapsed) continue
       // 靜默視窗檢查:插入後只允許推遲填充技本身 — 替換技能的動畫期間內,
@@ -1119,6 +1237,20 @@ function tick() {
       if (disturbs) continue
       skill = s
       break
+    }
+    // aura 抑制 — 變身/連擊技能期間指定 aura 停止攻擊 (例:Elemental Fury 期間 Ifrit)
+    //   抑制中的 aura tick 推遲到抑制結束後
+    if (skill.sim?.aura) {
+      const supUntil = sim.auraSuppressedUntil[skill.id] || 0
+      if (pickTime < supUntil) {
+        sim.nextCastAt[skill.id] = supUntil + Math.floor(sim.rng() * 40)
+        continue
+      }
+    }
+    // requiresBuffStacks — buff 層數門檻未達 → 推後 200ms 再試 (一般排程路徑;頂替路徑在替換檢查內把關)
+    if (!buffStacksGateOk(skill)) {
+      sim.nextCastAt[skill.id] = elapsed + 200
+      continue
     }
     // 前置條件 requiresField — 不滿足就推後 200ms,回圈再選下一個
     const requiresField = skill.sim?.requiresField
@@ -1264,6 +1396,7 @@ export function useBattleSim() {
     const cp = useCpDamage()
     cpAttStats = cp.attStatsInfo
     cpStatTotal = cp.statTotal
+    cpBaseStats = cp.baseStats
   }
 
   function setDuration(n) {
@@ -1306,6 +1439,12 @@ export function useBattleSim() {
     let cursor = 0
     for (const skill of ordered) {
       const anim = skill.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 1000
+      // recastReplacesFirstCast 型 (例:Elemental Fury):開場不佔 cascade 槽位 —
+      //   due 即刻,但實際施放要等 buff 層數門檻達標 + 頂替 Flame Sweep 槽
+      if (skill.sim?.recastReplaces && skill.sim?.recastReplacesFirstCast) {
+        sim.nextCastAt[skill.id] = Math.floor(sim.rng() * 40)
+        continue
+      }
       cursor += anim
       // recastReplaces 型 (例:Creeping Toxin):戰鬥開始即施放 (t≈0);
       //   cursor 照常累加 — 其後技能的開場槽位不變,cast lock 會與其動畫銜接
@@ -1354,6 +1493,8 @@ export function useBattleSim() {
     currentCharLevel = Number(charState.level) || 0
     currentEnemyLevel = Number(enemy?.level) || 0
     const att = cpAttStats?.value || {}
+    // buff 主屬 flat 同步 (模擬進行中 MWGB 生效時,test cast 也反映加成)
+    currentBuffStatFlat = computeBuffStatFlat(att)
     const levelDiff = currentCharLevel - currentEnemyLevel
     const levelDiffPct = levelDiffFinalDmgPct(currentCharLevel, currentEnemyLevel)
     const levelDiffMult = clean(1 + levelDiffPct / 100)
@@ -1420,7 +1561,7 @@ export function useBattleSim() {
       : add(skill.burn?.durationSec || 0, hs.burnDurationBonusSec || 0)
     const burnDurationSec = clean(baseBurnSec * bmDurMult)
     const dotTickCount = floor(burnDurationSec / (skill.burn?.tickIntervalSec || 1)) || 0
-    const dotBaseRaw = att.baseRaw || 0
+    const dotBaseRaw = adjustedBaseRaw(att)
     const dotValue = mul(dotBaseRaw, pcts.burn / 100, skillFinalMult, dotSpecialMult, dotEnemyMultVal, arcMult, DOT_COEFFICIENT)
     const dotHit = skill.burn ? Math.max(dotValue > 0 ? 1 : 0, floor(dotValue)) : 0
     const dotTicks = []
@@ -1448,6 +1589,9 @@ export function useBattleSim() {
         usesMatk: att.usesMatk,
         baseRaw: att.baseRaw,
         mastery: att.mastery,
+        // 戰鬥 buff 主屬 flat (statBoost 型,例:MWGB) — 僅模擬進行中且 buff 生效時 > 0
+        buffStatFlat: currentBuffStatFlat,
+        baseRawAdjusted: adjustedBaseRaw(att),
       },
       // ── Damage% 桶 (主擊用,相加) ──
       damageBucket: {

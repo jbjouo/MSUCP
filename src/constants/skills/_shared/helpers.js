@@ -6,8 +6,10 @@
 
 // 依等級計算技能實際的 主傷 / DoT 百分比
 //   damage 欄位可缺省 (例:Creeping Toxin 施放本身無直擊,傷害全在 burn / detonation) → hit 回 0
+//   等級允許低於 baseLevel (V 技能核心依面板等級縮放,例:DoT Punisher VM25 = 775%);
+//   一般技能的等級由 setSkillLevel 以 baseLevel 為下限,不受影響
 export function skillDamagePct(skill, level) {
-  const lv = Math.max(skill.baseLevel, Number(level) || skill.baseLevel)
+  const lv = Math.max(1, Number(level) || skill.baseLevel)
   const delta = lv - skill.baseLevel
   return {
     hit: (skill.damage?.base ?? 0) + delta * (skill.damage?.perLevel ?? 0),

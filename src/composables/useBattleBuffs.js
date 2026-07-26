@@ -252,18 +252,27 @@ export function useBattleBuffs() {
       //   buff.useVmatrixLevel:改從角色頁 V 矩陣面板讀等級(例:Mana Overload)→
       //     effective = max(baseLevel, vmLevel),確保「預設常駐」;VM 升級後可突破 baseLevel
       let cfg, cfgLevel
+      // noCombatOrders — V 技能等級不吃 Combat Orders +1 (例:Maple World Goddess's Blessing)
+      const coBonus = combatOrdersActive && !buff.noCombatOrders ? 1 : 0
       if (buff.mirror) {
         const mirrorBuff = BATTLE_BUFFS.find((b) => b.id === buff.mirror)
         if (!mirrorBuff) continue
-        cfgLevel = (mirrorBuff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
+        cfgLevel = (mirrorBuff.baseLevel || 1) + coBonus
         cfg = resolveActiveToggleStats(mirrorBuff, cfgLevel)
       } else if (buff.useVmatrixLevel && typeof getVmatrixLevel === 'function') {
         const base = buff.baseLevel || 1
         const vmLv = Math.max(0, Math.floor(Number(getVmatrixLevel(buff.id)) || 0))
-        cfgLevel = Math.max(base, vmLv) + (combatOrdersActive ? 1 : 0)
+        // requiresVmatrixLevel — V 技能 buff:面板 0 = 未習得,不自動施放;等級即面板等級
+        //   (例:MWGB);未設此旗標者維持「預設常駐」行為 (例:Mana Overload,取 max)
+        if (buff.requiresVmatrixLevel) {
+          if (vmLv <= 0) continue
+          cfgLevel = vmLv + coBonus
+        } else {
+          cfgLevel = Math.max(base, vmLv) + coBonus
+        }
         cfg = resolveActiveToggleStats(buff, cfgLevel)
       } else {
-        cfgLevel = (buff.baseLevel || 1) + (combatOrdersActive ? 1 : 0)
+        cfgLevel = (buff.baseLevel || 1) + coBonus
         cfg = resolveActiveToggleStats(buff, cfgLevel)
       }
       // 不吃 Buff Duration% 的 buff(例:Epic Adventure)直接用原始秒數
@@ -426,6 +435,36 @@ export function useBattleBuffs() {
     return { mult, stacks, perStack }
   }
 
+  // 啟動中 buff 的主屬加成規則 (battle.statBoost) — 回傳 [{ type, pct }]
+  //   實際 flat 值由引擎計算 (需 AP / 楓葉祝福% 等 CP 端資訊,本 composable 不觸及)
+  //   pct = basePct + (啟動時等級 − baseLevel) × perLevelPct
+  function activeStatBoosts(jobKey, nowMs) {
+    syncExpire(nowMs)
+    const out = []
+    for (const buff of BATTLE_BUFFS) {
+      if (!buff.statBoost) continue
+      if (state.disabledBuffs.has(buff.id)) continue
+      if (!applicableForJob(buff, jobKey)) continue
+      const s = state.stacks[buff.id]
+      if (!s || s.count <= 0 || nowMs >= s.expireAt) continue
+      // delta 允許為負 — 面板等級低於 baseLevel 時向下縮放 (與 resolveActiveToggleStats 一致)
+      const delta = (s.level || buff.baseLevel || 1) - (buff.baseLevel || 1)
+      out.push({
+        type: buff.statBoost.type,
+        pct: Math.max(0, (buff.statBoost.basePct || 0) + delta * (buff.statBoost.perLevelPct || 0)),
+      })
+    }
+    return out
+  }
+
+  // 查詢 buff 當前層數與上限 — 引擎 requiresBuffStacks 施放門檻用
+  //   (例:Elemental Fury 需 Fervent Drain ≥5 層或滿層才能施放)
+  function stackCountOf(buffId, { dotCountOverride } = {}) {
+    const buff = BATTLE_BUFFS.find((b) => b.id === buffId)
+    if (!buff) return { stacks: 0, maxStacks: 0 }
+    return { stacks: stacksOf(buff, dotCountOverride), maxStacks: Number(buff.maxStacks) || 0 }
+  }
+
   // 施放型 buff (source: 'skillCast') — 由戰鬥模擬的技能施放事件驅動 (useBattleSim emitCast 呼叫)
   //   純顯示鏡像 (例:Creeping Toxin 圖騰 60s 倒數):不參與 autoTick / rollTriggers,
   //   currentBonuses 對此 source 零貢獻 (無 stats 欄位,fallback 分支自動 continue)
@@ -539,6 +578,8 @@ export function useBattleBuffs() {
     rollTriggers,
     autoTick,
     activateFromSkillCast,
+    stackCountOf,
+    activeStatBoosts,
     currentBonuses,
     dotSpecialFinalMult,
     buffInfo,

@@ -13,7 +13,9 @@ export const BATTLE_BUFFS = COMBINED_BATTLE_BUFFS
 // 解出 activeToggle buff 在指定等級的效果參數
 export function resolveActiveToggleStats(buff, level) {
   const bl = buff.baseLevel || 1
-  const delta = Math.max(0, (level || bl) - bl)
+  // delta 允許為負 — V 技能 buff (requiresVmatrixLevel) 面板等級低於 baseLevel 時向下縮放
+  //   (例:MWGB VM10 → 增幅 350 + (10−25)×10 = 200%);既有 buff 等級恆 ≥ baseLevel,不受影響
+  const delta = (level || bl) - bl
   const base = buff.base || {}
   const per = buff.perLevelBonus || {}
   return {

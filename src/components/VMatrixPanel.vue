@@ -11,6 +11,30 @@ const { state, setLevel, visibleSkills: jobSkills, MAX_LEVEL } = useVMatrix()
 const visibleSkills = computed(() =>
   jobSkills.value.filter((s) => !!s.vmatrix),
 )
+
+// 分組(由上而下):
+//   1. 技能核心 (1~4技) — 職業專屬主動 V 技能,以資料的 vSlot 欄位標記並排序
+//      (例:火毒 1技 DoT Punisher / 2技 Poison Nova / 3技 Elemental Fury)
+//   2. 強化核心 — vmatrix.kind === 'boost' 的所有技能 (1~4 轉技能 + Inferno Aura /
+//      Megiddo Flame 等 hyper 主動的 boost core)
+//   3. 技能核心 (共通) — 跨職業共用核心 (有 jobs 限定,例:Unreliable Memory / Mana Overload)
+//   4. 技能核心 — 全職業泛用核心 (Erda Nova / Rope Lift / Decent 系列)
+const isSlotCore = (s) => Number.isFinite(s.vSlot)
+const isBoostCore = (s) => s.vmatrix?.kind === 'boost'
+const isSharedCore = (s) => !!s.jobs
+const skillGroups = computed(() => {
+  const rest = visibleSkills.value.filter((s) => !isSlotCore(s) && !isBoostCore(s))
+  return [
+    {
+      key: 'activeV',
+      labelKey: 'vmatrix.groupActiveV',
+      skills: visibleSkills.value.filter(isSlotCore).slice().sort((a, b) => a.vSlot - b.vSlot),
+    },
+    { key: 'boost', labelKey: 'vmatrix.groupBoost', skills: visibleSkills.value.filter((s) => !isSlotCore(s) && isBoostCore(s)) },
+    { key: 'common', labelKey: 'vmatrix.groupCommon', skills: rest.filter(isSharedCore) },
+    { key: 'other', labelKey: 'vmatrix.groupOther', skills: rest.filter((s) => !isSharedCore(s)) },
+  ].filter((g) => g.skills.length)
+})
 </script>
 
 <template>
@@ -19,33 +43,39 @@ const visibleSkills = computed(() =>
       <span>{{ t('vmatrix.title') }}</span>
     </header>
 
-    <div class="vm-grid">
-      <div
-        v-for="skill in visibleSkills"
-        :key="skill.id"
-        class="vm-cell"
-        :title="vmatrixDescriptionKey(skill) ? t(vmatrixDescriptionKey(skill)) : ''"
-      >
-        <img
-          class="vm-cell__icon"
-          :src="skill.imageUrl"
-          :alt="t(vmatrixNameKey(skill))"
-          loading="lazy"
-        />
-        <div class="vm-cell__name">{{ t(vmatrixNameKey(skill)) }}</div>
-        <div class="vm-cell__level">
-          <input
-            type="number"
-            class="vm-cell__input"
-            min="0"
-            :max="maxLevelOf(skill)"
-            :value="state.levels[skill.id] || 0"
-            @input="(e) => setLevel(skill.id, e.target.value)"
-          />
-          <span class="vm-cell__cap">/ {{ maxLevelOf(skill) }}</span>
+    <template v-for="group in skillGroups" :key="group.key">
+      <div class="vm-group">
+        <div class="vm-group__label">{{ t(group.labelKey) }}</div>
+        <div class="vm-grid">
+          <div
+            v-for="skill in group.skills"
+            :key="skill.id"
+            class="vm-cell"
+            :title="vmatrixDescriptionKey(skill) ? t(vmatrixDescriptionKey(skill)) : ''"
+          >
+            <span v-if="skill.vmTag" class="vm-cell__tag">{{ t(`vmatrix.tags.${skill.vmTag}`) }}</span>
+            <img
+              class="vm-cell__icon"
+              :src="skill.imageUrl"
+              :alt="t(vmatrixNameKey(skill))"
+              loading="lazy"
+            />
+            <div class="vm-cell__name">{{ t(vmatrixNameKey(skill)) }}</div>
+            <div class="vm-cell__level">
+              <input
+                type="number"
+                class="vm-cell__input"
+                min="0"
+                :max="maxLevelOf(skill)"
+                :value="state.levels[skill.id] || 0"
+                @input="(e) => setLevel(skill.id, e.target.value)"
+              />
+              <span class="vm-cell__cap">/ {{ maxLevelOf(skill) }}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </section>
 </template>
 
@@ -78,6 +108,19 @@ const visibleSkills = computed(() =>
   font-size: 0.92rem;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
+.vm-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vm-group__label {
+  padding: 2px 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #dfe6ee;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
 .vm-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
@@ -92,6 +135,7 @@ const visibleSkills = computed(() =>
 /* Cell:固定三段 — icon / name / level
    外框統一素色(不隨狀態變色),底色統一藍灰,不依 kind 區分 */
 .vm-cell {
+  position: relative;
   display: grid;
   grid-template-rows: auto 2.4em auto;
   align-items: center;
@@ -102,6 +146,30 @@ const visibleSkills = computed(() =>
   border: 1px solid #1a1f27;
   border-radius: 6px;
   min-width: 0;
+}
+/* 跨職業共用核心的範圍標籤 (例:法師 / 冒險家法師) — 置頂橫條;
+   有標籤的格子加高上內距,避免蓋到技能圖示 */
+.vm-cell:has(.vm-cell__tag) {
+  padding-top: 24px;
+}
+.vm-cell__tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1px 4px;
+  background: #2f3642;
+  border-bottom: 1px solid #1a1f27;
+  border-radius: 5px 5px 0 0;
+  color: #9ec2ff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
 .vm-cell__icon {

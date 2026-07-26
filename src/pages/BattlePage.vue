@@ -678,6 +678,7 @@ const timelineRows = computed(() => {
             <table class="bp-test__table">
               <tr><td>武器常數</td><td>{{ singleCastResult.base.weaponConst }}</td></tr>
               <tr><td>主屬 ({{ singleCastResult.base.primaryStat?.toUpperCase() }})</td><td>{{ fmtNum(singleCastResult.base.primaryVal) }}</td></tr>
+              <tr v-if="singleCastResult.base.buffStatFlat > 0"><td>主屬 Buff 加成 (MWGB)</td><td>+{{ fmtNum(singleCastResult.base.buffStatFlat) }} → baseRaw {{ fmtNum(Math.round(singleCastResult.base.baseRawAdjusted)) }}</td></tr>
               <tr><td>副屬</td><td>{{ fmtNum(singleCastResult.base.secondaryVal) }}</td></tr>
               <tr><td>{{ singleCastResult.base.usesMatk ? 'MATK' : 'ATK' }}</td><td>{{ fmtNum(singleCastResult.base.attVal) }}</td></tr>
               <tr><td>Mastery</td><td>{{ singleCastResult.base.mastery }}%</td></tr>

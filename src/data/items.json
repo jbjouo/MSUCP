@@ -2784,6 +2784,27 @@
         "def": 100
       },
       "imageUrl": "/msucp/images/items/1152110.png"
+    },
+    {
+      "id": "cape_lionheart_battle_cape",
+      "apiItemId": 1102275,
+      "name": "Lionheart Battle Cape",
+      "nameEn": "Lionheart Battle Cape",
+      "type": "cape",
+      "level": 140,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 7,
+        "dex": 7,
+        "def": 200,
+        "moveSpeed": 10,
+        "jump": 5
+      },
+      "imageUrl": "/msucp/images/items/1102275.png"
     }
   ]
 }

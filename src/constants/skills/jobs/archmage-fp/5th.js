@@ -34,6 +34,7 @@ export const DOT_PUNISHER = {
   advancement: 5,
   kind: 'attack',
   element: 'fire',
+  vSlot: 1,                             // 主動 V 技能格位:1技
   baseLevel: 30,
   hitsPerCast: 5,                       // 每顆火球的擊數;orbs 分波後以 attacksPerOrb 使用
   maxEnemies: 1,
@@ -74,6 +75,7 @@ export const POISON_NOVA = {
   advancement: 5,
   kind: 'attack',
   element: 'poison',
+  vSlot: 2,                              // 主動 V 技能格位:2技
   baseLevel: 30,
   hitsPerCast: 12,
   maxEnemies: 1,
@@ -104,10 +106,62 @@ export const POISON_NOVA = {
   },
 }
 
+// ─── Elemental Fury (3技,skillId 400021066) ────────────────────────────────
+// 憤怒火靈變身連擊。需 Ifrit Lv30+ 召喚中;不受攻擊反射影響。
+// API 實值 Lv1~25:208% 起 +8%/lv (master 25 = 400%);Lv26~30 為線性外插 (Lv30 = 440%,待實測)
+//   → 各等級原始資料:scripts/skill-db/arch-mage-f-p/elemental-fury-levels.json
+// 戰鬥模型 (實測):施放 360ms (攻速8) → 變身 1 秒 → 自動攻擊,玩家可繼續施放其他技能
+//   攻擊時間 = 基礎 2s + 0.6s × Fervent Drain 層數 (預設 5 層 → 5 秒)
+//   每秒 5 次攻擊 × 6 擊;技能期間 Ifrit 停止攻擊 (sim.suppressAuraIds)
+export const ELEMENTAL_FURY = {
+  id: 'elemental_fury',
+  name: 'Elemental Fury',
+  nameKey: 'skills.archmageFP.elemental_fury.name',
+  descriptionKey: 'skills.archmageFP.elemental_fury.description',
+  imageUrl: ICON('Elemental_Fury'),
+  color: '#ff7a5c',
+  jobs: ['archmageFP'],
+  advancement: 5,
+  kind: 'attack',
+  element: 'fire',
+  vSlot: 3,                              // 主動 V 技能格位:3技 (火毒目前僅 1~3 技)
+  baseLevel: 30,                         // 等級由 V 矩陣面板 (0~30) 決定,與其他 V 技能一致
+  mpCost: 1000,
+  cooldown: 75,
+  maxEnemies: 12,
+  hitsPerCast: 6,                        // 每次攻擊 6 擊
+  damage: { base: 440, perLevel: 8 },    // Lv30 = 440% (外插);Lv25 = 400% (API 實值)
+  vmatrix: { kind: 'skill', maxLevel: 30 },
+  sim: {
+    role: 'attack',
+    priority: 95,
+    // 攻速 8 階實測 360ms;7 階依慣例 +60ms 推估
+    castDelayBySpeed: { 7: 420, 8: 360 },
+    // 需 Ifrit 召喚中 — 面板停用 Ifrit 時本技能一併不排程
+    requiresSkillEnabled: 'ifrit',
+    // 施放門檻:Fervent Drain ≥5 層或滿層 (orMax — 未來 6 轉暫時提高層數上限時判定仍成立)
+    requiresBuffStacks: { buffId: 'fervent_drain', min: 5, orMax: true },
+    // 所有施放 (含首次) 都只頂替 Flame Sweep 槽 — 與 Creeping Toxin 同規則,連技不中斷
+    recastReplaces: 'flame_sweep',
+    recastReplacesFirstCast: true,
+    // 變身連擊:施放後火靈自動攻擊 (玩家不被鎖定)
+    channel: {
+      transformDelaySec: 1,              // 施放 → 變身 1 秒後開始攻擊
+      baseAttackSec: 2,                  // 基礎攻擊時間 (面板總持續 3s − 變身 1s)
+      perFerventSec: 0.6,                // 每層 Fervent Drain 攻擊時間 +0.6s
+      assumedFerventStacks: 5,           // 先以固定 5 層估算 → 攻擊 5 秒 (待改為動態層數)
+      attacksPerSec: 5,                  // 每秒 5 次攻擊 × hitsPerCast 擊
+    },
+    // 技能期間 (變身 + 攻擊) 指定 aura 停止攻擊
+    suppressAuraIds: ['ifrit'],
+  },
+}
+
 // ─── 5 轉所有火毒技能 ───────────────────────────────────────────────────────
 export const ARCHMAGE_FP_5TH_SKILLS = [
   DOT_PUNISHER,
   POISON_NOVA,
+  ELEMENTAL_FURY,
 ]
 
 // 子分類 — 全部從主列表 filter derive

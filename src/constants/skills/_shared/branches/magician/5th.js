@@ -15,6 +15,7 @@ export const MAGICIAN_BRANCH_5TH_SKILLS = [
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
     advancement: 5,
     kind: 'toggle',
+    vmTag: 'magician',   // V 矩陣面板角標:法師共用核心
     baseLevel: 25, // Master Level 25 → +7% 最終傷害
     // V 矩陣(5 轉技能本體)— 等級 0-30 可在角色頁 V 矩陣面板調整。
     //   不帶 passive → 不貢獻 CP 屬性值;等級只作用於戰鬥模擬(升級提升 baseFinalDmgPct)。

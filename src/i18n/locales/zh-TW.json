@@ -236,6 +236,10 @@
         "name": "Poison Nova",
         "description": "釋放向四面八方擴散的毒雲,同時造成 12 擊主擊傷害與 10 秒 DoT(Lv25 500%/600%;Lv30 550%/660%)。施放時產生 11 個毒雲,2 秒後可由 Mist Eruption 引爆;之後每 0.3 秒雲數 −1。引爆時以當下雲數為爆炸數,前 3 發 FD 100%、第 4 發起 FD 50%。不受反射影響。CD 25 秒。"
       },
+      "elemental_fury": {
+        "name": "Elemental Fury",
+        "description": "化身憤怒火靈連續攻擊(需 Ifrit Lv30+ 召喚中)。施放 360ms 後變身 1 秒,接著自動攻擊:每秒 5 次、每次 6 擊(Lv25 400%;Lv30 外插 440%),攻擊時間 = 2 秒 + 每層 Fervent Drain +0.6 秒(sim 預設 5 層 → 5 秒)。技能期間 Ifrit 停止攻擊(已掛的 DoT 照常計算);玩家可繼續施放其他技能。sim 施放時機:Fervent Drain ≥5 層(或滿層)且只頂替 Flame Sweep 槽,不打斷連技。觸發:Meteor Shower 僅施放當下 1 次;Ignite 每次攻擊各 roll(25 次機會)。最多 12 目標,不受反射影響。MP 1000,CD 75 秒。"
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA 起源技能:終極火毒融合攻擊。"
@@ -964,6 +968,11 @@
   },
   "vmatrix": {
     "title": "V 矩陣",
+    "groupActiveV": "技能核心(1~4技)",
+    "groupBoost": "強化核心",
+    "groupCommon": "技能核心(共通)",
+    "tags": { "magician": "法師", "adventurerMage": "冒險家法師", "adventurer": "冒險家" },
+    "groupOther": "技能核心",
     "reset": "重設",
     "skillSpecificBadge": "技能專屬",
     "skills": {
@@ -982,6 +991,8 @@
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
       "unreliable_memory_desc": "選擇一個 V 技能並複製其效果。本 sim 固定鏡像 Infinity —— Infinity 結束後自動觸發一次,持續時間 / tick 機制完全相同。",
+      "maple_world_goddess_blessing": "Maple World Goddess's Blessing",
+      "maple_world_goddess_blessing_desc": "楓之世界女神的祝福:增幅楓葉祝福 — 主屬提升% = floor(楓葉祝福% × 增幅%/100),再 floor(AP × 提升%)(例:16% × 390% → 62%)。增幅 Lv25 = 350%(每級 +10%);另 Damage +17%(每級 +0.5%,與 Damage/Boss Damage 相加)。持續固定 60 秒(不吃加持),CD 180 秒,MP 500。開場緊接魔力無限之後自動施放;可儲 2 次暫不實裝;需楓葉祝福開啟。",
       "mana_overload": "Mana Overload",
       "mana_overload_desc": "切換型 5 轉技能 —— 戰鬥模擬中常駐獨立終傷乘區。Master Lv25 → +7%、Lv30 → +8% 最終傷害(每級約 +0.2%)。VM 等級為 0 時仍以 Lv25 基線運作,升級才會突破 7%。",
       "flame_sweep_core": {

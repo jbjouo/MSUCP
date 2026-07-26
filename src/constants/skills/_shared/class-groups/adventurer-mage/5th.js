@@ -14,6 +14,7 @@ export const ADVENTURER_MAGE_5TH_SKILLS = [
     imageUrl: ICON('Unreliable_Memory'),
     jobs: ['archmageFP', 'archmageIL', 'bishop'],
     advancement: 5,
+    vmTag: 'adventurerMage',   // V 矩陣面板角標:冒險家法師共用核心
     // 戰鬥面向是 activeToggle buff (鏡像 Infinity),分組跟 Infinity 一致;
     // CP 端的 +INT passive 由 vmatrix.passive 表達,與 kind 無關
     kind: 'buff',

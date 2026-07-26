@@ -42,6 +42,11 @@ import {
 } from './_shared/class-groups/adventurer-thief/index.js'
 
 import {
+  ADVENTURER_VMATRIX_SKILLS,
+  ADVENTURER_BATTLE_BUFFS,
+} from './_shared/class-groups/adventurer/index.js'
+
+import {
   ALL_JOBS_ALL_SKILLS,
   ALL_JOBS_SIM_SKILLS,
   ALL_JOBS_PASSIVE_SKILLS,
@@ -99,6 +104,7 @@ const BATTLE_BUFFS_UNORDERED = [
   ...ADVENTURER_MAGE_BATTLE_BUFFS,      // empirical_knowledge + arcane_aim
   ...MAGICIAN_BRANCH_BATTLE_BUFFS,
   ...ADVENTURER_THIEF_BATTLE_BUFFS,
+  ...ADVENTURER_BATTLE_BUFFS,           // maple_world_goddess_blessing (排序在 infinity 之後)
   ...ALL_JOBS_JOB_BATTLE_BUFFS,         // fervent_drain + infinity
   ...THIEFS_CUNNING_BATTLE_BUFF,
 ]
@@ -126,6 +132,7 @@ export const COMBINED_BATTLE_BUFFS = BATTLE_BUFFS_UNORDERED
 // 順序:all-jobs 通用 → class-groups → branches → 職業全部主列表(含未分類 entry)
 const VMATRIX_CANDIDATES = [
   ...ALL_JOBS_VMATRIX_SKILLS,
+  ...ADVENTURER_VMATRIX_SKILLS,
   ...MAGICIAN_BRANCH_VMATRIX_SKILLS,
   ...ADVENTURER_THIEF_VMATRIX_SKILLS,
   ...ADVENTURER_MAGE_VMATRIX_SKILLS,
@@ -177,6 +184,7 @@ export const JOB_LINK_SKILL_INDEX = [...ALL_JOBS_LINK_SKILLS]
 // 再把所有子模組的命名 re-export,讓高階 UI 需要分組時可以直接用
 export * from './_shared/all-jobs/index.js'
 export * from './_shared/branches/magician/index.js'
+export * from './_shared/class-groups/adventurer/index.js'
 export * from './_shared/class-groups/adventurer-mage/index.js'
 export * from './jobs/index.js'
 export * from './_shared/helpers.js'

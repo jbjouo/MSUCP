@@ -236,6 +236,10 @@
         "name": "Poison Nova",
         "description": "Releases a poisonous cloud that spreads in all directions, hitting nearby enemies 12 times plus a 10s DoT (Lv25 500%/600%; Lv30 550%/660%). Spawns 11 clouds; 2s after cast, Mist Eruption can detonate them — after the grace window, 1 cloud decays every 0.3s. Detonation explosion count equals the current cloud count; first 3 at 100% FD, 4th+ at 50% FD. Unaffected by attack reflection. Cooldown 25s."
       },
+      "elemental_fury": {
+        "name": "Elemental Fury",
+        "description": "Transform into an enraged flame spirit (requires Ifrit Lv30+ summoned). After a 360ms cast and 1s transform, it auto-attacks: 5 attacks/sec, 6 hits each (Lv25 400%; Lv30 extrapolated 440%). Attack duration = 2s + 0.6s per Fervent Drain stack (sim assumes 5 → 5s). Ifrit stops attacking during the skill; you keep casting freely. Up to 12 enemies, unaffected by reflection. MP 1000, CD 75s."
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA Origin: ultimate fire/poison fusion attack."
@@ -964,6 +968,11 @@
   },
   "vmatrix": {
     "title": "V MATRIX",
+    "groupActiveV": "Skill Cores (1–4)",
+    "groupBoost": "Boost Cores",
+    "groupCommon": "Skill Cores (Common)",
+    "tags": { "magician": "Magician", "adventurerMage": "Adventurer Mage", "adventurer": "Adventurer" },
+    "groupOther": "Skill Cores",
     "reset": "Reset",
     "skillSpecificBadge": "Skill-only",
     "skills": {
@@ -982,6 +991,8 @@
       "decent_holy_symbol": "Decent Holy Symbol",
       "unreliable_memory": "Unreliable Memory",
       "unreliable_memory_desc": "Transforms into a chosen V skill. In this sim it mirrors Infinity — after Infinity ends, triggers once with the same duration / tick schedule.",
+      "maple_world_goddess_blessing": "Maple World Goddess's Blessing",
+      "maple_world_goddess_blessing_desc": "Amplifies Maple Warrior: stat boost % = floor(MW% × amp%/100), then floor(AP × boost%) (e.g. 16% × 390% → 62%). Amp Lv25 = 350% (+10%/lv); also Damage +17% (+0.5%/lv, additive with Damage/Boss Damage). Fixed 60s duration (ignores buff duration), CD 180s, MP 500. Auto-casts right after Infinity at battle start; 2-charge stacking not yet modeled; requires Maple Warrior enabled.",
       "mana_overload": "Mana Overload",
       "mana_overload_desc": "Toggle 5th-job skill — permanent independent Final Damage multiplier in the battle sim. +7% at Master Lv25, +8% at Lv30 (≈ +0.2% per level). VM level 0 still runs at the Lv25 baseline; raising VM past 25 is required to push past +7%.",
       "flame_sweep_core": {
