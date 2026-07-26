@@ -822,6 +822,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
             orbIndex,
             fd,
             attacksPerOrb: perOrb,
+            rollBuffTriggers: !!orbs.rollBuffTriggers,
           })
           orbIndex++
         }
@@ -840,6 +841,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
       const totalOrbs = orbs.maxTotal ? Math.min(orbs.maxTotal, dynamicCount) : dynamicCount
       if (hasUniformDelayedOrbs) {
         // 延遲命中:每顆 orb 在 tCast + uniformRandom(hitDelayRange) 觸發
+        // orbs.rollBuffTriggers — 每顆 orb 命中時各 roll 1 次攻擊觸發型 buff (例:Arcane Aim)
         const [minMs, maxMs] = orbs.hitDelayRange
         const span = Math.max(0, maxMs - minMs)
         for (let o = 0; o < totalOrbs; o++) {
@@ -851,6 +853,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
             orbIndex: o,
             fd,
             attacksPerOrb: perOrb,
+            rollBuffTriggers: !!orbs.rollBuffTriggers,
           })
         }
       } else {
@@ -898,6 +901,34 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     for (let h = 0; h < hits; h++) {
       // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
       emitHit(stats, mainHitDmg(skill, elemMult, enemy, att))
+    }
+  }
+  // 週期爆炸 (sim.pulses;例:Poison Chain) — 中毒目標每 intervalMs 爆炸一次,共 count 次
+  //   爆炸傷害% = detonation.damage + stackBonus × 疊層 (第 k 爆疊層 = min(maxStacks, k−1);首爆無加成)
+  //   兩者皆依 V 等級縮放 (delta 允許負值,與 skillDamagePct 一致)
+  //   對單模型:每次爆炸 +1 層毒;全場爆炸上限 (17) 對單打不到 → 不排額外終爆
+  //   爆炸走 pendingOrbHits:不觸發 Final Attack、不計 useCount;
+  //   Ignite / 毒池引爆為火屬 element-gated,毒屬爆炸自然跳過
+  const pulses = skill.sim?.pulses
+  if (pulses && skill.detonation?.damage) {
+    const det = skill.detonation
+    const lvDelta = effSkillLevel(skill) - (skill.baseLevel || 0)
+    const detPct = (det.damage.base || 0) + lvDelta * (det.damage.perLevel || 0)
+    const stackPct = (pulses.stackBonus?.base || 0) + lvDelta * (pulses.stackBonus?.perLevel || 0)
+    const perPulse = Math.max(0, det.hitsPerCast || 0)
+    const maxStacks = pulses.maxStacks || 0
+    for (let k = 1; k <= (pulses.count || 0); k++) {
+      const stacks = Math.min(maxStacks, k - 1)
+      sim.pendingOrbHits.push({
+        skillId: skill.id,
+        fireAt: tCast + k * pulses.intervalMs,
+        orbIndex: k - 1,
+        fd: 1,
+        attacksPerOrb: perPulse,
+        pct: Math.max(0, detPct + stackPct * stacks),
+        skipFinalAttack: true,
+        skipUseCount: true,
+      })
     }
   }
   // 額外 — 引爆來源技能(sourceSkill)的雲/場地,產生獨立傷害流(例:Mist Eruption → Poison Nova 雲)
@@ -1094,13 +1125,17 @@ function processOrbHits(elapsed, enemy, att) {
     const stats = res.perSkill[skill.id]
     if (!stats) { changed = true; continue }
     const elemMult = elemMultFor(skill, enemy)
+    // p.pct — 覆寫傷害%(pulses 週期爆炸走 detonation.damage,而非技能主傷);未設 → 主傷
     for (let h = 0; h < p.attacksPerOrb; h++) {
-      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * p.fd)
+      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att, p.pct) * p.fd)
     }
-    stats.useCount += 1
+    // pulses 爆炸不計 useCount(useCount = 施放次數;爆炸為附屬傷害流)
+    if (!p.skipUseCount) stats.useCount += 1
     // 每顆 orb 獨立觸發 Final Attack 1 次 + Ignite 1 次 + Poison Region 引爆判定
     //   channel tick (skipFinalAttack) 例外:FA 僅施放當下 roll 過,tick 不再 roll
     if (!p.skipFinalAttack) rollFinalAttackTriggers(skill, 1, p.fireAt, enemy, att)
+    // orbs.rollBuffTriggers — 每顆 orb 命中時 roll 攻擊觸發型 buff (例:DoT Punisher 火球 → Arcane Aim 疊層)
+    if (p.rollBuffTriggers) useBattleBuffs().rollTriggers(sim.rng, currentJobKey, p.fireAt)
     maybeProcIgnite(skill, p.fireAt, res)
     poisonRegionOnDetonator(skill, p.fireAt, enemy, att)
     changed = true

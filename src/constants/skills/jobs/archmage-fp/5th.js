@@ -46,7 +46,7 @@ export const DOT_PUNISHER = {
   sim: {
     role: 'attack',
     castDelayBySpeed: { 7: 750, 8: 690 },
-    priority: 85,                       // 介於 Megiddo Flame (90) 與 Mist Eruption (80) 之間
+    priority: 87,                       // Poison Nova (88) 之後、Poison Chain (85) 之前
     orbs: {
       baseCount: 15,                    // 起始火球數
       perDotStack: 1,                   // 每 DoT 層 +1 顆
@@ -54,6 +54,7 @@ export const DOT_PUNISHER = {
       attacksPerOrb: 5,                 // 每顆 5 擊
       subsequentFdMult: 0.55,           // 第 2+ 顆 FD ×0.55 (-45%)
       hitDelayRange: [500, 1500],       // 火球命中時間(相對 tCast,ms 均勻分佈)
+      rollBuffTriggers: true,           // 每顆火球命中 → Arcane Aim 等攻擊觸發型 buff 各 roll 1 次
     },
   },
 }
@@ -97,7 +98,7 @@ export const POISON_NOVA = {
   sim: {
     role: 'attack',
     castDelayBySpeed: { 7: 620, 8: 570 },
-    priority: 88,                          // Flame Haze 100 > Megiddo 90 > Poison Nova 88 > DoT Punisher 85 > Mist Eruption 80
+    priority: 88,                          // Flame Haze 100 > Megiddo 90 > Poison Nova 88 > DoT Punisher 87 > Poison Chain 85 > Mist Eruption 80
     clouds: {
       initialCount: 11,
       detonateGraceMs: 2000,               // 施放後 2s 才可引爆
@@ -157,11 +158,59 @@ export const ELEMENTAL_FURY = {
   },
 }
 
+// ─── Poison Chain (4技,skillId 400021101) ──────────────────────────────────
+// 對最多 2 敵造成 4 擊主擊並中毒 20 秒;中毒期間每 1.5 秒爆炸 1 次 (5 擊)。
+// 毒疊 5 層:每次爆炸 +1 層,每層爆炸傷害 +stackBonus%(加法;隨等級成長)。
+// 單體上限 9 次爆炸;全場上限 17 次 — 對單打不到,無額外終爆 (機制整理文已證實)。
+// 不觸發 Elemental Drain;不受攻擊反射影響;毒 debuff 不計入 DoT 層數 (實測確認)。
+// 火流星追打:施放當下 roll 1 次 (實測確認;一般 attack 路徑);週期爆炸不 roll (skipFinalAttack)。
+// API 實值 Lv1~25:主擊 260%+10/lv、爆炸 156%+6/lv (=主擊×0.6)、每層 31%+1/lv;
+//   Lv30 = 550% / 330% / 60% (實測確認,與線性外插一致)
+// 對單總倍率 (Lv30):2200% + (330+390+450+510+570+630+630×3)×5 = 26,050%
+export const POISON_CHAIN = {
+  id: 'poison_chain',
+  name: 'Poison Chain',
+  nameKey: 'skills.archmageFP.poison_chain.name',
+  descriptionKey: 'skills.archmageFP.poison_chain.description',
+  imageUrl: ICON('Poison_Chain'),
+  color: '#7fd14a',
+  jobs: ['archmageFP'],
+  advancement: 5,
+  kind: 'attack',
+  element: 'poison',
+  vSlot: 4,                              // 主動 V 技能格位:4技
+  baseLevel: 30,
+  mpCost: 1000,
+  cooldown: 25,
+  maxEnemies: 2,
+  hitsPerCast: 4,
+  damage: { base: 550, perLevel: 10 },   // Lv25=500 (API) · Lv30=550 (實測)
+  // Combat Orders 只作用於特定 4 轉技能 → 不加 combatOrdersEligible
+  vmatrix: { kind: 'skill', maxLevel: 30 },
+  // 週期爆炸傷害 (sim.pulses 讀此表;依 V 等級縮放,delta 允許負值)
+  detonation: {
+    damage: { base: 330, perLevel: 6 },  // 爆炸 = 主擊×0.6;Lv25=300 (API) · Lv30=330 (實測)
+    hitsPerCast: 5,                      // 每次爆炸 5 擊
+  },
+  sim: {
+    role: 'attack',
+    castDelayBySpeed: { 7: 660, 8: 600 }, // 攻速 8 實測 600ms;7 階依慣例 +60ms 推估
+    priority: 85,                          // 施放順位:Poison Nova 88 > DoT Punisher 87 > Poison Chain 85 > Mist Eruption 80
+    pulses: {
+      intervalMs: 1500,                    // 每 1.5s 爆炸 1 次
+      count: 9,                            // 對單上限 9 次 (1.5~13.5s,均在 20s 毒效內)
+      maxStacks: 5,                        // 毒疊層上限
+      stackBonus: { base: 60, perLevel: 1 }, // 每層爆炸傷害 +%;Lv25=55 (API) · Lv30=60 (實測)
+    },
+  },
+}
+
 // ─── 5 轉所有火毒技能 ───────────────────────────────────────────────────────
 export const ARCHMAGE_FP_5TH_SKILLS = [
   DOT_PUNISHER,
   POISON_NOVA,
   ELEMENTAL_FURY,
+  POISON_CHAIN,
 ]
 
 // 子分類 — 全部從主列表 filter derive

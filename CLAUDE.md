@@ -234,6 +234,7 @@ CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 - 召喚物時長:`totem.durationSec × (1 + statTotal('summonDuration')/100)`(聯盟槍神等);只增時長,不改補放週期 — 多出的時長是找空檔的緩衝;`burn.durationFromTotem` 讓毒池 DoT 跟隨圖騰有效時長
 - `sim.channel` — 變身連擊型(Elemental Fury):施放後玩家自由,攻擊 tick 以固定頻率走 pendingOrbHits(Ignite/毒池引爆 per-tick;Meteor Shower 僅施放當下 roll 一次);`suppressAuraIds` 技能期間抑制指定 aura(Ifrit,已掛 DoT 照常跳到自然到期);`requiresSkillEnabled` 前置技能被停用時不排程
 - `sim.requiresBuffStacks: { buffId, min, orMax }` — buff 層數施放門檻(EF 需 Fervent ≥5 或滿層);`recastReplacesFirstCast` 讓首次施放也走填充技槽頂替
+- `sim.pulses` — 週期爆炸型(Poison Chain):施放後每 `intervalMs` 排 1 次爆炸共 `count` 次,傷害走 `detonation.damage` + `stackBonus`×疊層(第 k 爆 = min(maxStacks, k−1) 層;皆依 V 等級縮放);爆炸不觸發 FA / 不計 useCount;對單打不到全場 17 次上限 → 無額外終爆
 - 引擎 (`useBattleSim`) 不得出現職業技能字面 ID;新機制一律走 mechanics 設定
 
 ### Infinity (魔力無限)
@@ -283,7 +284,7 @@ skills/_shared/
 - 等級數值一律**等差**:`{ base, perLevel }`,base 對應 `baseLevel` 的面板值;不另存每級資料
 - MSU API `/gamemeta/skills/{id}?level=N` 對**超過 master 的查詢會 clamp 回 master 值** — 超過 master 的等級以線性外插並註記「待實測」(已驗證案例:Elemental Fury Lv29=390%、MWGB 增幅公式)
 - **V 技能核心** `vmatrix: { kind: 'skill' }`:等級 = V 矩陣面板 (0~maxLevel);**面板 0 = 未習得,sim 不排程**;等級可低於 baseLevel(delta 允許負值,`skillDamagePct` / `resolveActiveToggleStats` / `statBoost` 三處一致向下縮放)。boost core (`kind: 'boost'`) 不受此限
-- `vSlot: 1~4` — 職業主動 V 技能格位(火毒:1 DoT Punisher / 2 Poison Nova / 3 Elemental Fury)
+- `vSlot: 1~4` — 職業主動 V 技能格位(火毒:1 DoT Punisher / 2 Poison Nova / 3 Elemental Fury / 4 Poison Chain)
 - `vmTag` — V 矩陣面板角標(i18n `vmatrix.tags.*`;現有:magician / adventurerMage / adventurer)
 
 ### V 矩陣面板分組(VMatrixPanel,由上而下,純資料驅動)

@@ -240,6 +240,10 @@
         "name": "Elemental Fury",
         "description": "化身憤怒火靈連續攻擊(需 Ifrit Lv30+ 召喚中)。施放 360ms 後變身 1 秒,接著自動攻擊:每秒 5 次、每次 6 擊(Lv25 400%;Lv30 外插 440%),攻擊時間 = 2 秒 + 每層 Fervent Drain +0.6 秒(sim 預設 5 層 → 5 秒)。技能期間 Ifrit 停止攻擊(已掛的 DoT 照常計算);玩家可繼續施放其他技能。sim 施放時機:Fervent Drain ≥5 層(或滿層)且只頂替 Flame Sweep 槽,不打斷連技。觸發:Meteor Shower 僅施放當下 1 次;Ignite 每次攻擊各 roll(25 次機會)。最多 12 目標,不受反射影響。MP 1000,CD 75 秒。"
       },
+      "poison_chain": {
+        "name": "Poison Chain",
+        "description": "對最多 2 名敵人造成 4 擊主擊(Lv25 500%;Lv30 外插 550%)並中毒 20 秒。中毒期間每 1.5 秒爆炸 1 次:5 擊(Lv25 300%;Lv30 330%),每次爆炸疊 1 層毒(上限 5 層),每層爆炸傷害加法增加(Lv25 +55%;Lv30 +60%)。單體上限 9 次爆炸(Lv30:330→390→450→510→570→630% 後維持滿層);全場 17 次上限對單打不到,無額外終爆。對單總倍率(Lv30)26,050%。Meteor Shower 僅施放當下 roll 1 次,爆炸不觸發;不觸發 Elemental Drain,不受反射影響,毒不計入 DoT 層數。MP 1000,CD 25 秒。"
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA 起源技能:終極火毒融合攻擊。"

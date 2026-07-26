@@ -240,6 +240,10 @@
         "name": "Elemental Fury",
         "description": "Transform into an enraged flame spirit (requires Ifrit Lv30+ summoned). After a 360ms cast and 1s transform, it auto-attacks: 5 attacks/sec, 6 hits each (Lv25 400%; Lv30 extrapolated 440%). Attack duration = 2s + 0.6s per Fervent Drain stack (sim assumes 5 → 5s). Ifrit stops attacking during the skill; you keep casting freely. Up to 12 enemies, unaffected by reflection. MP 1000, CD 75s."
       },
+      "poison_chain": {
+        "name": "Poison Chain",
+        "description": "Hits up to 2 enemies with 4 attacks (Lv25 500%; Lv30 extrapolated 550%) and poisons them for 20s. While poisoned, an explosion triggers every 1.5s: 5 hits (Lv25 300%; Lv30 330%). Each explosion adds 1 poison stack (max 5); each stack additively raises explosion damage (Lv25 +55%; Lv30 +60%). Up to 9 explosions on a single target (Lv30: 330→390→450→510→570→630%, then capped); the field-wide 17-explosion cap is unreachable single-target, so no bonus final explosion. Single-target total (Lv30) 26,050%. Meteor Shower rolls once on cast only — explosions never trigger it; doesn't trigger Elemental Drain, unaffected by reflection, poison doesn't count as a DoT stack. MP 1000, CD 25s."
+      },
       "infernal_venom": {
         "name": "Infernal Venom",
         "description": "HEXA Origin: ultimate fire/poison fusion attack."
