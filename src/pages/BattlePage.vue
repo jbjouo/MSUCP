@@ -177,11 +177,11 @@ function clearTestCast() { singleCastResult.value = null }
 // 技能詳情分頁
 const SKILLS_PER_PAGE = 5
 const skillsPage = ref(0)
-// 有結果時只顯示實際造成傷害的技能;未開始模擬時顯示全部
+// 只顯示實際造成傷害的技能;未開始模擬時整個詳情區塊隱藏 (template v-if="result")
 // (讀 state.result 而非下方的 result computed — watch 會在 setup 時立即求值,避免 TDZ)
 const visibleDetailSkills = computed(() => {
   const res = state.result
-  if (!res) return sortedSkills.value
+  if (!res) return []
   return sortedSkills.value.filter((s) => (res.perSkill[s.id]?.total || 0) > 0)
 })
 const skillsPageCount = computed(() =>
@@ -190,6 +190,27 @@ const skillsPageCount = computed(() =>
 const pagedSkills = computed(() => {
   const p = Math.max(0, Math.min(skillsPage.value, skillsPageCount.value - 1))
   return visibleDetailSkills.value.slice(p * SKILLS_PER_PAGE, (p + 1) * SKILLS_PER_PAGE)
+})
+// 固定 5 個欄位槽 — 不足的補空槽 (佔位、不顯示內容),
+// 讓欄寬永遠 = 外層寬度均分 5 份,最後一頁技能少也不拉伸
+const pagedSkillSlots = computed(() => {
+  const slots = pagedSkills.value.map((s) => ({ skill: s }))
+  while (slots.length < SKILLS_PER_PAGE) slots.push({ skill: null })
+  return slots
+})
+// 詳情表 8 列定義 — value(skill) 在 render 中呼叫 (區塊僅於 result 存在時渲染)
+const skillDetailRows = computed(() => {
+  const ps = (id) => state.result?.perSkill[id] || {}
+  return [
+    { key: 'total', label: t('battle.skills.total'), value: (s) => fmtNum(ps(s.id).total || 0) },
+    { key: 'share', label: t('battle.skills.share'), value: (s) => fmtPct(ps(s.id).share || 0) },
+    { key: 'avgPerSec', label: t('battle.skills.avgPerSec'), value: (s) => fmtNum(ps(s.id).avgPerSec || 0) },
+    { key: 'useCount', label: t('battle.skills.useCount'), value: (s) => `${ps(s.id).useCount || 0}${t('battle.skills.times')}` },
+    { key: 'avgPerCast', label: t('battle.skills.avgPerCast'), value: (s) => fmtNum(ps(s.id).avgPerCast || 0) },
+    { key: 'attackCount', label: t('battle.skills.attackCount'), value: (s) => `${ps(s.id).attackCount || 0}${t('battle.skills.times')}` },
+    { key: 'maxHit', label: t('battle.skills.maxHit'), value: (s) => fmtNum(ps(s.id).maxHit || 0) },
+    { key: 'minHit', label: t('battle.skills.minHit'), value: (s) => fmtNum(ps(s.id).minHit || 0) },
+  ]
 })
 // 過濾後頁數縮減時,把當前頁夾回有效範圍 (避免 pager 顯示超出頁數)
 watch(skillsPageCount, (n) => {
@@ -563,8 +584,8 @@ const timelineRows = computed(() => {
         </div>
       </div>
 
-      <!-- 技能詳情表格 -->
-      <div class="bp-skills">
+      <!-- 技能詳情表格 — 開始模擬後才顯示;固定 5 欄槽 (空槽佔位,欄寬=外層均分) -->
+      <div v-if="result" class="bp-skills">
         <header class="bp-skills__head">
           <span>| {{ t('battle.skills.title') }}</span>
           <div v-if="skillsPageCount > 1" class="bp-skills__pager">
@@ -577,64 +598,33 @@ const timelineRows = computed(() => {
           <table class="bp-skills__table">
             <colgroup>
               <col class="bp-skills__col-group--label" />
-              <col v-for="skill in pagedSkills" :key="skill.id" class="bp-skills__col-group--skill" />
+              <col v-for="(slot, i) in pagedSkillSlots" :key="i" class="bp-skills__col-group--skill" />
             </colgroup>
             <thead>
               <tr>
                 <th class="bp-skills__col-label"></th>
-                <th v-for="skill in pagedSkills" :key="skill.id" class="bp-skills__col">
-                  <img :src="skill.imageUrl" :alt="t(skill.nameKey)" class="bp-skills__icon" />
-                  <div class="bp-skills__name">{{ t(skill.nameKey) }}</div>
+                <th
+                  v-for="(slot, i) in pagedSkillSlots"
+                  :key="slot.skill ? slot.skill.id : `e${i}`"
+                  class="bp-skills__col"
+                  :class="{ 'bp-skills__cell--empty': !slot.skill }"
+                >
+                  <template v-if="slot.skill">
+                    <img :src="slot.skill.imageUrl" :alt="t(slot.skill.nameKey)" class="bp-skills__icon" />
+                    <div class="bp-skills__name">{{ t(slot.skill.nameKey) }}</div>
+                  </template>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.total') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtNum(result.perSkill[skill.id]?.total || 0) : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.share') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtPct(result.perSkill[skill.id]?.share || 0) : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.avgPerSec') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtNum(result.perSkill[skill.id]?.avgPerSec || 0) : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.useCount') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? `${result.perSkill[skill.id]?.useCount || 0}${t('battle.skills.times')}` : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.avgPerCast') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtNum(result.perSkill[skill.id]?.avgPerCast || 0) : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.attackCount') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? `${result.perSkill[skill.id]?.attackCount || 0}${t('battle.skills.times')}` : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.maxHit') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtNum(result.perSkill[skill.id]?.maxHit || 0) : '—' }}
-                </td>
-              </tr>
-              <tr>
-                <td class="bp-skills__col-label">{{ t('battle.skills.minHit') }}</td>
-                <td v-for="skill in pagedSkills" :key="skill.id">
-                  {{ result ? fmtNum(result.perSkill[skill.id]?.minHit || 0) : '—' }}
+              <tr v-for="row in skillDetailRows" :key="row.key">
+                <td class="bp-skills__col-label">{{ row.label }}</td>
+                <td
+                  v-for="(slot, i) in pagedSkillSlots"
+                  :key="slot.skill ? slot.skill.id : `e${i}`"
+                  :class="{ 'bp-skills__cell--empty': !slot.skill }"
+                >
+                  {{ slot.skill ? row.value(slot.skill) : '' }}
                 </td>
               </tr>
             </tbody>
@@ -1778,15 +1768,20 @@ const timelineRows = computed(() => {
   overflow-x: auto;
 }
 .bp-skills__table {
-  /* 欄寬固定 — width: 1px + table-layout: fixed → 表格總寬 = 欄寬總和,
-     不因頁內技能數少而拉伸滿版 */
-  width: 1px;
+  /* 永遠渲染 5 個欄位槽 (不足補空槽) — 欄寬 = 外層寬度均分,任何解析度都貼齊容器 */
+  width: 100%;
   border-collapse: separate;
   border-spacing: 6px 4px;
   table-layout: fixed;
 }
 .bp-skills__col-group--label { width: 160px; }
-.bp-skills__col-group--skill { width: 150px; }
+.bp-skills__col-group--skill { width: auto; }
+/* 空槽 — 佔位維持欄寬,不顯示卡片背景 */
+.bp-skills__table th.bp-skills__cell--empty,
+.bp-skills__table td.bp-skills__cell--empty {
+  background: none;
+  border-color: transparent;
+}
 .bp-skills__table th,
 .bp-skills__table td {
   background: linear-gradient(180deg, #5b6577 0%, #49525f 100%);
