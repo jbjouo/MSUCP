@@ -52,6 +52,8 @@
       "start": "開始測量",
       "startRecord": "開始測量並記錄",
       "stop": "停止",
+      "fastForward": "加速完成",
+      "fastForwarding": "加速中…",
       "reset": "重設"
     },
     "summary": {
@@ -74,6 +76,19 @@
       "maxHit": "最高傷害 (每次打擊)",
       "minHit": "最低傷害 (每次打擊)",
       "times": "次"
+    },
+    "hitLog": {
+      "open": "傷害明細",
+      "hits": "筆",
+      "group": "分組",
+      "count": "次數",
+      "max": "最高",
+      "min": "最低",
+      "total": "合計",
+      "time": "時間",
+      "source": "來源",
+      "orb": "火球",
+      "dmg": "傷害"
     },
     "timeline": {
       "title": "技能時間軸",
@@ -119,6 +134,16 @@
     }
   },
   "skills": {
+    "bishop": {
+      "benediction": {
+        "name": "Benediction",
+        "description": "V 技能(1技):開場 buff(靠後施放)。自身終傷 +5%(全等級固定)+ INT 加成:每 2500 INT +1%(上限 +45%)— 開啟當下快照,期間屬性變動不影響,每次重新開啟重新快照。時長 = 30 + floor(等級/2) 秒(Lv25 42s;Lv30 外插 45s),CD 180 秒。隊伍效果與 5 秒內再施放縮短機制不建模。MP 1000。"
+      },
+      "angel_ray": {
+        "name": "Angel Ray",
+        "description": "聖屬單體攻擊:225% × 14 擊(Lv30,+5%/lv),鎖定最高 Max HP 目標,無 CD。命中對敵方上 debuff:隊伍終傷 +2%/層,20 秒,疊 5 層(對單模擬 = 自身終傷,滿層 ×1.10);僅 Angel Ray 施放時疊層。另回復隊伍 10% Max HP(不建模)。攻速 8 實測 630ms。MP 56。"
+      }
+    },
     "archmageFP": {
       "flame_sweep": {
         "name": "Flame Sweep",

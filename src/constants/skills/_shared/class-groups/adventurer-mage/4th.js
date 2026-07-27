@@ -10,6 +10,35 @@ import { LOCAL_ICON } from '../../helpers.js'
 const ICON = (name) => LOCAL_ICON(name, 'common')
 
 export const ADVENTURER_MAGE_4TH_SKILLS = [
+  // Infinity (魔力無限) — 冒險家法師共通 activeToggle buff
+  //   啟動 40s+1s/lv,基礎終傷 +70%+1%/lv,固定每 6 秒 +3% (tick 遞增,詳見 useBattleBuffs)
+  //   CD 180s (不吃 CD 重置);Unreliable Memory 以 mirror: 'infinity' 複製本設定
+  //   原位於 archmage-fp/4th.js,主教接入戰鬥模擬時移入共用層 (id / 數值不變)
+  {
+    id: 'infinity',
+    nameKey: 'battleBuffs.infinity.name',
+    descriptionKey: 'battleBuffs.infinity.description',
+    imageUrl: ICON('Infinity'),
+    jobs: ['archmageFP', 'archmageIL', 'bishop'],
+    advancement: 4,
+    kind: 'buff',
+    baseLevel: 30,
+    cooldownSec: 180,
+    battle: {
+      source: 'activeToggle',
+      base: {
+        durationSec: 40,
+        baseFinalDmgPct: 70,
+        tickIntervalSec: 6,
+        tickIncreasePct: 3,
+      },
+      perLevelBonus: { durationSec: 1, baseFinalDmgPct: 1 },
+      cooldownSec: 180,
+      cooldownIgnoresReset: true,
+      initialDelayBySpeed: { 7: 500, 8: 450 },
+      skipWhileActive: ['unreliable_memory'],
+    },
+  },
   {
     id: 'arcane_aim',
     name: 'Arcane Aim',
@@ -55,5 +84,6 @@ export const ADVENTURER_MAGE_4TH_BATTLE_BUFFS = ADVENTURER_MAGE_4TH_SKILLS
     jobs: s.jobs,
     advancement: s.advancement,
     kind: s.kind,
+    baseLevel: s.baseLevel,
     ...s.battle,
   }))

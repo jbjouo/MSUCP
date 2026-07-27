@@ -29,7 +29,7 @@ export const BISHOP_2ND_SKILLS = [
   {
     id: 'agile_magic_bishop',
     name: 'Agile Magic',
-    imageUrl: ICON('Agile_Magic_(Magician)'),
+    imageUrl: ICON('Agile_Magic'),
     jobs: ['bishop'],
     advancement: 2,
     kind: 'passive',

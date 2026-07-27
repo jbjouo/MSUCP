@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBattleSim } from '../composables/useBattleSim.js'
-import { fmtClock, fmtTimelineClock, SIM_SKILLS } from '../constants/battleSim.js'
+import { fmtClock, fmtTimelineClock, SIM_SKILLS, mechanicsForJob } from '../constants/battleSim.js'
 import { useEnemySettings } from '../composables/useEnemySettings.js'
 import { ENEMY_TYPES, ELEMENTAL_DMG_OPTIONS } from '../constants/enemySettings.js'
 
@@ -24,6 +24,7 @@ const {
   start,
   stop,
   reset,
+  fastForward,
   simulateSingleCast,
   toggleSkill,
   setCallbacks,
@@ -120,6 +121,12 @@ const igniteProcTotal = computed(() => totalOfRows(igniteProcRows.value))
 const meteorProcRows = computed(() => buildProcRows(result.value?.meteorProcs))
 const meteorProcTotal = computed(() => totalOfRows(meteorProcRows.value))
 
+// 機制 debug 面板顯示條件 — 依當前職業的 mechanics 設定 (不寫死職業名):
+//   有 ignite 設定才顯示 Ignite 追蹤;有 finalAttack 設定才顯示 Meteor Shower 追蹤
+const jobMechanics = computed(() => mechanicsForJob(charStateBattle.job) || {})
+const showIgniteDebug = computed(() => !!jobMechanics.value.ignite)
+const showMeteorDebug = computed(() => !!jobMechanics.value.finalAttack)
+
 function fmtCompact(n) {
   const v = Number(n || 0)
   if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B'
@@ -168,9 +175,14 @@ function isEntryDisabled(entry) {
   return state.disabledSkills.has(entry.id)
 }
 
+// 單次施放測試 — 可選技能 (僅顯示當前職業的);DoT Punisher 跑的是「第 1 顆火球」(hitsPerCast 5 擊、FD ×1.0)
+const TEST_CAST_SKILL_IDS = ['flame_sweep', 'dot_punisher', 'angel_ray']
+const testCastSkills = computed(() =>
+  TEST_CAST_SKILL_IDS.map((id) => jobSimSkills.value.find((s) => s.id === id)).filter(Boolean),
+)
 const singleCastResult = ref(null)
-function runTestCast() {
-  singleCastResult.value = simulateSingleCast('flame_sweep')
+function runTestCast(skillId = 'flame_sweep') {
+  singleCastResult.value = simulateSingleCast(skillId)
 }
 function clearTestCast() { singleCastResult.value = null }
 
@@ -222,6 +234,51 @@ function skillsPrev() {
 function skillsNext() {
   skillsPage.value = Math.min(skillsPageCount.value - 1, skillsPage.value + 1)
 }
+
+// 逐擊傷害紀錄 dialog (debug) — 僅 sim.hitLog 旗標技能有資料 (例:DoT Punisher)
+const HITLOG_PER_PAGE = 200
+const hitLogSkill = ref(null)
+const hitLogPage = ref(0)
+function openHitLog(skill) {
+  hitLogSkill.value = skill
+  hitLogPage.value = 0
+}
+function closeHitLog() { hitLogSkill.value = null }
+function hitLogHasData(skillId) {
+  return (state.result?.perSkill[skillId]?.hitLog?.length || 0) > 0
+}
+const hitLogEntries = computed(() => {
+  if (!hitLogSkill.value) return []
+  return state.result?.perSkill[hitLogSkill.value.id]?.hitLog || []
+})
+const hitLogPageCount = computed(() =>
+  Math.max(1, Math.ceil(hitLogEntries.value.length / HITLOG_PER_PAGE)),
+)
+const pagedHitLog = computed(() => {
+  const p = Math.max(0, Math.min(hitLogPage.value, hitLogPageCount.value - 1))
+  const startIdx = p * HITLOG_PER_PAGE
+  return hitLogEntries.value
+    .slice(startIdx, startIdx + HITLOG_PER_PAGE)
+    .map((e, i) => ({ ...e, idx: startIdx + i + 1 }))
+})
+// FD 分組摘要 — 各 FD 檔位的次數/最高/最低/合計 (DoT tick 獨立一組);驗證遞減倍率用
+const hitLogSummary = computed(() => {
+  const groups = new Map()
+  for (const e of hitLogEntries.value) {
+    const key = e.dot ? 'dot' : `fd${e.fd ?? 1}`
+    let g = groups.get(key)
+    if (!g) {
+      g = { key, dot: !!e.dot, fd: e.fd ?? 1, count: 0, max: 0, min: 0, total: 0 }
+      groups.set(key, g)
+    }
+    g.count += 1
+    g.total += e.dmg
+    if (e.dmg > g.max) g.max = e.dmg
+    if (g.min === 0 || e.dmg < g.min) g.min = e.dmg
+  }
+  // 主擊組依 FD 由高至低,DoT 殿後
+  return [...groups.values()].sort((a, b) => (a.dot ? 1 : b.dot ? -1 : b.fd - a.fd))
+})
 
 const flameSweep = SIM_SKILLS.find((s) => s.id === 'flame_sweep')
 const flameSweepVmMax = computed(() => {
@@ -578,6 +635,15 @@ const timelineRows = computed(() => {
           >
             ⏸ {{ t('battle.controls.stop') }}
           </button>
+          <button
+            v-if="state.running"
+            class="bp-start bp-start--ff"
+            type="button"
+            :disabled="state.fastForwarding"
+            @click="fastForward"
+          >
+            ⏩ {{ state.fastForwarding ? t('battle.controls.fastForwarding') : t('battle.controls.fastForward') }}
+          </button>
           <button v-if="result && !state.running" class="bp-reset" type="button" @click="reset">
             {{ t('battle.controls.reset') }}
           </button>
@@ -612,6 +678,12 @@ const timelineRows = computed(() => {
                   <template v-if="slot.skill">
                     <img :src="slot.skill.imageUrl" :alt="t(slot.skill.nameKey)" class="bp-skills__icon" />
                     <div class="bp-skills__name">{{ t(slot.skill.nameKey) }}</div>
+                    <button
+                      v-if="hitLogHasData(slot.skill.id)"
+                      type="button"
+                      class="bp-skills__hitlog-btn"
+                      @click="openHitLog(slot.skill)"
+                    >{{ t('battle.hitLog.open') }}</button>
                   </template>
                 </th>
               </tr>
@@ -637,14 +709,20 @@ const timelineRows = computed(() => {
         <header class="bp-test__head">
           <span>| {{ t('battle.test.title') }}</span>
           <div class="bp-test__actions">
-            <span class="bp-test__vm-display">
+            <span v-if="testCastSkills.some((s) => s.id === 'flame_sweep')" class="bp-test__vm-display">
               <span>{{ t('battle.test.vmLevel') }}</span>
               <b>{{ flameSweepVmLevel }}</b>
               <small>/ {{ flameSweepVmMax }}</small>
               <em>{{ t('battle.test.vmHint') }}</em>
             </span>
-            <button class="bp-test__btn" type="button" @click="runTestCast">
-              {{ t('battle.test.run') }}
+            <button
+              v-for="ts in testCastSkills"
+              :key="ts.id"
+              class="bp-test__btn"
+              type="button"
+              @click="runTestCast(ts.id)"
+            >
+              {{ t('battle.test.run') }} {{ t(ts.nameKey) }}
             </button>
             <button
               v-if="singleCastResult"
@@ -668,6 +746,10 @@ const timelineRows = computed(() => {
               <div class="bp-test__skill-sub">
                 Lv. {{ singleCastResult.level }} · {{ singleCastResult.skillInfo.hitPct }}% × {{ singleCastResult.skillInfo.totalHits }} hits
                 <template v-if="singleCastResult.skillInfo.burnPct"> + DoT {{ singleCastResult.skillInfo.burnPct }}% × {{ singleCastResult.skillInfo.dotTickCount }} ticks</template>
+                <!-- 延遲火球型:此測試 = 第 1 顆 (FD ×1.0);其餘顆數 × subsequentFdMult -->
+                <template v-if="singleCastResult.skill.sim?.orbs?.subsequentFdMult">
+                  · 第 1 顆火球 (FD ×1.0;第 2+ 顆 ×{{ singleCastResult.skill.sim.orbs.subsequentFdMult }})
+                </template>
               </div>
             </div>
           </div>
@@ -762,6 +844,14 @@ const timelineRows = computed(() => {
               <tr><td>Buff Damage%</td><td>+{{ singleCastResult.buff.dmgPct.toFixed(2) }}%</td></tr>
               <tr><td>Buff 無視防禦</td><td>+{{ singleCastResult.buff.ignoreDefPct.toFixed(2) }}%</td></tr>
               <tr><td>Buff 終傷乘區</td><td>+{{ singleCastResult.buff.finalDmgPct.toFixed(2) }}% → × {{ singleCastResult.buff.finalDmgMult.toFixed(4) }}</td></tr>
+              <!-- 終傷乘區逐項來源 — 各項 ×(1+pct/100) 相乘 = 上列合計 -->
+              <tr v-for="src in singleCastResult.buff.finalDmgSources" :key="src.id" class="bp-test__table-sub">
+                <td>└ {{ src.nameKey ? t(src.nameKey) : src.id }}<template v-if="src.stacks"> ({{ src.stacks }} 層)</template></td>
+                <td>+{{ src.pct.toFixed(2) }}% → × {{ (1 + src.pct / 100).toFixed(4) }}</td>
+              </tr>
+              <tr v-if="!singleCastResult.buff.finalDmgSources.length" class="bp-test__table-sub">
+                <td>└ 無生效中的終傷 buff</td><td>× 1.0000</td>
+              </tr>
             </table>
           </div>
 
@@ -838,9 +928,50 @@ const timelineRows = computed(() => {
             </table>
           </div>
 
-          <!-- 主擊公式 -->
+          <!-- 主擊實際乘區 (數字連乘 = 單 hit 傷害;上下限由爆擊區間 × 熟練度決定) -->
           <div class="bp-test__section">
-            <div class="bp-test__section-title">主擊公式</div>
+            <div class="bp-test__section-title">主擊實際乘區 (單 hit)</div>
+            <table class="bp-test__table">
+              <!-- bossBase 組成:baseRaw × (1 + Damage%桶) × fm = bossRaw → × 爆擊係數 (× 熟練度) -->
+              <tr><td>baseRaw (基礎)</td><td>{{ fmtNum(Math.round(singleCastResult.mainChain.baseRawAdjusted)) }}</td></tr>
+              <tr>
+                <td>Damage% 桶 (含 Boss%)</td>
+                <td>+{{ singleCastResult.mainChain.mainDmgBucketPct.toFixed(1) }}% → × {{ (1 + singleCastResult.mainChain.mainDmgBucketPct / 100).toFixed(4) }}</td>
+              </tr>
+              <tr><td>面板終傷 fm</td><td>× {{ singleCastResult.mainChain.fm.toFixed(4) }}</td></tr>
+              <tr class="bp-test__table-result">
+                <td>= bossRaw</td>
+                <td>{{ fmtNum(Math.round(singleCastResult.mainChain.bossRaw)) }}</td>
+              </tr>
+              <tr>
+                <td>爆擊係數上限</td>
+                <td>× (1.5 + {{ singleCastResult.mainChain.critDmg.toFixed(1) }}%) = × {{ singleCastResult.mainChain.critMaxFactor.toFixed(4) }}</td>
+              </tr>
+              <tr>
+                <td>爆擊係數下限 × 熟練度</td>
+                <td>× (1.2 + {{ singleCastResult.mainChain.critDmg.toFixed(1) }}%) × {{ singleCastResult.mainChain.mastery }}% = × {{ (singleCastResult.mainChain.critMinFactor * singleCastResult.mainChain.mastery / 100).toFixed(4) }}</td>
+              </tr>
+              <tr class="bp-test__table-result">
+                <td>= bossBase (爆擊區間)</td>
+                <td>{{ fmtNum(Math.round(singleCastResult.mainChain.bossMinRaw)) }} ~ {{ fmtNum(Math.round(singleCastResult.mainChain.bossMaxRaw)) }}</td>
+              </tr>
+              <tr><td>技能%</td><td>× {{ (singleCastResult.mainChain.hitPct / 100).toFixed(2) }} ({{ singleCastResult.mainChain.hitPct }}%)</td></tr>
+              <tr><td>屬性乘區</td><td>× {{ singleCastResult.mainChain.elemMult.toFixed(4) }}</td></tr>
+              <tr><td>ARC 終傷</td><td>× {{ singleCastResult.mainChain.arcMult.toFixed(4) }}</td></tr>
+              <tr><td>VM 技能終傷</td><td>× {{ singleCastResult.mainChain.skillFinalMult.toFixed(4) }}</td></tr>
+              <tr><td>Buff 終傷</td><td>× {{ singleCastResult.mainChain.buffFinalDmgMult.toFixed(4) }}</td></tr>
+              <tr><td>防禦乘區</td><td>× {{ singleCastResult.mainChain.defMult.toFixed(4) }}</td></tr>
+              <tr v-if="singleCastResult.mainChain.explosionMult !== 1"><td>爆炸終傷</td><td>× {{ singleCastResult.mainChain.explosionMult.toFixed(4) }}</td></tr>
+              <tr><td>BM 終傷</td><td>× {{ singleCastResult.mainChain.bmMult.toFixed(4) }}</td></tr>
+              <tr><td>等差終傷</td><td>× {{ singleCastResult.mainChain.levelDiffMult.toFixed(4) }}</td></tr>
+              <tr class="bp-test__table-result">
+                <td>單 hit 傷害 (下限 ~ 上限)</td>
+                <td>{{ fmtNum(singleCastResult.mainChain.minHit) }} ~ {{ fmtNum(singleCastResult.mainChain.maxHit) }}</td>
+              </tr>
+              <tr class="bp-test__table-note">
+                <td colspan="2">下限 = bossRaw × (1.2 + 爆傷%) × 熟練度;上限 = bossRaw × (1.5 + 爆傷%)。每 hit 在此區間均勻取樣。</td>
+              </tr>
+            </table>
             <code class="bp-test__code">hit = bossBase × (技能% ÷ 100) × elemMult × arcMult × VM終傷 × Buff終傷 × defMult × 爆炸終傷 × BM終傷 × 等差終傷</code>
           </div>
 
@@ -912,8 +1043,8 @@ const timelineRows = computed(() => {
         … +{{ timelineEvents.length - 200 }} {{ t('battle.timeline.more') }}
       </div>
 
-      <!-- [DEBUG] Ignite 觸發機率追蹤 — 每個火屬來源技能的 proc 次數 / 機率 / 傷害 -->
-      <section v-if="result" class="bp-proc-debug bp-proc-debug--ignite">
+      <!-- [DEBUG] Ignite 觸發機率追蹤 — 僅有 mechanics.ignite 的職業顯示 (例:火毒) -->
+      <section v-if="result && showIgniteDebug" class="bp-proc-debug bp-proc-debug--ignite">
         <header class="bp-proc-debug__head">
           <span class="bp-proc-debug__tag">[DEBUG]</span>
           <span>Ignite 觸發</span>
@@ -941,8 +1072,8 @@ const timelineRows = computed(() => {
         </ul>
       </section>
 
-      <!-- [DEBUG] Meteor Shower 觸發機率追蹤 — 每個主擊來源技能的 proc 次數 / 機率 / 傷害 -->
-      <section v-if="result" class="bp-proc-debug bp-proc-debug--meteor">
+      <!-- [DEBUG] Meteor Shower 觸發機率追蹤 — 僅有 mechanics.finalAttack 的職業顯示 (例:火毒) -->
+      <section v-if="result && showMeteorDebug" class="bp-proc-debug bp-proc-debug--meteor">
         <header class="bp-proc-debug__head">
           <span class="bp-proc-debug__tag">[DEBUG]</span>
           <span>Meteor Shower 觸發</span>
@@ -970,6 +1101,69 @@ const timelineRows = computed(() => {
         </ul>
       </section>
     </aside>
+
+    <!-- 逐擊傷害紀錄 dialog (debug;sim.hitLog 技能) — FD 分組摘要 + 逐筆列表 -->
+    <div v-if="hitLogSkill" class="bp-hitlog" @click.self="closeHitLog">
+      <div class="bp-hitlog__panel">
+        <header class="bp-hitlog__head">
+          <img :src="hitLogSkill.imageUrl" :alt="t(hitLogSkill.nameKey)" class="bp-hitlog__icon" />
+          <b>{{ t(hitLogSkill.nameKey) }}</b>
+          <span class="bp-hitlog__count">{{ hitLogEntries.length }} {{ t('battle.hitLog.hits') }}</span>
+          <button type="button" class="bp-hitlog__close" @click="closeHitLog">×</button>
+        </header>
+        <table class="bp-hitlog__summary">
+          <thead>
+            <tr>
+              <th>{{ t('battle.hitLog.group') }}</th>
+              <th>{{ t('battle.hitLog.count') }}</th>
+              <th>{{ t('battle.hitLog.max') }}</th>
+              <th>{{ t('battle.hitLog.min') }}</th>
+              <th>{{ t('battle.hitLog.total') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="g in hitLogSummary" :key="g.key">
+              <td>{{ g.dot ? 'DoT' : `FD ×${g.fd}` }}</td>
+              <td>{{ g.count }}</td>
+              <td>{{ fmtNum(g.max) }}</td>
+              <td>{{ fmtNum(g.min) }}</td>
+              <td>{{ fmtNum(g.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="bp-hitlog__table-wrap">
+          <table class="bp-hitlog__table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ t('battle.hitLog.time') }}</th>
+                <th>{{ t('battle.hitLog.source') }}</th>
+                <th>FD</th>
+                <th>{{ t('battle.hitLog.dmg') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="e in pagedHitLog"
+                :key="e.idx"
+                :class="{ 'bp-hitlog__row--dot': e.dot, 'bp-hitlog__row--full': !e.dot && (e.fd ?? 1) === 1 }"
+              >
+                <td>{{ e.idx }}</td>
+                <td>{{ (e.t / 1000).toFixed(2) }}s</td>
+                <td>{{ e.dot ? 'DoT' : (e.orb != null ? `${t('battle.hitLog.orb')} ${e.orb} - ${e.hit}` : (e.hit ?? '')) }}</td>
+                <td>{{ e.dot ? '—' : `×${e.fd ?? 1}` }}</td>
+                <td class="bp-hitlog__dmg">{{ fmtNum(e.dmg) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <footer v-if="hitLogPageCount > 1" class="bp-hitlog__pager">
+          <button type="button" class="bp-skills__pager-btn" :disabled="hitLogPage === 0" @click="hitLogPage--">‹</button>
+          <span class="bp-skills__pager-info">{{ hitLogPage + 1 }} / {{ hitLogPageCount }}</span>
+          <button type="button" class="bp-skills__pager-btn" :disabled="hitLogPage >= hitLogPageCount - 1" @click="hitLogPage++">›</button>
+        </footer>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -1110,6 +1304,11 @@ const timelineRows = computed(() => {
   color: #8ea6b8 !important;
   font-style: italic;
   padding-top: 6px;
+  font-weight: 400 !important;
+}
+.bp-test__table-sub td {
+  font-size: 0.72rem;
+  color: #8ea6b8 !important;
   font-weight: 400 !important;
 }
 .bp-test__inputs-title {
@@ -1717,6 +1916,13 @@ const timelineRows = computed(() => {
   border-color: #8f2020;
   font-size: 0.82rem;
 }
+.bp-start--ff {
+  background: linear-gradient(180deg, #5cd1ea 0%, #3a9ec0 100%);
+  color: #0c2530;
+  border-color: #1f5a70;
+  font-size: 0.82rem;
+}
+.bp-start--ff:disabled { opacity: 0.6; cursor: wait; }
 .bp-stop {
   background: linear-gradient(180deg, #d9563a 0%, #9b3522 100%);
   color: #2a110a;
@@ -1993,6 +2199,105 @@ input.bp-enemy__field { text-align: right; }
 .bp-skill-toggle__item--off:hover {
   opacity: 0.6;
   border-color: #5cd1ea;
+}
+
+/* 逐擊傷害紀錄 dialog (debug) */
+.bp-skills__hitlog-btn {
+  margin-top: 0.2rem;
+  background: transparent;
+  color: #5cd1ea;
+  border: 1px solid #2f3642;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.bp-skills__hitlog-btn:hover { color: #ffc857; border-color: #ffc857; }
+.bp-hitlog {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(10, 13, 18, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.bp-hitlog__panel {
+  background: linear-gradient(180deg, #2f3642 0%, #262d38 100%);
+  border: 1px solid #1a1f27;
+  border-radius: 8px;
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  gap: 0.6rem;
+}
+.bp-hitlog__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e8edf3;
+  font-size: 0.95rem;
+}
+.bp-hitlog__icon { width: 24px; height: 24px; }
+.bp-hitlog__count { color: #8b95a3; font-size: 0.8rem; }
+.bp-hitlog__close {
+  margin-left: auto;
+  background: transparent;
+  color: #c9d2dd;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+.bp-hitlog__close:hover { color: #ffc857; }
+.bp-hitlog__summary,
+.bp-hitlog__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  color: #c9d2dd;
+}
+.bp-hitlog__summary th,
+.bp-hitlog__summary td,
+.bp-hitlog__table th,
+.bp-hitlog__table td {
+  border: 1px solid #1a1f27;
+  padding: 0.25rem 0.45rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.bp-hitlog__summary th,
+.bp-hitlog__table th {
+  background: #232933;
+  color: #8b95a3;
+  font-weight: 600;
+  text-align: center;
+}
+.bp-hitlog__summary td:first-child,
+.bp-hitlog__table td:nth-child(3) { text-align: center; }
+.bp-hitlog__table-wrap {
+  overflow-y: auto;
+  min-height: 0;
+  border: 1px solid #1a1f27;
+}
+.bp-hitlog__table-wrap .bp-hitlog__table th {
+  position: sticky;
+  top: 0;
+}
+.bp-hitlog__row--full td { color: #ffc857; }
+.bp-hitlog__row--dot td { color: #8b95a3; }
+.bp-hitlog__dmg { font-variant-numeric: tabular-nums; }
+.bp-hitlog__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 </style>
 

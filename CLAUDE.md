@@ -296,12 +296,14 @@ skills/_shared/
 
 ### Battle buff 旗標
 
-- `ignoresBuffDuration` — 不吃加持 (Buff Duration%)
+- `ignoresBuffDuration` — 不吃加持 (Buff Duration%);**5 轉 (V) 技能一律預設加此旗標**(5 轉只吃 CD 減免,不吃加持,除非該技能有特別說明)
 - `noCombatOrders` — V 技能等級不吃 Combat Orders +1
 - `useVmatrixLevel` / `requiresVmatrixLevel` — 等級連動 V 矩陣面板;後者面板 0 = 不自動施放(Mana Overload 無此旗標,維持預設常駐)
 - `battle.statBoost: { type: 'mapleWarriorEnhance', basePct, perLevelPct }` — MWGB 型主屬加成:
   提升% = `floor(楓葉祝福% × 增幅%/100)`(楓勇 15+CO)、主屬 flat = `floor(AP × 提升%)`;
   需 `maple_warrior` CP buff 開啟;主擊與 DoT(快照)皆吃(引擎 `adjustedBaseRaw`)
+- `battle.statScaledFinalDmg: { stat, perStat, pctPerStep, maxPct }` — 開啟「當下」依屬性總值快照額外終傷(Benediction:每 2500 INT +1%,上限 45%);期間屬性變動不影響,重新開啟重新快照
+- `battle.durationFloor` — 時長公式帶 floor 的 buff(Benediction:30 + floor(lv/2) 秒,perLevel 0.5)
 - `battle.source: 'skillCast'` 的 buff 見下方戰鬥模擬章節
 
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`

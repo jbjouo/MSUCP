@@ -52,6 +52,8 @@
       "start": "Start",
       "startRecord": "Start & Record",
       "stop": "Stop",
+      "fastForward": "Fast Forward",
+      "fastForwarding": "Fast Forwarding…",
       "reset": "Reset"
     },
     "summary": {
@@ -74,6 +76,19 @@
       "maxHit": "Max Hit",
       "minHit": "Min Hit",
       "times": "x"
+    },
+    "hitLog": {
+      "open": "Hit Log",
+      "hits": "hits",
+      "group": "Group",
+      "count": "Count",
+      "max": "Max",
+      "min": "Min",
+      "total": "Total",
+      "time": "Time",
+      "source": "Source",
+      "orb": "Orb",
+      "dmg": "Damage"
     },
     "timeline": {
       "title": "Skill Timeline",
@@ -119,6 +134,16 @@
     }
   },
   "skills": {
+    "bishop": {
+      "benediction": {
+        "name": "Benediction",
+        "description": "V skill (slot 1): opening buff (cast late in the opener). Own Final Damage +5% (fixed at all levels) + INT bonus: +1% per 2,500 INT (max +45%) — snapshotted at activation; stat changes during the buff have no effect, re-snapshotted on each activation. Duration = 30 + floor(level/2)s (Lv25 42s; Lv30 extrapolated 45s), CD 180s. Party effects and the 5s re-cast shortening are not modeled. MP 1000."
+      },
+      "angel_ray": {
+        "name": "Angel Ray",
+        "description": "Holy single-target attack: 225% × 14 hits (Lv30, +5%/lv), targets the highest Max HP enemy, no CD. Applies a debuff on hit: party Final Damage +2% per stack, 20s, max 5 stacks (single-player sim = own Final Damage, ×1.10 at max); stacks only on Angel Ray casts. Also restores 10% party Max HP (not modeled). Cast 630ms @speed 8. MP 56."
+      }
+    },
     "archmageFP": {
       "flame_sweep": {
         "name": "Flame Sweep",

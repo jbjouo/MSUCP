@@ -18,9 +18,11 @@ export function resolveActiveToggleStats(buff, level) {
   const delta = (level || bl) - bl
   const base = buff.base || {}
   const per = buff.perLevelBonus || {}
+  const rawDurationSec = (base.durationSec || 0) + delta * (per.durationSec || 0)
   return {
     level: bl + delta,
-    durationSec: (base.durationSec || 0) + delta * (per.durationSec || 0),
+    // durationFloor — 時長公式帶 floor 的 buff (例:Benediction 30 + floor(lv/2) 秒,perLevel 0.5)
+    durationSec: buff.durationFloor ? Math.floor(rawDurationSec) : rawDurationSec,
     baseFinalDmgPct: (base.baseFinalDmgPct || 0) + delta * (per.baseFinalDmgPct || 0),
     // 啟動期間固定附加的 Damage%(與 CP Damage% 相加後進主擊公式)— 不隨 tick 遞增
     baseDamagePct: (base.baseDamagePct || 0) + delta * (per.baseDamagePct || 0),

@@ -47,6 +47,7 @@ export const DOT_PUNISHER = {
     role: 'attack',
     castDelayBySpeed: { 7: 750, 8: 690 },
     priority: 87,                       // Poison Nova (88) 之後、Poison Chain (85) 之前
+    // hitLog: true,                    // debug:逐擊傷害紀錄 (需要驗證逐擊數值時再打開;UI 按鈕會自動出現)
     orbs: {
       baseCount: 15,                    // 起始火球數
       perDotStack: 1,                   // 每 DoT 層 +1 顆

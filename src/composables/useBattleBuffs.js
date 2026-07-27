@@ -112,7 +112,8 @@ function activeToggleFinalDmgPct(buff, nowMs) {
     const iv = s.tickIntervalMs || 1
     ticks = Math.max(0, Math.floor((nowMs - s.activatedAt) / iv))
   }
-  return (s.baseFinalDmgPct || 0) + ticks * (s.tickIncreasePct || 0)
+  // statScaledPct — 開啟當下的屬性快照加成 (例:Benediction INT 終傷),與基礎值同 buff 內相加
+  return (s.baseFinalDmgPct || 0) + (s.statScaledPct || 0) + ticks * (s.tickIncreasePct || 0)
 }
 
 // 依「伺服器延遲率」決定單次 activate 期間的 tick 時間點
@@ -186,6 +187,7 @@ export function useBattleBuffs() {
       cooldownReductionPct = 0,
       cooldownReductionSec = 0,
       getVmatrixLevel = null,
+      getStatTotal = null,
     } = ctx
     const activated = []
     for (const buff of BATTLE_BUFFS) {
@@ -291,6 +293,16 @@ export function useBattleBuffs() {
       s.cooldownUntil = nowMs + effCdSec * 1000
       s.baseFinalDmgPct = cfg.baseFinalDmgPct
       s.baseDamagePct = cfg.baseDamagePct || 0
+      // statScaledFinalDmg — 開啟「當下」依指定屬性快照額外終傷 (例:Benediction 每 2500 INT +1%)
+      //   期間內屬性變動不影響;每次重新開啟時重新快照 (與遊戲行為一致)
+      if (buff.statScaledFinalDmg && typeof getStatTotal === 'function') {
+        const sc = buff.statScaledFinalDmg
+        const statVal = Math.max(0, Number(getStatTotal(sc.stat)) || 0)
+        const steps = sc.perStat > 0 ? Math.floor(statVal / sc.perStat) : 0
+        s.statScaledPct = Math.min(sc.maxPct ?? Infinity, steps * (sc.pctPerStep || 0))
+      } else {
+        s.statScaledPct = 0
+      }
       s.tickIntervalMs = cfg.tickIntervalSec * 1000
       s.tickIncreasePct = cfg.tickIncreasePct
       s.durationMs = durationMs
@@ -314,11 +326,13 @@ export function useBattleBuffs() {
   // 每次施放時呼叫 — 對 trigger-based buff 抽層
   //   linkSkill        → 依 link skill stats procRate 抽(例:法師傳授 25%)
   //   passive/procOnHit → 依 buff 自帶 procRate 抽(例:Arcane Aim Lv30 100%)
+  //   sourceSkillId    → 本次觸發的攻擊技能;buff 設 procFromSkillIds 時僅指定技能才 roll
+  //                      (例:Angel Ray debuff 只在 Angel Ray 命中時疊層),未設 = 任何攻擊皆 roll
   //
   // 若 proc 成功的 buff 帶 appliesDebuff,視為「對怪物上 debuff」事件,
   // 觸發所有 source='linkCycle' && triggerOn='debuffApplied' 的 buff(若 off-CD)。
   // 回傳:本次被 proc 觸發啟動的 linkCycle buff 陣列,供 sim 寫入 timeline。
-  function rollTriggers(rng, jobKey, nowMs) {
+  function rollTriggers(rng, jobKey, nowMs, sourceSkillId) {
     syncExpire(nowMs)
     let debuffApplied = false
     for (const buff of BATTLE_BUFFS) {
@@ -327,6 +341,7 @@ export function useBattleBuffs() {
       const isLinkSkill = buff.source === 'linkSkill'
       const isProcOnHit = buff.source === 'passive' && buff.passiveType === 'procOnHit'
       if (!isLinkSkill && !isProcOnHit) continue
+      if (Array.isArray(buff.procFromSkillIds) && !buff.procFromSkillIds.includes(sourceSkillId)) continue
       const info = currentLevelStats(buff, jobKey)
       if (!info?.stats) continue
       const { procRate = 0, maxStacks = 0, duration = 0 } = info.stats
@@ -372,16 +387,22 @@ export function useBattleBuffs() {
   //   dmgPct / ignoreDefPct 同技能層線性相加,不同 buff 再累加
   //   finalDmgMult 同技能層「相加」成一個乘區,不同 buff 之間「互乘」
   //     (即:buff_A_mult × buff_B_mult × ...)
-  function currentBonuses(jobKey, nowMs, { dotCountOverride } = {}) {
+  // collectSources — 收集終傷乘區逐項來源 (測試面板用);熱路徑 (每 hit) 不開啟,避免配置開銷
+  //   開啟時回傳物件多帶 finalDmgSources: [{ id, nameKey, pct, stacks? }]
+  function currentBonuses(jobKey, nowMs, { dotCountOverride, collectSources = false } = {}) {
     syncExpire(nowMs)
     const total = { dmgPct: 0, ignoreDefPct: 0, finalDmgMult: 1 }
+    const sources = collectSources ? [] : null
     for (const buff of BATTLE_BUFFS) {
       if (!applicableForJob(buff, jobKey)) continue
       // activeToggle:時間階梯式終傷 → 組成單一乘區後與其他 buff 互乘
       //              啟動中若有 baseDamagePct(例:Epic Adventure +10%)→ 併入 Damage% 桶
       if (buff.source === 'activeToggle') {
         const fdPct = activeToggleFinalDmgPct(buff, nowMs)
-        if (fdPct > 0) total.finalDmgMult *= 1 + fdPct / 100
+        if (fdPct > 0) {
+          total.finalDmgMult *= 1 + fdPct / 100
+          if (sources) sources.push({ id: buff.id, nameKey: buff.nameKey, pct: fdPct })
+        }
         const s = state.stacks[buff.id]
         if (s && s.count > 0 && nowMs < s.expireAt) {
           const dmgPct = s.baseDamagePct || 0
@@ -409,8 +430,10 @@ export function useBattleBuffs() {
         // 同技能層 → 相加 (例:5 層 × 5% = 25%);轉乘區 × (1 + 25/100)
         const selfMult = 1 + (stacks * fdPerStack) / 100
         total.finalDmgMult *= selfMult
+        if (sources) sources.push({ id: buff.id, nameKey: buff.nameKey, pct: stacks * fdPerStack, stacks })
       }
     }
+    if (sources) total.finalDmgSources = sources
     return total
   }
 

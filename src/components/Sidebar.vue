@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCharacter } from '../composables/useCharacter.js'
 import { useCharacterSidebar } from '../composables/useCharacterSidebar.js'
 import { useActiveCharacter } from '../composables/useActiveCharacter.js'
+import { BATTLE_JOBS } from '../router/index.js'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -23,8 +24,6 @@ const {
   toggleSidebar,
   setActiveSection,
 } = useCharacterSidebar()
-
-const BATTLE_JOBS = new Set(['archmageFP'])
 
 const navTree = computed(() => {
   const items = [

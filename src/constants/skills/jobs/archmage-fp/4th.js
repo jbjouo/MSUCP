@@ -261,31 +261,7 @@ export const ARCHMAGE_FP_4TH_SKILLS = [
       perStackFinalDmgPct: 5,
     },
   },
-  {
-    id: 'infinity',
-    nameKey: 'battleBuffs.infinity.name',
-    descriptionKey: 'battleBuffs.infinity.description',
-    imageUrl: ICON('Infinity'),
-    jobs: ['archmageFP'],
-    advancement: 4,
-    kind: 'buff',
-    baseLevel: 30,
-    cooldownSec: 180,
-    battle: {
-      source: 'activeToggle',
-      base: {
-        durationSec: 40,
-        baseFinalDmgPct: 70,
-        tickIntervalSec: 6,
-        tickIncreasePct: 3,
-      },
-      perLevelBonus: { durationSec: 1, baseFinalDmgPct: 1 },
-      cooldownSec: 180,
-      cooldownIgnoresReset: true,
-      initialDelayBySpeed: { 7: 500, 8: 450 },
-      skipWhileActive: ['unreliable_memory'],
-    },
-  },
+  // Infinity (魔力無限) — 冒險家法師共通,已移至 _shared/class-groups/adventurer-mage/4th.js
   // Hero's Will — 免狀態 active 技能 (骨架)
   {
     id: 'heros_will',

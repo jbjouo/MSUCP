@@ -60,6 +60,9 @@ function createSimContext() {
     // 延遲命中的火球 — 施放時 schedule,tick 到期才觸發傷害 / useCount / Final Attack / Ignite
     //   [{ skillId, fireAt, orbIndex, fd, attacksPerOrb }]
     pendingOrbHits: [],
+    // 延後上狀態的 DoT — 延遲火球型「第一顆命中」才註冊 burnState (因果:先命中 → 上狀態 → 增傷)
+    //   [{ skillId, at }];tick 於 processOrbHits 之後處理 (同 frame 第一顆不吃自身 DoT 增傷)
+    pendingBurnStarts: [],
     // Poison Region (mechanics.poisonRegion;例:Creeping Toxin) — 毒池區域狀態
     //   { cfg, psi, expireAt, lastVisibleAt, pools: [{ side, spawnAt, armedAt }] }
     //   null = 尚未施放;引爆 / 補毒邏輯見 poisonRegionOnDetonator
@@ -93,10 +96,16 @@ function emptyPerSkill() {
       maxHit: 0,
       minHit: 0,
       share: 0,
+      // 逐擊傷害紀錄 (debug) — 僅 sim.hitLog 旗標技能記錄 (例:DoT Punisher);
+      //   entry: { dmg, t, orb?, fd?, hit?, dot? },上限 HIT_LOG_CAP 筆後停止記錄
+      ...(s.sim?.hitLog ? { hitLog: [] } : {}),
     }
   }
   return out
 }
+
+// 逐擊紀錄上限 — 超過即停止記錄 (避免長時間模擬撐爆記憶體;DP 約 141 hit / 25s → 可涵蓋 ~11 分鐘)
+const HIT_LOG_CAP = 4000
 
 function emptyResult(durationSec) {
   return {
@@ -141,6 +150,7 @@ const state = reactive({
   // 要重現特定一段戰鬥時,用 setSeed(n) 手動設回;同一個 seed 下結果完全可重現
   seed: (Date.now() >>> 0) || 1,
   running: false,
+  fastForwarding: false,                     // 加速模式 — 虛擬時鐘同步推進到結束 (rAF 停用)
   elapsedMs: 0,
   attackSpeed: 8,                            // 7 或 8 (依 skill.castDelayBySpeed 查表)
   skillLevels: defaultSkillLevels(),         // { [skillId]: level }
@@ -720,12 +730,16 @@ function dotTickDmg(skill, enemy, att) {
 
 // 統一累加單次擊中 — 主擊與 DoT tick 都會流經此函式,
 // 因此 total / attackCount / maxHit / minHit 皆涵蓋 DoT。
-function emitHit(stats, dmg) {
+// meta (選填) — 有 hitLog 的技能會連同 meta 寫入逐擊紀錄 ({ t, orb, fd, hit, dot })
+function emitHit(stats, dmg, meta) {
   const d = Math.max(1, Math.floor(dmg))
   stats.total += d
   stats.attackCount += 1
   if (d > stats.maxHit) stats.maxHit = d
   if (stats.minHit === 0 || d < stats.minHit) stats.minHit = d
+  if (stats.hitLog && stats.hitLog.length < HIT_LOG_CAP) {
+    stats.hitLog.push({ dmg: d, ...meta })
+  }
 }
 
 function emitCast(skill, tCast, elemMult, enemy, att) {
@@ -795,11 +809,13 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   // 實戰 buff: 本次施放先 roll,命中則增加 1 層,後續傷害用新層數計算
   // 若 proc 成功且 buff 標記 appliesDebuff → 連鎖觸發 linkCycle/triggerOn='debuffApplied'(例:Thief's Cunning)
   // linkCycle 屬被動型 buff,不寫進 timeline(僅透過 buff 圖示呈現)
-  useBattleBuffs().rollTriggers(sim.rng, currentJobKey, tCast)
+  useBattleBuffs().rollTriggers(sim.rng, currentJobKey, tCast, skill.id)
   const hs = hyperBagFor(skill.id)
   // 爆炸型:總擊數 = 固定爆炸數 × 每爆擊數 (與 DoT 層數無關)
   const baseHits = (skill.hitsPerCast || 0) * explosionsN
   const hits = Math.max(0, baseHits + (hs.hitsPerCastBonus || 0))
+  // 延遲火球型的「第一次命中」時點 — 供 burn 延後上狀態使用 (因果:先命中 → 上狀態)
+  let firstDelayedHitAt = null
   // 分波火球(例:Megiddo Flame 11 顆 × 4 擊):第 1 顆 FD 100%,其餘 × subsequentFdMult
   //   每擊獨立呼叫 mainHitDmg(各自的 crit / variance),乘上該顆 orb 的 FD 倍率
   if (orbs?.attacksPerOrb) {
@@ -812,6 +828,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
       let orbIndex = 0
       let currentGenCount = orbs.initialCount
       let t = tCast + orbs.initialDelayMs
+      firstDelayedHitAt = t
       while (orbIndex < maxTotal) {
         const toSpawn = Math.min(currentGenCount, maxTotal - orbIndex)
         for (let g = 0; g < toSpawn; g++) {
@@ -842,14 +859,24 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
       if (hasUniformDelayedOrbs) {
         // 延遲命中:每顆 orb 在 tCast + uniformRandom(hitDelayRange) 觸發
         // orbs.rollBuffTriggers — 每顆 orb 命中時各 roll 1 次攻擊觸發型 buff (例:Arcane Aim)
+        // FD 全額歸「最早命中」的那顆 — 「第 1 顆」指命中順序,非生成順序;
+        //   若綁生成順序,隨機時點晚命中時會吃到前面火球疊起來的 buff 增幅
+        //   (例:Arcane Aim 疊滿 +40% Damage),全額 FD × 滿層 buff → maxHit 偏高
         const [minMs, maxMs] = orbs.hitDelayRange
         const span = Math.max(0, maxMs - minMs)
+        const delays = []
+        let firstIdx = 0
         for (let o = 0; o < totalOrbs; o++) {
-          const fd = (o === 0) ? 1 : subFd
-          const delay = minMs + sim.rng() * span
+          const d = minMs + sim.rng() * span
+          delays.push(d)
+          if (d < delays[firstIdx]) firstIdx = o
+        }
+        if (totalOrbs > 0) firstDelayedHitAt = tCast + delays[firstIdx]
+        for (let o = 0; o < totalOrbs; o++) {
+          const fd = (o === firstIdx) ? 1 : subFd
           sim.pendingOrbHits.push({
             skillId: skill.id,
-            fireAt: tCast + delay,
+            fireAt: tCast + delays[o],
             orbIndex: o,
             fd,
             attacksPerOrb: perOrb,
@@ -876,6 +903,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     const tickCount = Math.max(0, Math.round(attackSec * perSec))
     const intervalMs = 1000 / perSec
     const startAt = tCast + (ch.transformDelaySec || 0) * 1000
+    firstDelayedHitAt = startAt
     for (let i = 0; i < tickCount; i++) {
       sim.pendingOrbHits.push({
         skillId: skill.id,
@@ -900,7 +928,7 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   } else {
     for (let h = 0; h < hits; h++) {
       // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
-      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att))
+      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att), { t: tCast, hit: h + 1 })
     }
   }
   // 週期爆炸 (sim.pulses;例:Poison Chain) — 中毒目標每 intervalMs 爆炸一次,共 count 次
@@ -985,35 +1013,15 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
     }
   }
   if (skill.burn) {
-    // DoT 實際時長 = (base + hyper flat) × DoT 被動倍率 (例:Burning Magic ×2)
-    //   fixedDuration (例:Creeping Toxin 毒池=圖騰時長) — 場地屬性,不吃 DoT 時長加成;
-    //   durationFromTotem — 時長改由圖騰有效時長決定 (含 summonDuration% 召喚加成)
-    const fixedDur = !!skill.burn.fixedDuration
-    let baseDurationSec = skill.burn.durationSec + (fixedDur ? 0 : (hs.burnDurationBonusSec || 0))
-    if (skill.burn.durationFromTotem && skill.totem) {
-      baseDurationSec = totemDurationMs(skill) / 1000
-    }
-    const burnDurationSec = fixedDur ? baseDurationSec : baseDurationSec * dotPassiveDotDurationMult()
-    const burnMs = burnDurationSec * 1000
-    const ivMs = skill.burn.tickIntervalSec * 1000
-    const cur = sim.burnState[skill.id]
-    if (cur && tCast < cur.expireAt) {
-      // 續接(DoT 尚未結束前再次施放):只延長 expireAt,傷害快照不動
-      cur.expireAt = tCast + burnMs
+    // 因果順序:先命中 → 上狀態 (DoT) → BM / Fervent 增傷才生效
+    //   延遲火球型 (DoT Punisher / Megiddo Flame):DoT 由火球命中賦予 → 延後到第一顆命中才註冊;
+    //     同 frame 內 processOrbHits 先處理命中、再處理 pendingBurnStarts,
+    //     故第一顆命中本身不吃自身 DoT 觸發的增傷 (與遊戲實測一致)
+    //   一般技能:主擊已在本函式前段 emit(早於此處註冊),同批主擊亦不吃自身 DoT 增傷
+    if (firstDelayedHitAt != null) {
+      sim.pendingBurnStarts.push({ skillId: skill.id, at: firstDelayedHitAt })
     } else {
-      // 新 DoT — 含「舊 DoT 已過期但同 tick 尚未被 processBurnTicks 清掉」的邊界:
-      //   以當下面板重新快照 (例:Creeping Toxin 60s 圖騰到期後補放)
-      // 新 DoT 開始 — 以「當下」面板快照傷害,後續 tick 一律沿用此值
-      //   即使 Fervent Drain 層數 / VM 等級 / buff 變動,也不會影響這段 DoT 的傷害
-      //   結束後若再觸發,新的一段 DoT 才會重新以當下面板計算
-      const snapshotDmg = dotTickDmg(skill, enemy, att)
-      sim.burnState[skill.id] = {
-        nextTickAt: tCast + ivMs,
-        expireAt: tCast + burnMs,
-        intervalMs: ivMs,
-        dmg: snapshotDmg,
-      }
-      syncDotCount()
+      applyBurn(skill, tCast, enemy, att)
     }
   }
 
@@ -1081,6 +1089,61 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
   }
 }
 
+// DoT 上狀態 (burnState 註冊) — tAt = 狀態生效時點 (一般技能 = tCast;延遲火球型 = 第一顆命中)
+//   傷害快照與時長計算都以「呼叫當下」的面板為準
+function applyBurn(skill, tAt, enemy, att) {
+  const hs = hyperBagFor(skill.id)
+  // DoT 實際時長 = (base + hyper flat) × DoT 被動倍率 (例:Burning Magic ×2)
+  //   fixedDuration (例:Creeping Toxin 毒池=圖騰時長) — 場地屬性,不吃 DoT 時長加成;
+  //   durationFromTotem — 時長改由圖騰有效時長決定 (含 summonDuration% 召喚加成)
+  const fixedDur = !!skill.burn.fixedDuration
+  let baseDurationSec = skill.burn.durationSec + (fixedDur ? 0 : (hs.burnDurationBonusSec || 0))
+  if (skill.burn.durationFromTotem && skill.totem) {
+    baseDurationSec = totemDurationMs(skill) / 1000
+  }
+  const burnDurationSec = fixedDur ? baseDurationSec : baseDurationSec * dotPassiveDotDurationMult()
+  const burnMs = burnDurationSec * 1000
+  const ivMs = skill.burn.tickIntervalSec * 1000
+  const cur = sim.burnState[skill.id]
+  if (cur && tAt < cur.expireAt) {
+    // 續接(DoT 尚未結束前再次觸發):只延長 expireAt,傷害快照不動
+    cur.expireAt = tAt + burnMs
+  } else {
+    // 新 DoT — 含「舊 DoT 已過期但同 tick 尚未被 processBurnTicks 清掉」的邊界:
+    //   以當下面板重新快照 (例:Creeping Toxin 60s 圖騰到期後補放)
+    // 新 DoT 開始 — 以「當下」面板快照傷害,後續 tick 一律沿用此值
+    //   即使 Fervent Drain 層數 / VM 等級 / buff 變動,也不會影響這段 DoT 的傷害
+    //   結束後若再觸發,新的一段 DoT 才會重新以當下面板計算
+    const snapshotDmg = dotTickDmg(skill, enemy, att)
+    sim.burnState[skill.id] = {
+      nextTickAt: tAt + ivMs,
+      expireAt: tAt + burnMs,
+      intervalMs: ivMs,
+      dmg: snapshotDmg,
+    }
+    syncDotCount()
+  }
+}
+
+// 延後上狀態處理 — 每 tick 於 processOrbHits 之後執行:
+//   到期的 pendingBurnStarts 以其命中時點註冊 burnState (同 frame 第一顆命中不吃自身 DoT 增傷)
+function processPendingBurnStarts(elapsed, enemy, att) {
+  if (!sim.pendingBurnStarts.length) return false
+  const remaining = []
+  let changed = false
+  for (const p of sim.pendingBurnStarts) {
+    if (p.at > elapsed) {
+      remaining.push(p)
+      continue
+    }
+    const skill = SKILL_BY_ID[p.skillId]
+    if (skill?.burn) applyBurn(skill, p.at, enemy, att)
+    changed = true
+  }
+  sim.pendingBurnStarts = remaining
+  return changed
+}
+
 function processBurnTicks(elapsed, enemy, att) {
   let changed = false
   for (const skill of sim.activeSkills) {
@@ -1095,7 +1158,7 @@ function processBurnTicks(elapsed, enemy, att) {
     while (bs.nextTickAt <= capped) {
       // DoT:不爆擊、固定值;流經 emitHit 累加 total / attackCount / maxHit / minHit
       // 時間軸不再顯示 DoT tick(噪音太多),只在 stats 中累積
-      emitHit(stats, dotDmg)
+      emitHit(stats, dotDmg, { t: bs.nextTickAt, dot: true })
       bs.nextTickAt += bs.intervalMs
       changed = true
     }
@@ -1115,11 +1178,12 @@ function processOrbHits(elapsed, enemy, att) {
   const res = state.result
   let changed = false
   const remaining = []
+  // 同一 frame 多顆到期時依命中時間處理 — 讓 per-orb buff 疊層 (rollBuffTriggers) 與命中順序一致
+  const due = sim.pendingOrbHits.filter((p) => p.fireAt <= elapsed).sort((a, b) => a.fireAt - b.fireAt)
   for (const p of sim.pendingOrbHits) {
-    if (p.fireAt > elapsed) {
-      remaining.push(p)
-      continue
-    }
+    if (p.fireAt > elapsed) remaining.push(p)
+  }
+  for (const p of due) {
     const skill = SKILL_BY_ID[p.skillId]
     if (!skill) { changed = true; continue }
     const stats = res.perSkill[skill.id]
@@ -1127,7 +1191,12 @@ function processOrbHits(elapsed, enemy, att) {
     const elemMult = elemMultFor(skill, enemy)
     // p.pct — 覆寫傷害%(pulses 週期爆炸走 detonation.damage,而非技能主傷);未設 → 主傷
     for (let h = 0; h < p.attacksPerOrb; h++) {
-      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att, p.pct) * p.fd)
+      emitHit(stats, mainHitDmg(skill, elemMult, enemy, att, p.pct) * p.fd, {
+        t: p.fireAt,
+        orb: p.orbIndex + 1,
+        fd: p.fd,
+        hit: h + 1,
+      })
     }
     // pulses 爆炸不計 useCount(useCount = 施放次數;爆炸為附屬傷害流)
     if (!p.skipUseCount) stats.useCount += 1
@@ -1135,7 +1204,7 @@ function processOrbHits(elapsed, enemy, att) {
     //   channel tick (skipFinalAttack) 例外:FA 僅施放當下 roll 過,tick 不再 roll
     if (!p.skipFinalAttack) rollFinalAttackTriggers(skill, 1, p.fireAt, enemy, att)
     // orbs.rollBuffTriggers — 每顆 orb 命中時 roll 攻擊觸發型 buff (例:DoT Punisher 火球 → Arcane Aim 疊層)
-    if (p.rollBuffTriggers) useBattleBuffs().rollTriggers(sim.rng, currentJobKey, p.fireAt)
+    if (p.rollBuffTriggers) useBattleBuffs().rollTriggers(sim.rng, currentJobKey, p.fireAt, p.skillId)
     maybeProcIgnite(skill, p.fireAt, res)
     poisonRegionOnDetonator(skill, p.fireAt, enemy, att)
     changed = true
@@ -1161,13 +1230,23 @@ function refreshDerived() {
   }
 }
 
+// rAF 驅動 — 每 frame 以真實時鐘換算 elapsed 後推進;加速模式 (fastForward) 期間停用
 function tick() {
   rafId = null
   if (!state.running || !state.result) return
+  if (state.fastForwarding) return
 
   const now = performance.now()
   const totalMs = state.durationSec * 1000
   const elapsed = Math.min(now - sim.startedAt, totalMs)
+  const finished = advanceTo(elapsed)
+  if (!finished && state.running) rafId = requestAnimationFrame(tick)
+}
+
+// 推進模擬到指定虛擬時間 — 引擎唯一入口,所有邏輯只依賴 elapsed (與真實時鐘無關)
+//   回傳 true = 已達總時長並完成自然結束處理
+function advanceTo(elapsed) {
+  const totalMs = state.durationSec * 1000
   state.elapsedMs = elapsed
 
   const { arcInfo, state: enemy } = useEnemySettings()
@@ -1189,6 +1268,14 @@ function tick() {
     cooldownReductionSec: att?.cooldownReductionSec || 0,
     // 角色頁 V 矩陣面板設定的等級 — 供 useBattleBuffs 解析 useVmatrixLevel 的 buff (例:Mana Overload)
     getVmatrixLevel: vmatrixLevelOf,
+    // 屬性總值 getter — statScaledFinalDmg 型 buff 開啟當下快照用 (例:Benediction INT)
+    //   含 CP 面板總值 + 戰鬥 buff 主屬 flat (MWGB 生效中時一併計入)
+    getStatTotal: (key) => {
+      const base = cpStatTotal ? cpStatTotal(key) : 0
+      const a = cpAttStats?.value
+      const flat = a && a.primaryStat === key ? computeBuffStatFlat(a) : 0
+      return base + flat
+    },
   })
 
   // buff 主屬 flat (statBoost 型,例:MWGB) — autoTick 後快取一次,供本 tick 所有傷害計算
@@ -1397,6 +1484,8 @@ function tick() {
     }
   }
   if (processOrbHits(elapsed, enemy, att)) changed = true
+  // 火球命中之後才上狀態 (因果:先命中 → 上狀態 → 增傷) — 順序不可對調
+  if (processPendingBurnStarts(elapsed, enemy, att)) changed = true
   if (processBurnTicks(elapsed, enemy, att)) changed = true
   if (processIgniteWalls(elapsed, enemy, att)) changed = true
 
@@ -1421,9 +1510,9 @@ function tick() {
     if (onStopCallback) onStopCallback(state.result)
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
-    return
+    return true
   }
-  rafId = requestAnimationFrame(tick)
+  return false
 }
 
 export function useBattleSim() {
@@ -1506,6 +1595,29 @@ export function useBattleSim() {
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
   }
+  // 加速 — 以虛擬時鐘從當前 elapsed 同步推進到總時長 (壓縮到 1 秒內完成)
+  //   步長 = rAF 粒度 (1000/60ms) → 排程 / 命中 / DoT 處理順序與即時模式等價
+  //   每 CHUNK 步讓出一次 event loop:進度條照常更新、停止按鈕仍可中斷
+  async function fastForward() {
+    if (!state.running || state.fastForwarding) return
+    state.fastForwarding = true
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+    const totalMs = state.durationSec * 1000
+    const STEP = 1000 / 60
+    const CHUNK = 2000
+    let t = state.elapsedMs
+    try {
+      while (state.running && t < totalMs) {
+        for (let i = 0; i < CHUNK && state.running && t < totalMs; i++) {
+          t = Math.min(t + STEP, totalMs)
+          if (advanceTo(t)) break
+        }
+        if (state.running && t < totalMs) await new Promise((r) => setTimeout(r))
+      }
+    } finally {
+      state.fastForwarding = false
+    }
+  }
   function reset() {
     stop()
     state.result = null
@@ -1538,16 +1650,17 @@ export function useBattleSim() {
     const elemIgnorePct = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
     const cpIgnoreDefPct = att.ignoreDef || 0
     const vm = skillVmatrixBonus(skill, vmatrixLevelOf(skill.id))
-    let testDotCount = skill.burn ? 1 : 0
+    // 因果順序:第一下命中前自身 DoT 尚未上狀態 → 不 +1 自身
+    //   非模擬中 = 乾淨目標 (0,BM / Fervent 不生效);模擬中 = 只算場上現存 DoT
+    let testDotCount = 0
     if (state.running) {
-      const existing = Object.keys(sim.burnState).length
-      const selfInState = !!sim.burnState[skill.id]
-      testDotCount = existing + (skill.burn && !selfInState ? 1 : 0)
+      testDotCount = Object.keys(sim.burnState).length
     }
-    const buffBonuses = useBattleBuffs().currentBonuses(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount })
+    const buffBonuses = useBattleBuffs().currentBonuses(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount, collectSources: true })
     const buffDmgPct = buffBonuses.dmgPct || 0
     const buffIgnoreDefPct = buffBonuses.ignoreDefPct || 0
     const buffFinalDmgMult = buffBonuses.finalDmgMult || 1
+    const buffFinalDmgSources = buffBonuses.finalDmgSources || []
     const dotSpecial = useBattleBuffs().dotSpecialFinalMult(currentJobKey, state.elapsedMs, { dotCountOverride: testDotCount })
     const ferventStacks = dotSpecial.stacks
     const ferventPerStack = dotSpecial.perStack
@@ -1688,6 +1801,8 @@ export function useBattleSim() {
         ignoreDefPct: buffIgnoreDefPct,
         finalDmgMult: buffFinalDmgMult,
         finalDmgPct: clean((buffFinalDmgMult - 1) * 100),
+        // 終傷乘區逐項來源 — [{ id, nameKey, pct, stacks? }],各項 ×(1+pct/100) 相乘 = finalDmgMult
+        finalDmgSources: buffFinalDmgSources,
       },
       // ── 屬性 ──
       elem: {
@@ -1726,6 +1841,34 @@ export function useBattleSim() {
         diff: levelDiff,
         pct: levelDiffPct,
         mult: levelDiffMult,
+      },
+      // ── 主擊實際乘區連乘 (每個數字乘起來 = 單 hit 傷害;上下限來自爆擊區間 × 熟練度) ──
+      //   下限 = bossMinRaw (1.2+爆傷, ×熟練度) / 上限 = bossMaxRaw (1.5+爆傷)
+      //   bossBase 組成 (rebuildAtt):baseRaw × (1 + Damage%桶/100) × fm → bossRaw → × 爆擊係數
+      mainChain: {
+        baseRawAdjusted: adjustedBaseRaw(att),
+        mainDmgBucketPct: add(att.dmgPct || 0, att.bossDmg || 0, att.abnormalMobDmg || 0, mainDmgPct),
+        fm: att.fm || 1,
+        bossRaw: mainRebuilt.bossRaw,
+        critDmg: att.critDmg || 0,
+        mastery: att.mastery || 100,
+        critMinFactor: clean(1.2 + (att.critDmg || 0) / 100),
+        critMaxFactor: clean(1.5 + (att.critDmg || 0) / 100),
+        bossMinRaw,
+        bossMaxRaw,
+        hitPct: pcts.hit,
+        elemMult,
+        arcMult,
+        skillFinalMult,
+        buffFinalDmgMult,
+        defMult,
+        explosionMult,
+        bmMult,
+        levelDiffMult,
+        minHit: Math.max(1, floor(mul(bossMinRaw, pcts.hit / 100, elemMult, arcMult,
+          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult))),
+        maxHit: Math.max(1, floor(mul(bossMaxRaw, pcts.hit / 100, elemMult, arcMult,
+          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult))),
       },
       // ── DoT 專用 ──
       dot: {
@@ -1778,6 +1921,7 @@ export function useBattleSim() {
     start,
     stop,
     reset,
+    fastForward,
     simulateSingleCast,
     toggleSkill,
     skillById: (id) => SKILL_BY_ID[id] || null,
