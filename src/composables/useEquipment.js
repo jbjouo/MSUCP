@@ -168,12 +168,14 @@ function loadState() {
       if (!e || typeof e !== 'object') continue
       const item = ITEMS_BY_ID[e.itemId]
       if (!item) continue
-      const bs = sanitizeBonusStats(e.bonusStats, item)
-      const pt = sanitizePotential(e.potential, item)
-      const bp = sanitizeBonusPotential(e.bonusPotential, item)
+      // noEnhance (unmintable) 道具完全不可強化 — 舊存檔帶強化欄位一律清空 (向後相容)
+      const noEnh = !!item.noEnhance
+      const bs = noEnh ? null : sanitizeBonusStats(e.bonusStats, item)
+      const pt = noEnh ? null : sanitizePotential(e.potential, item)
+      const bp = noEnh ? null : sanitizeBonusPotential(e.bonusPotential, item)
       entries[uid] = {
         itemId: e.itemId,
-        stars: clampStars(e.stars, item),
+        stars: noEnh ? 0 : clampStars(e.stars, item),
         ...(bs ? { bonusStats: bs } : {}),
         ...(pt ? { potential: pt } : {}),
         ...(bp ? { bonusPotential: bp } : {}),
@@ -391,15 +393,16 @@ function importEntries(rawEntries, rawInventory) {
     const uid = newUid()
     const entry = {
       itemId: raw.itemId,
-      stars: clampStars(raw.stars || 0, item),
+      // noEnhance (unmintable) 道具完全不可強化 — 匯入資料帶強化欄位一律清空
+      stars: item.noEnhance ? 0 : clampStars(raw.stars || 0, item),
     }
 
-    if (raw.bonusStats) {
+    if (raw.bonusStats && !item.noEnhance) {
       const bs = sanitizeBonusStats(raw.bonusStats, item)
       if (bs) entry.bonusStats = bs
     }
 
-    if (raw.potential) {
+    if (raw.potential && !item.noEnhance) {
       const lines = (raw.potential.lines || []).map(l =>
         typeof l === 'string' ? l : l?.label || null
       )
@@ -407,7 +410,7 @@ function importEntries(rawEntries, rawInventory) {
       if (tier) entry.potential = { tier, lines }
     }
 
-    if (raw.bonusPotential) {
+    if (raw.bonusPotential && !item.noEnhance) {
       const lines = (raw.bonusPotential.lines || []).map(l =>
         typeof l === 'string' ? l : l?.label || null
       )

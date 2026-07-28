@@ -117,8 +117,11 @@ export function weaponBonusTierIndex(item, statKey, value) {
 // delta 只作用於 CP 的 Z2Z3 = Zone2 × Zone3 − 差值。
 
 // Reference weapon stats per subType + level(用於 computeStarStats 算星等加成)
+//   Lv98/100 檔 (unmintable 商店武器):wand = Dimon Wand (Lv98)、bow = White Nisrock (Lv100)
+//   兩者為同一檔次 — bow 表同時以 98 與 100 為 key,讓 Lv98 wand 穿戴者能查到同檔的 1.3 基準弓
 export const REFERENCE_WEAPON_DATA = {
   wand:  {
+    98:  { atk: 69, matk: 113 },   // Dimon Wand (unmintable)
     150: { atk: 119, matk: 201 },  // Fafnir Mana Taker
     200: { atk: 206, matk: 347 },  // Arcane Umbra Wand
   },
@@ -127,6 +130,8 @@ export const REFERENCE_WEAPON_DATA = {
     200: { atk: 218, matk: 353 },  // Arcane Umbra Staff
   },
   bow: {
+    98:  { atk: 90 },               // Lv98 檔基準弓 (使用者指定 90 ATK;White Nisrock Lv100 = 95 等比對應)
+    100: { atk: 95 },               // White Nisrock (unmintable)
     150: { atk: 160 },              // Fafnir Wind Chaser
     200: { atk: 276 },              // Arcane Umbra Bow
   },

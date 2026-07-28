@@ -177,6 +177,9 @@ function vmatrixLevelOf(skillId) {
 
 let rafId = null
 
+// setSeed() 手動設定過 seed → start() 保留 (可重現模式);否則每場自動換新
+let seedCustom = false
+
 // 同步 sim.nextCastAt / sim.cooldownEndAt → state,供 UI CD 面板讀取
 function syncNextCastAt() {
   const out1 = {}
@@ -1530,6 +1533,8 @@ export function useBattleSim() {
   }
   function setSeed(n) {
     state.seed = Math.floor(Number(n) || 0)
+    // 手動設定 seed = 要求可重現 → start() 不再自動換新
+    seedCustom = true
   }
   function setAttackSpeed(n) {
     const v = Math.floor(Number(n) || 0)
@@ -1543,6 +1548,11 @@ export function useBattleSim() {
   }
   function start() {
     if (state.running) return
+    // 每場自動換新 seed — 否則頁面載入後每次「開始測量」都重播同一亂數序列
+    //   (機率型觸發如法師傳授會看起來「每次都同時點必中」);setSeed 手動設定過則保留
+    if (!seedCustom) {
+      state.seed = ((Date.now() ^ Math.floor(performance.now() * 1000)) >>> 0) || 1
+    }
     // 每場模擬整組重建內部狀態 (simContext)
     sim = createSimContext()
     // 依當前角色職業快照本場模擬的技能子集 — 職業無 sim 資料時為空 (不排程)

@@ -520,6 +520,22 @@
     "seven_days": {
       "name": "Seven Days Set"
     },
+    "fourth_magician": {
+      "name": "4th Magician Set"
+    },
+    "filter": {
+      "root_abyss": "Root Abyss",
+      "absolab": "AbsoLab",
+      "arcane_umbra": "Arcane Umbra",
+      "pitched_boss": "Pitched Boss",
+      "boss_accessory": "Boss Accessory",
+      "seven_days": "Seven Days",
+      "ifias_treasure": "Ifia's Treasure",
+      "von_leon": "Royal Von Leon",
+      "empress": "Empress (Lv140)",
+      "fourth_magician": "4th Magician",
+      "others": "Others"
+    },
     "absolab_magician": {
       "name": "AbsoLab Set (Magician)"
     },
@@ -694,6 +710,7 @@
     },
     "picker": {
       "title": "Add items to bag",
+      "allClasses": "All Classes",
       "search": "Search item name…",
       "count": "{n} match(es)",
       "add": "Add",

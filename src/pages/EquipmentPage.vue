@@ -41,6 +41,8 @@ function onEntryClick(entry) {
 }
 
 function onEntryEdit(entry) {
+  // noEnhance (unmintable) 道具不可強化 — 按鈕已隱藏,此處為保險
+  if (entry?.item?.noEnhance) return
   editingUid.value = entry.uid
   // 開啟 dialog 時關閉 tooltip,避免疊在上面
   hoveredEntry.value = null

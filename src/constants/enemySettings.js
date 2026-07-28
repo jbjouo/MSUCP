@@ -11,10 +11,11 @@ export const ENEMY_ELEM_RESIST_PCT = { full: 0, half: 50, none: 100 }
 
 // 職業的「無視屬性耐性」% (會套到自身屬性技能上)
 // 火毒 Element Amplification 大招被動 -10% (對火/毒屬性)
+// 主教 Righteously Indignant hyper 被動 Elemental Resistance -10% (對聖屬)
 export const ELEM_IGNORE_BY_JOB = {
   archmageFP: 10,
   archmageIL: 10,
-  bishop: 0,
+  bishop: 10,
 }
 
 // ARC 比值對照表 (自身 ARC / 怪物 ARC)

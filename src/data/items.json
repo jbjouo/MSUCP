@@ -2805,6 +2805,255 @@
         "jump": 5
       },
       "imageUrl": "/msucp/images/items/1102275.png"
+    },
+    {
+      "id": "wpn_dimon_wand",
+      "apiItemId": 1372010,
+      "name": "Dimon Wand",
+      "nameEn": "Dimon Wand",
+      "type": "weapon",
+      "subType": "wand",
+      "level": 98,
+      "req": {
+        "int": 295
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 69,
+        "matk": 113
+      },
+      "imageUrl": "/msucp/images/items/1372010.png",
+      "noEnhance": true
+    },
+    {
+      "id": "hat_blue_varr_hat",
+      "apiItemId": 1002399,
+      "name": "Blue Varr Hat",
+      "nameEn": "Blue Varr Hat",
+      "type": "hat",
+      "level": 100,
+      "req": {
+        "int": 308
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "int": 4,
+        "luk": 3,
+        "def": 52
+      },
+      "imageUrl": "/msucp/images/items/1002399.png",
+      "noEnhance": true
+    },
+    {
+      "id": "overall_blue_varuna",
+      "apiItemId": 1050103,
+      "name": "Blue Varuna",
+      "nameEn": "Blue Varuna",
+      "type": "overall",
+      "level": 98,
+      "req": {
+        "int": 295
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "int": 6,
+        "luk": 4,
+        "mp": 45,
+        "def": 84
+      },
+      "imageUrl": "/msucp/images/items/1050103.png",
+      "noEnhance": true
+    },
+    {
+      "id": "glove_blue_ciara",
+      "apiItemId": 1082152,
+      "name": "Blue Ciara",
+      "nameEn": "Blue Ciara",
+      "type": "glove",
+      "level": 100,
+      "req": {
+        "int": 308
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "int": 4,
+        "luk": 3,
+        "def": 38
+      },
+      "imageUrl": "/msucp/images/items/1082152.png",
+      "noEnhance": true
+    },
+    {
+      "id": "shoes_blue_varr_shoes",
+      "apiItemId": 1072224,
+      "name": "Blue Varr Shoes",
+      "nameEn": "Blue Varr Shoes",
+      "type": "shoes",
+      "level": 100,
+      "req": {
+        "int": 308
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "int": 4,
+        "luk": 3,
+        "def": 39
+      },
+      "imageUrl": "/msucp/images/items/1072224.png",
+      "noEnhance": true
+    },
+    {
+      "id": "badge_adventure_lux_badge",
+      "apiItemId": 1182305,
+      "name": "Adventure Lux Badge",
+      "nameEn": "Adventure Lux Badge",
+      "type": "badge",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5
+      },
+      "imageUrl": "/msucp/images/items/1182305.png",
+      "noEnhance": true
+    },
+    {
+      "id": "pocket_adventure_lux_charm",
+      "apiItemId": 1162086,
+      "name": "Adventure Lux Charm",
+      "nameEn": "Adventure Lux Charm",
+      "type": "pocket",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 2,
+        "dex": 2,
+        "int": 2,
+        "luk": 2
+      },
+      "imageUrl": "/msucp/images/items/1162086.png",
+      "noEnhance": true
+    },
+    {
+      "id": "ring_adventure_lux_ring",
+      "apiItemId": 1113343,
+      "name": "Adventure Lux Ring",
+      "nameEn": "Adventure Lux Ring",
+      "type": "ring",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 3,
+        "dex": 3,
+        "int": 3,
+        "luk": 3
+      },
+      "imageUrl": "/msucp/images/items/1113343.png",
+      "noEnhance": true
+    },
+    {
+      "id": "ring_critical_adventure_ring",
+      "apiItemId": 1113068,
+      "name": "Critical Adventure Ring",
+      "nameEn": "Critical Adventure Ring",
+      "type": "ring",
+      "level": 70,
+      "maxStars": 0,
+      "stats": {
+        "atk": 3,
+        "matk": 3,
+        "hp": 200,
+        "mp": 200
+      },
+      "imageUrl": "/msucp/images/items/1113068.png",
+      "noEnhance": true
+    },
+    {
+      "id": "ring_platinum_cross_ring",
+      "apiItemId": 1112679,
+      "name": "Platinum Cross Ring",
+      "nameEn": "Platinum Cross Ring",
+      "type": "ring",
+      "level": 120,
+      "maxStars": 0,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 3,
+        "dex": 3,
+        "int": 3,
+        "luk": 3,
+        "hp": 75,
+        "mp": 75,
+        "def": 60,
+        "moveSpeed": 5
+      },
+      "imageUrl": "/msucp/images/items/1112679.png",
+      "noEnhance": true
+    },
+    {
+      "id": "medal_wiseman",
+      "apiItemId": 1142010,
+      "name": "Wiseman",
+      "nameEn": "Wiseman",
+      "type": "medal",
+      "level": 200,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 8,
+        "hp": 50
+      },
+      "imageUrl": "/msucp/images/items/1142010.png",
+      "noEnhance": true
+    },
+    {
+      "id": "wpn_white_nisrock",
+      "apiItemId": 1452019,
+      "name": "White Nisrock",
+      "nameEn": "White Nisrock",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 100,
+      "req": {
+        "dex": 265
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 95
+      },
+      "imageUrl": "/msucp/images/items/1452019.png",
+      "noEnhance": true
     }
   ]
 }

@@ -520,6 +520,22 @@
     "seven_days": {
       "name": "Seven Days Set"
     },
+    "fourth_magician": {
+      "name": "4th Magician Set"
+    },
+    "filter": {
+      "root_abyss": "深淵",
+      "absolab": "航海",
+      "arcane_umbra": "神秘",
+      "pitched_boss": "漆黑",
+      "boss_accessory": "boss飾品",
+      "seven_days": "七日怪公",
+      "ifias_treasure": "依菲雅",
+      "von_leon": "獅子",
+      "empress": "女皇",
+      "fourth_magician": "100系統",
+      "others": "其他"
+    },
     "absolab_magician": {
       "name": "AbsoLab Set (法師)"
     },
@@ -694,6 +710,7 @@
     },
     "picker": {
       "title": "新增裝備到背包",
+      "allClasses": "全職業",
       "search": "搜尋裝備名稱…",
       "count": "{n} 件符合",
       "add": "加入",

@@ -15,6 +15,23 @@ const ITEMS_MAP = Object.fromEntries(
   (itemsJson.items || []).map((it) => [it.id, it]),
 )
 
+// ── 新增裝備 dialog 的套裝快捷篩選分組 ──────────────────────────────────────
+//   label 走 i18n `itemSet.filter.<key>`(中文用俗稱、英文用套裝名稱)
+//   同系列的職業分版合併為一顆按鈕;「女皇」= Lv140 套裝總稱
+//   (Dragon Tail / Raven Horn;未來新增的 140 等 set 也歸此組)
+export const SET_FILTER_GROUPS = [
+  { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief'] },
+  { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief'] },
+  { key: 'arcane_umbra',   setIds: ['arcane_umbra_magician', 'arcane_umbra_thief', 'arcane_umbra_warrior', 'arcane_umbra_bowman', 'arcane_umbra_pirate'] },
+  { key: 'pitched_boss',   setIds: ['pitched_boss'] },
+  { key: 'boss_accessory', setIds: ['boss_accessory'] },
+  { key: 'seven_days',     setIds: ['seven_days'] },
+  { key: 'ifias_treasure', setIds: ['ifias_treasure'] },
+  { key: 'von_leon',       setIds: ['royal_von_leon_magician'] },
+  { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn'] },
+  { key: 'fourth_magician', setIds: ['fourth_magician'] },
+]
+
 export const ITEM_SETS = [
   {
     id: 'root_abyss_magician',
@@ -123,6 +140,23 @@ export const ITEM_SETS = [
     ],
     tiers: [
       { count: 2, stats: { ignoreDef: 10 } },
+    ],
+  },
+  // 4th Magician Set (API setId 368) — unmintable 法師裝 (Blue Varr 系列)
+  //   2 件 DEF+100 不影響 CP → 不建模;Blue Bazura (褲子) 尚未收錄,先預留成員
+  {
+    id: 'fourth_magician',
+    nameKey: 'itemSet.fourth_magician.name',
+    members: [
+      { id: 'hat_blue_varr_hat', name: 'Blue Varr Hat', type: 'hat' },
+      { id: 'overall_blue_varuna', name: 'Blue Varuna', type: 'overall' },
+      { id: 'glove_blue_ciara', name: 'Blue Ciara', type: 'glove' },
+      { id: 'shoes_blue_varr_shoes', name: 'Blue Varr Shoes', type: 'shoes' },
+      { id: 'bottom_blue_bazura', name: 'Blue Bazura', type: 'bottom' },
+    ],
+    tiers: [
+      { count: 3, stats: { hpPct: 5, mpPct: 5 } },
+      { count: 4, stats: { matk: 5, int: 5 } },
     ],
   },
   {

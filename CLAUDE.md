@@ -43,6 +43,7 @@
 - `classes`: 對應 `combatClass`(warrior/magician/bowman/thief/pirate),跨大類共用
 - `dayBonus`: 七日勳章專用,`day` = `Date.getDay()`(0=Sun),當天才生效
 - `maxStars` 用 `common.maxStarforce` 判斷(不用 `enableStarforce`)
+- `noEnhance: true` — unmintable(`mintable: false`)道具**完全不可強化**(星力/星火/潛能/附加潛能全關);同時 `maxStars` 明寫 0(缺省會 fallback 等級上限)。UI 不顯示編輯按鈕、loadState / 匯入一律清空強化欄位
 - **禁用** `rarity` 欄位
 
 #### 創世武器 (Genesis) 專用欄位

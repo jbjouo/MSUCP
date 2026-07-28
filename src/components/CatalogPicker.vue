@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEquipment } from '../composables/useEquipment.js'
 import { useCharacter } from '../composables/useCharacter.js'
+import { SET_FILTER_GROUPS, setsForItem } from '../constants/itemSets.js'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -13,28 +14,51 @@ const { t } = useI18n()
 const { CATALOG, addToInventory } = useEquipment()
 const { combatClass } = useCharacter()
 
+const COMBAT_CLASSES = ['warrior', 'magician', 'bowman', 'thief', 'pirate']
+
 const keyword = ref('')
 const typeFilter = ref('all')
+// 快捷篩選 — 第一排職業 (互斥;開啟時預設當前角色職業類別)、第二排套裝 (再點一次取消)
+const classFilter = ref('all')
+const setFilter = ref(null)     // null = 不篩;SET_FILTER_GROUPS key 或 'others' (無套裝)
 const addedFlash = ref(null) // id 閃一下提示已加入
 
 watch(() => props.open, (v) => {
   if (v) {
     keyword.value = ''
     typeFilter.value = 'all'
+    classFilter.value = combatClass.value || 'all'
+    setFilter.value = null
   }
 })
+
+function toggleSetFilter(key) {
+  setFilter.value = setFilter.value === key ? null : key
+}
 
 const typeOptions = computed(() => {
   const set = new Set(CATALOG.map((it) => it.type))
   return ['all', ...Array.from(set).sort()]
 })
 
+// 套裝分組 key → 成員 item.id 集合 (含 group 多選一成員展開;經 setsForItem 反向索引)
+function itemInSetGroup(item, groupKey) {
+  const group = SET_FILTER_GROUPS.find((g) => g.key === groupKey)
+  if (!group) return false
+  return setsForItem(item.id).some((s) => group.setIds.includes(s.id))
+}
+
 const filtered = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
-  const cc = combatClass.value
+  const cc = classFilter.value
   return CATALOG.filter((it) => {
-    if (it.classes && it.classes.length > 0 && !it.classes.includes(cc)) return false
+    if (cc !== 'all' && it.classes && it.classes.length > 0 && !it.classes.includes(cc)) return false
     if (typeFilter.value !== 'all' && it.type !== typeFilter.value) return false
+    if (setFilter.value === 'others') {
+      if (setsForItem(it.id).length > 0) return false
+    } else if (setFilter.value) {
+      if (!itemInSetGroup(it, setFilter.value)) return false
+    }
     if (!kw) return true
     return (
       it.name.toLowerCase().includes(kw) ||
@@ -88,6 +112,40 @@ function onKey(e) {
               {{ opt === 'all' ? t('equipment.bag.all') : t(`equipment.types.${opt}`) }}
             </option>
           </select>
+        </div>
+        <!-- 快捷篩選第一排:職業 (互斥) -->
+        <div class="picker__quick">
+          <button
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': classFilter === 'all' }"
+            @click="classFilter = 'all'"
+          >{{ t('equipment.picker.allClasses') }}</button>
+          <button
+            v-for="c in COMBAT_CLASSES"
+            :key="c"
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': classFilter === c }"
+            @click="classFilter = c"
+          >{{ t(`character.branches.${c}`) }}</button>
+        </div>
+        <!-- 快捷篩選第二排:套裝俗稱 (再點一次取消);「其他」= 無套裝裝備 -->
+        <div class="picker__quick">
+          <button
+            v-for="g in SET_FILTER_GROUPS"
+            :key="g.key"
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': setFilter === g.key }"
+            @click="toggleSetFilter(g.key)"
+          >{{ t(`itemSet.filter.${g.key}`) }}</button>
+          <button
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': setFilter === 'others' }"
+            @click="toggleSetFilter('others')"
+          >{{ t('itemSet.filter.others') }}</button>
         </div>
         <div class="picker__count">
           {{ t('equipment.picker.count', { n: filtered.length }) }}
@@ -196,6 +254,35 @@ function onKey(e) {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #2a3152;
+}
+/* 快捷篩選按鈕排 (職業 / 套裝) */
+.picker__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem 0;
+}
+.picker__quick:last-of-type {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a3152;
+}
+.picker__chip {
+  background: #0a0e1c;
+  color: #aab4cc;
+  border: 1px solid #2a3152;
+  border-radius: 999px;
+  padding: 0.22rem 0.65rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.picker__chip:hover { color: #ffc857; border-color: #ffc857; }
+.picker__chip--active {
+  background: #ffc857;
+  color: #1a1408;
+  border-color: #ffc857;
+  font-weight: 700;
 }
 .picker__input,
 .picker__select {

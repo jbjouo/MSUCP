@@ -158,7 +158,9 @@ function cancelCopy() {
             :aria-label="t('equipment.bag.copy')"
             @click="onCopy($event, cell.entry)"
           >⧉</button>
+          <!-- noEnhance (unmintable) 道具完全不可強化 — 不顯示編輯按鈕,數值保持乾淨 -->
           <button
+            v-if="!cell.entry.item?.noEnhance"
             class="bag-cell__btn bag-cell__btn--edit"
             :title="t('equipment.bag.edit')"
             :aria-label="t('equipment.bag.edit')"

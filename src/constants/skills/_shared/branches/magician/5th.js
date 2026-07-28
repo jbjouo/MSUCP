@@ -28,9 +28,9 @@ export const MAGICIAN_BRANCH_5TH_SKILLS = [
     battle: {
       source: 'activeToggle',
       permanent: true,
-      // 讀角色頁 V 矩陣等級 → effective level = max(baseLevel=25, vmLevel);
-      // 預設 VM=0 仍視為 Lv25(Master 基線)→ +7% FD;VM 升到 30 → +8% FD
+      // 等級 = V 矩陣面板等級;面板 0 = 未習得 → 不啟用 (與其他 V 技能一致)
       useVmatrixLevel: true,
+      requiresVmatrixLevel: true,
       base: {
         durationSec: 99999, // 常駐(超長 duration)— permanent 旗標另外阻擋時間顯示
         baseFinalDmgPct: 7, // Lv25 baseline
@@ -39,6 +39,7 @@ export const MAGICIAN_BRANCH_5TH_SKILLS = [
       },
       // Lv25 → 7%、Lv30 → 8%(+1% / 5 levels = 0.2/lv)
       perLevelBonus: { baseFinalDmgPct: 0.2 },
+      noCombatOrders: true,        // V 技能等級不吃 Combat Orders +1
       ignoresBuffDuration: true,
       cooldownSec: 0,
       initialDelayBySpeed: { 7: 0, 8: 0 },
