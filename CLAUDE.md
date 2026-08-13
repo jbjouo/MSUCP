@@ -403,6 +403,7 @@ per-character key 格式:`msucp.char.<charId>.<suffix>`
 
 ## 工作慣例
 
+- **語言**:所有回覆敘述與**過程思考(thinking)一律用中文**
 - **i18n**:所有字串放 `src/i18n/locales/zh-TW.json + en.json`
 - 新增或變更資料模型,`loadState()` 要 sanitize(向後相容)
 - 驗證:`npx vite build` 需過
