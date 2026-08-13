@@ -125,6 +125,7 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 - 表中找不到的 base 值 → `computeFlameByFormula()` 自動計算
 - `weaponBonusTiersFor(item, statKey)`:具名表 → 等級表 → 公式 → null(自由輸入)
 - CP 基準武器(`JOB_CP_REFERENCE_WEAPON`):法師=wand / nightwalker,nightlord=claw / shadower=dagger
+- `REFERENCE_WEAPON_DATA` 等級檔:150 / 200 / **98(unmintable 商店檔:wand=Dimon Wand 69/113;bow 基準=90 ATK,同 key 98 與 100 各一筆,100=White Nisrock 95)** — Lv98 wand 穿戴者經 key 98 對到同檔 1.3 基準弓
 
 ## 套裝 (`itemSets.js`)
 
@@ -134,7 +135,8 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 - **group 成員**:多選一(如 Cursed Spellbooks),`{ group: true, nameKey, type, ids: [...] }`
   - 套裝計數時 group 中多件只計 1 件
   - 套裝面板合併為一行顯示
-- 已建立套裝:Root Abyss (法師/盜賊) / Pitched Boss / AbsoLab (法師/盜賊) / Seven Days / Boss Accessory / Ifia's Treasure / Arcane Umbra (5 職業) / Raven Horn / Royal Von Leon (法師) / Dragon Tail (法師)
+- 已建立套裝:Root Abyss (法師/盜賊) / Pitched Boss / AbsoLab (法師/盜賊) / Seven Days / Boss Accessory / Ifia's Treasure / Arcane Umbra (5 職業) / Raven Horn / Royal Von Leon (法師) / Dragon Tail (法師) / 4th Magician (Blue Varr 系列, unmintable)
+- `SET_FILTER_GROUPS`(itemSets.js)— 新增裝備 dialog 的套裝快捷篩選分組(中文俗稱走 i18n `itemSet.filter.*`:深淵/航海/神秘/漆黑/boss飾品/七日怪公/依菲雅/獅子/女皇/100系統/其他);「女皇」= Lv140 套裝總稱,未來 140 等 set 歸此組;dialog 另有職業互斥篩選排(全職業 + 5 類)
 
 ### 幸運道具 (Lucky Item)
 
@@ -215,7 +217,25 @@ CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 
 ## 戰鬥模擬 (`BattlePage.vue`)
 
-`requestAnimationFrame` 逐 frame 推進。
+`requestAnimationFrame` 逐 frame 推進;引擎唯一入口 `advanceTo(elapsed)` 純虛擬時間驅動。
+
+- **職業白名單**:`BATTLE_JOBS`(`router/index.js` 匯出,Sidebar 共用)— 目前 archmageFP / bishop
+- **加速**:`fastForward()` 以固定步長 (1000/60ms) 同步推進到結束(壓縮到 1 秒內);進行中可按「⏩ 加速完成」
+- **seed**:每次 start() 自動換新(否則同 seed 重播讓機率型觸發看似必中);`setSeed(n)` 手動設定後鎖定可重現
+- **因果順序**:先命中 → 上狀態 → 增傷。延遲火球型的 DoT 延後到「第一顆命中」才註冊(`pendingBurnStarts`,tick 順序 processOrbHits → pendingBurnStarts → burnTicks);同批第一顆不吃自身 DoT 觸發的 BM/Fervent
+- **火球 FD**:uniform 延遲火球的全額 FD 歸「最早命中」那顆(非生成順序),避免吃到後續火球疊起的 buff
+- `orbs.rollBuffTriggers` — 每顆火球命中各 roll 1 次攻擊觸發型 buff(DoT Punisher → Arcane Aim)
+- `sim.hitLog: true` — 逐擊傷害紀錄 debug(技能詳情表出現「傷害明細」dialog,FD 分組摘要+逐筆);平時關閉
+- 單次施放測試:`TEST_CAST_SKILL_IDS`(BattlePage)依當前職業過濾;主擊乘區逐項展開(bossBase 組成 + 上下限)、buff 終傷乘區逐項來源(`currentBonuses` 的 `collectSources`)
+- 機制 debug 面板(Ignite / Meteor 追蹤)依 `mechanicsForJob` 有無對應設定顯示
+
+### 主教 (bishop) 戰鬥模擬現況
+
+- 已收錄:**Angel Ray**(4轉填充技 225%×14,attackSpeed8=630ms 實測;命中 debuff = procOnHit + `procFromSkillIds` 限定,終傷 +2%/層×5×20s)、**Benediction**(V 1技,activeToggle:全等級固定 +5% 終傷 + INT 快照 `statScaledFinalDmg`,時長 30+floor(lv/2)s `durationFloor`,開場靠後 1300ms 待實測)
+- 共用已涵蓋:Infinity(已移至 `_shared/class-groups/adventurer-mage/4th.js`,數值與火毒相同)、Arcane Aim、Unreliable Memory、Mana Overload(`requiresVmatrixLevel`:面板 0 不啟用)、MWGB、Empirical Knowledge
+- 屬性無視:`ELEM_IGNORE_BY_JOB.bishop = 10`(Righteously Indignant hyper 被動 Elemental Resistance −10%)
+- **待收錄**:Big Bang / Genesis(4轉 CD 技)、Bahamut(召喚)、Heaven's Door(hyper)、V 技能 2~4 技(Angel of Balance / Divine Punishment / Peacemaker)、Ethereal Form、Righteously Indignant 模式切換(Heal→Angelic Wrath 等 Vengeance 技能組)
+- 技能資料來源:`scripts/skill-db/bishop/`(角色 CHARd0iro1tv0s2s73a65kqg)已建全;圖示 74 張已下載至 `public/skills/bishop/`
 
 ### 職業過濾與機制設定
 
@@ -305,6 +325,7 @@ skills/_shared/
   需 `maple_warrior` CP buff 開啟;主擊與 DoT(快照)皆吃(引擎 `adjustedBaseRaw`)
 - `battle.statScaledFinalDmg: { stat, perStat, pctPerStep, maxPct }` — 開啟「當下」依屬性總值快照額外終傷(Benediction:每 2500 INT +1%,上限 45%);期間屬性變動不影響,重新開啟重新快照
 - `battle.durationFloor` — 時長公式帶 floor 的 buff(Benediction:30 + floor(lv/2) 秒,perLevel 0.5)
+- `battle.procFromSkillIds: [skillId...]` — procOnHit buff 僅指定技能施放/命中時 roll(Angel Ray debuff);未設 = 任何攻擊皆 roll(Arcane Aim)
 - `battle.source: 'skillCast'` 的 buff 見下方戰鬥模擬章節
 
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`
