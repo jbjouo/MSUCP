@@ -104,6 +104,18 @@ function resolveStatLabel(key) {
               <div class="legion-member__effect">
                 {{ (state[m.id] || 0) ? effectText(m.effects[(state[m.id] || 0) - 1]) : '—' }}
               </div>
+              <!-- ≥768px:5 個互斥按鈕(點擊已選取取消) -->
+              <div class="legion-tier-btns">
+                <button
+                  v-for="n in LEGION_TIER_COUNT"
+                  :key="n"
+                  type="button"
+                  class="legion-tier-btn"
+                  :class="{ 'legion-tier-btn--on': (state[m.id] || 0) === n }"
+                  @click="setTier(m.id, (state[m.id] || 0) === n ? 0 : n)"
+                >{{ LEGION_TIER_LABELS[n] }}</button>
+              </div>
+              <!-- <768px:下拉選單 -->
               <select
                 class="legion-tier-select"
                 :class="{ 'legion-tier-select--on': (state[m.id] || 0) > 0 }"
@@ -189,6 +201,43 @@ function resolveStatLabel(key) {
 }
 @media (max-width: 900px) {
   .legion-panel__body--split { grid-template-columns: 1fr; }
+}
+
+/* 預設(<768px):下拉選單;按鈕群隱藏 */
+.legion-tier-btns { display: none; }
+
+/* 視窗 ≥768px:成員屬性用 5 個互斥按鈕取代下拉 */
+@media (min-width: 768px) {
+  .legion-member { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(230px, 260px); }
+  .legion-tier-btns { display: flex; }
+  .legion-tier-select { display: none; }
+}
+
+.legion-tier-btns {
+  gap: 3px;
+  justify-content: flex-end;
+}
+.legion-tier-btn {
+  flex: 1 1 0;
+  min-width: 40px;
+  padding: 4px 2px;
+  background: #1f2630;
+  color: #c9d2dd;
+  border: 1px solid #141a22;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: filter 0.12s, border-color 0.12s, background 0.12s, color 0.12s;
+}
+.legion-tier-btn:hover { filter: brightness(1.15); border-color: #ffc857; }
+.legion-tier-btn:focus { outline: none; border-color: #ffc857; }
+.legion-tier-btn--on {
+  background: linear-gradient(180deg, #ffc857 0%, #d79f2e 100%);
+  color: #1b1f27;
+  border-color: #8a6a1e;
 }
 
 .legion-section {

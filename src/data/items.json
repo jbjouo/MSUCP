@@ -361,6 +361,7 @@
     {
       "id": "top_eagle_eye_dunwitch_robe",
       "apiItemId": 1042388,
+      "apiItemIdAliases": [1042255],
       "name": "Eagle Eye Dunwitch Robe",
       "nameEn": "Eagle Eye Dunwitch Robe",
       "type": "top",
