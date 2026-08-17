@@ -203,12 +203,12 @@ function resolveStatLabel(key) {
   .legion-panel__body--split { grid-template-columns: 1fr; }
 }
 
-/* 預設(<768px):下拉選單;按鈕群隱藏 */
+/* 預設(區塊窄):下拉選單;按鈕群隱藏 */
 .legion-tier-btns { display: none; }
 
-/* 視窗 ≥768px:成員屬性用 5 個互斥按鈕取代下拉 */
-@media (min-width: 768px) {
-  .legion-member { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(230px, 260px); }
+/* 成員屬性區塊自身 ≥440px:用 5 個互斥按鈕取代下拉 */
+@container legionSec (min-width: 440px) {
+  .legion-member { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(200px, 240px); }
   .legion-tier-btns { display: flex; }
   .legion-tier-select { display: none; }
 }
@@ -248,6 +248,8 @@ function resolveStatLabel(key) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 以「本區塊自身寬度」判斷要按鈕還是選單(非視窗寬度) */
+  container: legionSec / inline-size;
 }
 .legion-section__head {
   padding: 6px 10px;

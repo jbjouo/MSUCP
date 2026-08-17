@@ -297,7 +297,8 @@ export function computeStarStats(item, stars) {
   for (const tier of (table.mainSubByStar || [])) {
     const n = Math.max(0, Math.min(stars, tier.to) - tier.from + 1)
     if (n <= 0) continue
-    if (tier.target === 'allStat' || multiClass) {
+    // 飾品 (other:腰帶/戒指/披風…) 為全職業共用,1~15 星亦給全屬 (與 16★+ 一致)
+    if (tier.target === 'allStat' || multiClass || cat === 'other') {
       for (const k of ['str', 'dex', 'int', 'luk']) bonus[k] += n * tier.delta
     } else {
       bonus[main] += n * tier.delta
