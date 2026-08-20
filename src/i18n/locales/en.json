@@ -339,6 +339,10 @@
         "name": "Combat Orders",
         "description": "Weapon Mastery +1%, and increases the level of other buff skills by 1 while active."
       },
+      "gold_richie_resort_vip": {
+        "name": "Gold Richie Resort VIP",
+        "description": "All Stats +20, ATT & Magic ATT +10, Ignore DEF +15%, Boss Damage +15%, Critical Rate +15%, Buff Duration +25%."
+      },
       "heros_echo": {
         "name": "Hero's Echo",
         "description": "Increases the Attack Power and Magic ATT of all nearby characters. Max Level 1 / Master Level 1. Lv1: MP Cost 30, Duration 2400 sec, ATT & Magic ATT +4%, Cooldown 300 sec."

@@ -339,6 +339,10 @@
         "name": "Combat Orders",
         "description": "啟用時 武器熟練度 +1%,並使其他 buff 技能等級 +1。"
       },
+      "gold_richie_resort_vip": {
+        "name": "Gold Richie Resort VIP",
+        "description": "全屬性 +20、ATT & MATK +10、無視防禦 +15%、Boss 傷害 +15%、暴擊率 +15%、增益持續 +25%。"
+      },
       "heros_echo": {
         "name": "Hero's Echo",
         "description": "提升附近所有角色的 ATT 與 MATK。Max Level 1 / Master Level 1。Lv1:MP 消耗 30、持續 2400 秒、ATT & MATK +4%、冷卻 300 秒。"

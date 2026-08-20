@@ -102,6 +102,7 @@ export const PCT_KEYS = new Set([
 export const CP_SKILL_ALLOWLIST = new Set([
   'blessing_of_the_fairy',
   'empress_blessing',
+  'gold_richie_resort_vip',
 ])
 
 export const JOB_ATT_META = {

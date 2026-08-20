@@ -401,6 +401,7 @@ function fmtPct(n) {
 const CP_SKILL_ALLOWLIST = new Set([
   'blessing_of_the_fairy',
   'empress_blessing',
+  'gold_richie_resort_vip',
 ])
 
 const breakdowns = computed(() => {
