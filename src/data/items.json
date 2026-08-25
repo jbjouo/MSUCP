@@ -361,7 +361,9 @@
     {
       "id": "top_eagle_eye_dunwitch_robe",
       "apiItemId": 1042388,
-      "apiItemIdAliases": [1042255],
+      "apiItemIdAliases": [
+        1042255
+      ],
       "name": "Eagle Eye Dunwitch Robe",
       "nameEn": "Eagle Eye Dunwitch Robe",
       "type": "top",
@@ -3055,6 +3057,757 @@
       },
       "imageUrl": "/msucp/images/items/1452019.png",
       "noEnhance": true
+    },
+    {
+      "id": "hat_royal_warrior_helm",
+      "apiItemId": 1003797,
+      "name": "Royal Warrior Helm",
+      "nameEn": "Royal Warrior Helm",
+      "type": "hat",
+      "level": 150,
+      "req": {
+        "str": 450
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 40,
+        "dex": 40,
+        "hp": 360,
+        "mp": 360,
+        "def": 390,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1003797.png"
+    },
+    {
+      "id": "top_eagle_eye_warrior_armor",
+      "apiItemId": 1042254,
+      "name": "Eagle Eye Warrior Armor",
+      "nameEn": "Eagle Eye Warrior Armor",
+      "type": "top",
+      "level": 150,
+      "req": {
+        "str": 450
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 210,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1042254.png"
+    },
+    {
+      "id": "btm_trixter_warrior_pants",
+      "apiItemId": 1062165,
+      "name": "Trixter Warrior Pants",
+      "nameEn": "Trixter Warrior Pants",
+      "type": "bottom",
+      "level": 150,
+      "req": {
+        "str": 450
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 210,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1062165.png"
+    },
+    {
+      "id": "wpn_fafnir_brionak",
+      "apiItemId": 1432167,
+      "name": "Fafnir Brionak",
+      "nameEn": "Fafnir Brionak",
+      "type": "weapon",
+      "subType": "spear",
+      "level": 150,
+      "req": {
+        "str": 450
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 171,
+        "str": 40,
+        "dex": 40,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1432167.png"
+    },
+    {
+      "id": "hat_absolab_knight_helm",
+      "apiItemId": 1004422,
+      "name": "AbsoLab Knight Helm",
+      "nameEn": "AbsoLab Knight Helm",
+      "type": "hat",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 3,
+        "str": 45,
+        "dex": 45,
+        "def": 400,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1004422.png"
+    },
+    {
+      "id": "overall_absolab_knight_suit",
+      "apiItemId": 1052882,
+      "name": "AbsoLab Knight Suit",
+      "nameEn": "AbsoLab Knight Suit",
+      "type": "overall",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 65,
+        "dex": 65,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1052882.png"
+    },
+    {
+      "id": "shoes_absolab_knight_shoes",
+      "apiItemId": 1073030,
+      "name": "AbsoLab Knight Shoes",
+      "nameEn": "AbsoLab Knight Shoes",
+      "type": "shoes",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 20,
+        "dex": 20,
+        "def": 150,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1073030.png"
+    },
+    {
+      "id": "glove_absolab_knight_gloves",
+      "apiItemId": 1082636,
+      "name": "AbsoLab Knight Gloves",
+      "nameEn": "AbsoLab Knight Gloves",
+      "type": "glove",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 20,
+        "dex": 20,
+        "def": 150
+      },
+      "imageUrl": "/msucp/images/items/1082636.png"
+    },
+    {
+      "id": "cape_absolab_knight_cape",
+      "apiItemId": 1102775,
+      "name": "AbsoLab Knight Cape",
+      "nameEn": "AbsoLab Knight Cape",
+      "type": "cape",
+      "level": 160,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1102775.png"
+    },
+    {
+      "id": "shoulder_absolab_knight_shoulder",
+      "apiItemId": 1152174,
+      "name": "AbsoLab Knight Shoulder",
+      "nameEn": "AbsoLab Knight Shoulder",
+      "type": "shoulder",
+      "level": 160,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 14,
+        "dex": 14,
+        "int": 14,
+        "luk": 14,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152174.png"
+    },
+    {
+      "id": "hat_arcane_umbra_knight_hat",
+      "apiItemId": 1004808,
+      "name": "Arcane Umbra Knight Hat",
+      "nameEn": "Arcane Umbra Knight Hat",
+      "type": "hat",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "str": 65,
+        "dex": 65,
+        "def": 600,
+        "ignoreDef": 15
+      },
+      "imageUrl": "/msucp/images/items/1004808.png"
+    },
+    {
+      "id": "overall_arcane_umbra_knight_suit",
+      "apiItemId": 1053063,
+      "name": "Arcane Umbra Knight Suit",
+      "nameEn": "Arcane Umbra Knight Suit",
+      "type": "overall",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 85,
+        "dex": 85,
+        "def": 500,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1053063.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_spear",
+      "apiItemId": 1432218,
+      "name": "Arcane Umbra Spear",
+      "nameEn": "Arcane Umbra Spear",
+      "type": "weapon",
+      "subType": "spear",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 295,
+        "str": 100,
+        "dex": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1432218.png"
+    },
+    {
+      "id": "wpn_arcane_umbra_polearm",
+      "apiItemId": 1442274,
+      "name": "Arcane Umbra Polearm",
+      "nameEn": "Arcane Umbra Polearm",
+      "type": "weapon",
+      "subType": "polearm",
+      "level": 200,
+      "req": {
+        "str": 600
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 264,
+        "str": 100,
+        "dex": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1442274.png"
+    },
+    {
+      "id": "hat_royal_von_leon_warrior_helm",
+      "apiItemId": 1004234,
+      "name": "Royal Von Leon Warrior Helm",
+      "nameEn": "Royal Von Leon Warrior Helm",
+      "type": "hat",
+      "level": 130,
+      "req": {
+        "str": 330
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "str": 11,
+        "def": 195
+      },
+      "imageUrl": "/msucp/images/items/1004234.png"
+    },
+    {
+      "id": "overall_royal_von_leon_warrior_suit",
+      "apiItemId": 1052804,
+      "name": "Royal Von Leon Warrior Suit",
+      "nameEn": "Royal Von Leon Warrior Suit",
+      "type": "overall",
+      "level": 130,
+      "req": {
+        "str": 370
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "str": 13,
+        "dex": 9,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1052804.png"
+    },
+    {
+      "id": "shoes_royal_von_leon_warrior_boots",
+      "apiItemId": 1072972,
+      "name": "Royal Von Leon Warrior Boots",
+      "nameEn": "Royal Von Leon Warrior Boots",
+      "type": "shoes",
+      "level": 130,
+      "req": {
+        "str": 390
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "str": 9,
+        "dex": 4,
+        "mp": 15,
+        "def": 120,
+        "moveSpeed": 5
+      },
+      "imageUrl": "/msucp/images/items/1072972.png"
+    },
+    {
+      "id": "glove_royal_von_leon_warrior_hands",
+      "apiItemId": 1082613,
+      "name": "Royal Von Leon Warrior Hands",
+      "nameEn": "Royal Von Leon Warrior Hands",
+      "type": "glove",
+      "level": 130,
+      "req": {
+        "str": 390
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "atk": 1,
+        "str": 9,
+        "dex": 5,
+        "hp": 60,
+        "def": 80
+      },
+      "imageUrl": "/msucp/images/items/1082613.png"
+    },
+    {
+      "id": "cape_royal_von_leon_warrior_cape",
+      "apiItemId": 1102713,
+      "name": "Royal Von Leon Warrior Cape",
+      "nameEn": "Royal Von Leon Warrior Cape",
+      "type": "cape",
+      "level": 130,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "stats": {
+        "str": 3,
+        "dex": 3,
+        "int": 3,
+        "luk": 3,
+        "hp": 50,
+        "def": 120
+      },
+      "imageUrl": "/msucp/images/items/1102713.png"
+    },
+    {
+      "id": "wpn_royal_von_leon_spear",
+      "apiItemId": 1432201,
+      "name": "Royal Von Leon Spear",
+      "nameEn": "Royal Von Leon Spear",
+      "type": "weapon",
+      "subType": "spear",
+      "level": 130,
+      "req": {
+        "str": 370
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 120,
+        "str": 6
+      },
+      "imageUrl": "/msucp/images/items/1432201.png"
+    },
+    {
+      "id": "wpn_royal_von_leon_hellslayer",
+      "apiItemId": 1442255,
+      "name": "Royal Von Leon Hellslayer",
+      "nameEn": "Royal Von Leon Hellslayer",
+      "type": "weapon",
+      "subType": "polearm",
+      "level": 130,
+      "req": {
+        "str": 370
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 20,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 120,
+        "str": 6
+      },
+      "imageUrl": "/msucp/images/items/1442255.png"
+    },
+    {
+      "id": "hat_lionheart_battle_helm",
+      "apiItemId": 1003172,
+      "name": "Lionheart Battle Helm",
+      "nameEn": "Lionheart Battle Helm",
+      "type": "hat",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 25,
+        "dex": 25,
+        "hp": 300,
+        "mp": 300,
+        "def": 325
+      },
+      "imageUrl": "/msucp/images/items/1003172.png"
+    },
+    {
+      "id": "overall_lionheart_battle_mail",
+      "apiItemId": 1052314,
+      "name": "Lionheart Battle Mail",
+      "nameEn": "Lionheart Battle Mail",
+      "type": "overall",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 350
+      },
+      "imageUrl": "/msucp/images/items/1052314.png"
+    },
+    {
+      "id": "shoes_lionheart_battle_boots",
+      "apiItemId": 1072485,
+      "name": "Lionheart Battle Boots",
+      "nameEn": "Lionheart Battle Boots",
+      "type": "shoes",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 15,
+        "dex": 15,
+        "def": 150,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1072485.png"
+    },
+    {
+      "id": "glove_lionheart_battle_bracers",
+      "apiItemId": 1082295,
+      "name": "Lionheart Battle Bracers",
+      "nameEn": "Lionheart Battle Bracers",
+      "type": "glove",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 16,
+        "dex": 16,
+        "hp": 350,
+        "def": 80
+      },
+      "imageUrl": "/msucp/images/items/1082295.png"
+    },
+    {
+      "id": "shoulder_lionheart_battle_shoulder",
+      "apiItemId": 1152108,
+      "name": "Lionheart Battle Shoulder",
+      "nameEn": "Lionheart Battle Shoulder",
+      "type": "shoulder",
+      "level": 140,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 11,
+        "dex": 11,
+        "int": 11,
+        "luk": 11,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152108.png"
+    },
+    {
+      "id": "sec_berserk_chain",
+      "apiItemId": 1352222,
+      "name": "Berserk Chain",
+      "nameEn": "Berserk Chain",
+      "type": "secondary",
+      "level": 100,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 3,
+        "str": 10,
+        "dex": 10
+      },
+      "imageUrl": "/msucp/images/items/1352222.png"
+    },
+    {
+      "id": "sec_evolving_berserk_chain",
+      "apiItemId": 1352223,
+      "name": "Evolving Berserk Chain",
+      "nameEn": "Evolving Berserk Chain",
+      "type": "secondary",
+      "level": 100,
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 5,
+        "str": 10,
+        "dex": 10
+      },
+      "imageUrl": "/msucp/images/items/1352223.png"
+    },
+    {
+      "id": "wpn_fafnir_moon_glaive",
+      "apiItemId": 1442223,
+      "name": "Fafnir Moon Glaive",
+      "nameEn": "Fafnir Moon Glaive",
+      "type": "weapon",
+      "subType": "polearm",
+      "level": 150,
+      "req": {
+        "str": 450
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 153,
+        "str": 40,
+        "dex": 40,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1442223.png"
+    },
+    {
+      "id": "wpn_absolab_piercing_spear",
+      "apiItemId": 1432214,
+      "name": "AbsoLab Piercing Spear",
+      "nameEn": "AbsoLab Piercing Spear",
+      "type": "weapon",
+      "subType": "spear",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 205,
+        "str": 60,
+        "dex": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1432214.png"
+    },
+    {
+      "id": "wpn_absolab_hellslayer",
+      "apiItemId": 1442268,
+      "name": "AbsoLab Hellslayer",
+      "nameEn": "AbsoLab Hellslayer",
+      "type": "weapon",
+      "subType": "polearm",
+      "level": 160,
+      "req": {
+        "str": 480
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 184,
+        "str": 60,
+        "dex": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1442268.png"
+    },
+    {
+      "id": "wpn_lionheart_fuscina",
+      "apiItemId": 1432086,
+      "name": "Lionheart Fuscina",
+      "nameEn": "Lionheart Fuscina",
+      "type": "weapon",
+      "subType": "spear",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 137,
+        "str": 35,
+        "dex": 20
+      },
+      "imageUrl": "/msucp/images/items/1432086.png"
+    },
+    {
+      "id": "wpn_lionheart_partisan",
+      "apiItemId": 1442116,
+      "name": "Lionheart Partisan",
+      "nameEn": "Lionheart Partisan",
+      "type": "weapon",
+      "subType": "polearm",
+      "level": 140,
+      "req": {
+        "str": 420
+      },
+      "classes": [
+        "warrior"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 5,
+      "stats": {
+        "atk": 122,
+        "str": 35,
+        "dex": 20
+      },
+      "imageUrl": "/msucp/images/items/1442116.png"
     }
   ]
 }

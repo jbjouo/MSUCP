@@ -579,6 +579,18 @@
     },
     "raven_horn": {
       "name": "Raven Horn Set"
+    },
+    "root_abyss_warrior": {
+      "name": "Root Abyss Set (Warrior)"
+    },
+    "absolab_warrior": {
+      "name": "AbsoLab Set (Warrior)"
+    },
+    "royal_von_leon_warrior": {
+      "name": "Royal Von Leon Set (Warrior)"
+    },
+    "lionheart": {
+      "name": "Lionheart Set"
     }
   },
   "hyperStat": {

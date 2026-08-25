@@ -4,6 +4,7 @@
 export * from './archmage-fp/index.js'
 export * from './bishop/index.js'
 export * from './buccaneer/index.js'
+export * from './dark-knight/index.js'
 export * from './night-walker/index.js'
 export * from './shadower/index.js'
 
@@ -53,6 +54,17 @@ import {
 } from './buccaneer/index.js'
 
 import {
+  DARK_KNIGHT_SKILLS,
+  DARK_KNIGHT_SIM_SKILLS,
+  DARK_KNIGHT_PASSIVE_SKILLS,
+  DARK_KNIGHT_BUFFS,
+  DARK_KNIGHT_BATTLE_BUFFS,
+  DARK_KNIGHT_VMATRIX_SKILLS,
+  DARK_KNIGHT_HYPER_SKILLS_ALL,
+  DARK_KNIGHT_LINK_SKILLS,
+} from './dark-knight/index.js'
+
+import {
   SHADOWER_SKILLS,
   SHADOWER_SIM_SKILLS,
   SHADOWER_PASSIVE_SKILLS,
@@ -91,6 +103,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: BISHOP_VMATRIX_SKILLS,
     hyper: BISHOP_HYPER_SKILLS_ALL,
     link: BISHOP_LINK_SKILLS,
+  },
+  {
+    jobKey: 'darkKnight',
+    branchKey: 'warrior',
+    all: DARK_KNIGHT_SKILLS,
+    sim: DARK_KNIGHT_SIM_SKILLS,
+    passive: DARK_KNIGHT_PASSIVE_SKILLS,
+    buffs: DARK_KNIGHT_BUFFS,
+    battleBuffs: DARK_KNIGHT_BATTLE_BUFFS,
+    vmatrix: DARK_KNIGHT_VMATRIX_SKILLS,
+    hyper: DARK_KNIGHT_HYPER_SKILLS_ALL,
+    link: DARK_KNIGHT_LINK_SKILLS,
   },
   {
     jobKey: 'shadower',

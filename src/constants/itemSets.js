@@ -20,15 +20,15 @@ const ITEMS_MAP = Object.fromEntries(
 //   同系列的職業分版合併為一顆按鈕;「女皇」= Lv140 套裝總稱
 //   (Dragon Tail / Raven Horn;未來新增的 140 等 set 也歸此組)
 export const SET_FILTER_GROUPS = [
-  { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief'] },
-  { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief'] },
+  { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief', 'root_abyss_warrior'] },
+  { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief', 'absolab_warrior'] },
   { key: 'arcane_umbra',   setIds: ['arcane_umbra_magician', 'arcane_umbra_thief', 'arcane_umbra_warrior', 'arcane_umbra_bowman', 'arcane_umbra_pirate'] },
   { key: 'pitched_boss',   setIds: ['pitched_boss'] },
   { key: 'boss_accessory', setIds: ['boss_accessory'] },
   { key: 'seven_days',     setIds: ['seven_days'] },
   { key: 'ifias_treasure', setIds: ['ifias_treasure'] },
-  { key: 'von_leon',       setIds: ['royal_von_leon_magician'] },
-  { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn'] },
+  { key: 'von_leon',       setIds: ['royal_von_leon_magician', 'royal_von_leon_warrior'] },
+  { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn', 'lionheart'] },
   { key: 'fourth_magician', setIds: ['fourth_magician'] },
 ]
 
@@ -60,6 +60,22 @@ export const ITEM_SETS = [
     ],
     tiers: [
       { count: 2, stats: { hp: 1000, mp: 1000, dex: 20, luk: 20 } },
+      { count: 3, stats: { hpPct: 10, mpPct: 10, atk: 50 } },
+      { count: 4, stats: { bossDmg: 30 } },
+    ],
+  },
+  {
+    id: 'root_abyss_warrior',
+    nameKey: 'itemSet.root_abyss_warrior.name',
+    members: [
+      { id: 'hat_royal_warrior_helm', name: 'Royal Warrior Helm', type: 'hat' },
+      { id: 'top_eagle_eye_warrior_armor', name: 'Eagle Eye Warrior Armor', type: 'top' },
+      { id: 'btm_trixter_warrior_pants', name: 'Trixter Warrior Pants', type: 'bottom' },
+      { id: 'wpn_fafnir_brionak', name: 'Fafnir Brionak', type: 'weapon' },
+      { id: 'wpn_fafnir_moon_glaive', name: 'Fafnir Moon Glaive', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { hp: 1000, mp: 1000, str: 20, dex: 20 } },
       { count: 3, stats: { hpPct: 10, mpPct: 10, atk: 50 } },
       { count: 4, stats: { bossDmg: 30 } },
     ],
@@ -121,6 +137,28 @@ export const ITEM_SETS = [
       { id: 'cape_absolab_bandit_cape', name: 'AbsoLab Bandit Cape', type: 'cape' },
       { id: 'shoulder_absolab_thief_shoulder', name: 'AbsoLab Thief Shoulder', type: 'shoulder' },
       { id: 'wpn_absolab_bandit_dagger', name: 'AbsoLab Bandit Dagger', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { hp: 1500, mp: 1500, atk: 20, matk: 20, bossDmg: 10 } },
+      { count: 3, stats: { allStat: 30, atk: 20, matk: 20, bossDmg: 10 } },
+      { count: 4, stats: { atk: 25, matk: 25, def: 200, ignoreDef: 10 } },
+      { count: 5, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 6, stats: { hpPct: 20, mpPct: 20, atk: 20, matk: 20 } },
+      { count: 7, stats: { atk: 20, matk: 20, ignoreDef: 10 } },
+    ],
+  },
+  {
+    id: 'absolab_warrior',
+    nameKey: 'itemSet.absolab_warrior.name',
+    members: [
+      { id: 'hat_absolab_knight_helm', name: 'AbsoLab Knight Helm', type: 'hat' },
+      { id: 'overall_absolab_knight_suit', name: 'AbsoLab Knight Suit', type: 'overall' },
+      { id: 'shoes_absolab_knight_shoes', name: 'AbsoLab Knight Shoes', type: 'shoes' },
+      { id: 'glove_absolab_knight_gloves', name: 'AbsoLab Knight Gloves', type: 'glove' },
+      { id: 'cape_absolab_knight_cape', name: 'AbsoLab Knight Cape', type: 'cape' },
+      { id: 'shoulder_absolab_knight_shoulder', name: 'AbsoLab Knight Shoulder', type: 'shoulder' },
+      { id: 'wpn_absolab_piercing_spear', name: 'AbsoLab Piercing Spear', type: 'weapon' },
+      { id: 'wpn_absolab_hellslayer', name: 'AbsoLab Hellslayer', type: 'weapon' },
     ],
     tiers: [
       { count: 2, stats: { hp: 1500, mp: 1500, atk: 20, matk: 20, bossDmg: 10 } },
@@ -253,6 +291,8 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_warrior.name',
     members: [
       { id: 'shoes_arcane_umbra_knight_shoes', name: 'Arcane Umbra Knight Shoes', type: 'shoes' },
+      { id: 'wpn_arcane_umbra_polearm', name: 'Arcane Umbra Polearm', type: 'weapon' },
+      { id: 'wpn_arcane_umbra_spear', name: 'Arcane Umbra Spear', type: 'weapon' },
       { id: 'shoulder_arcane_umbra_knight_shoulder', name: 'Arcane Umbra Knight Shoulder', type: 'shoulder' },
       { id: 'glove_arcane_umbra_knight_gloves', name: 'Arcane Umbra Knight Gloves', type: 'glove' },
       { id: 'cape_arcane_umbra_knight_cape', name: 'Arcane Umbra Knight Cape', type: 'cape' },
@@ -327,6 +367,24 @@ export const ITEM_SETS = [
     ],
   },
   {
+    id: 'royal_von_leon_warrior',
+    nameKey: 'itemSet.royal_von_leon_warrior.name',
+    members: [
+      { id: 'hat_royal_von_leon_warrior_helm', name: 'Royal Von Leon Warrior Helm', type: 'hat' },
+      { id: 'overall_royal_von_leon_warrior_suit', name: 'Royal Von Leon Warrior Suit', type: 'overall' },
+      { id: 'shoes_royal_von_leon_warrior_boots', name: 'Royal Von Leon Warrior Boots', type: 'shoes' },
+      { id: 'glove_royal_von_leon_warrior_hands', name: 'Royal Von Leon Warrior Hands', type: 'glove' },
+      { id: 'cape_royal_von_leon_warrior_cape', name: 'Royal Von Leon Warrior Cape', type: 'cape' },
+      { id: 'wpn_royal_von_leon_spear', name: 'Royal Von Leon Spear', type: 'weapon' },
+      { id: 'wpn_royal_von_leon_hellslayer', name: 'Royal Von Leon Hellslayer', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 4, stats: { allStat: 6, def: 150, bossDmg: 10 } },
+      { count: 5, stats: { allStat: 9, atk: 10, matk: 10, def: 225 } },
+      { count: 6, stats: { allStat: 15, hpPct: 15, mpPct: 15, atk: 20, matk: 20, str: 10, dex: 10, def: 300, bossDmg: 10 } },
+    ],
+  },
+  {
     id: 'dragon_tail_magician',
     nameKey: 'itemSet.dragon_tail_magician.name',
     members: [
@@ -365,6 +423,28 @@ export const ITEM_SETS = [
       { count: 5, stats: { allStat: 20 } },
       { count: 6, stats: { atk: 30, matk: 30, bossDmg: 30 } },
       { count: 7, stats: { hpPct: 15, mpPct: 15, atk: 10, matk: 10 } },
+    ],
+  },
+  {
+    id: 'lionheart',
+    nameKey: 'itemSet.lionheart.name',
+    members: [
+      { id: 'hat_lionheart_battle_helm', name: 'Lionheart Battle Helm', type: 'hat' },
+      { id: 'overall_lionheart_battle_mail', name: 'Lionheart Battle Mail', type: 'overall' },
+      { id: 'shoes_lionheart_battle_boots', name: 'Lionheart Battle Boots', type: 'shoes' },
+      { id: 'glove_lionheart_battle_bracers', name: 'Lionheart Battle Bracers', type: 'glove' },
+      { id: 'cape_lionheart_battle_cape', name: 'Lionheart Battle Cape', type: 'cape' },
+      { id: 'shoulder_lionheart_battle_shoulder', name: 'Lionheart Battle Shoulder', type: 'shoulder' },
+      { id: 'wpn_lionheart_fuscina', name: 'Lionheart Fuscina', type: 'weapon' },
+      { id: 'wpn_lionheart_partisan', name: 'Lionheart Partisan', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { def: 300 } },
+      { count: 3, stats: { hpPct: 15, mpPct: 15 } },
+      { count: 4, stats: { atk: 15 } },
+      { count: 5, stats: { allStat: 20 } },
+      { count: 6, stats: { atk: 30, bossDmg: 30 } },
+      { count: 7, stats: { hpPct: 15, mpPct: 15, atk: 10 } },
     ],
   },
 ]
