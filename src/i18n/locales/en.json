@@ -591,6 +591,15 @@
     },
     "lionheart": {
       "name": "Lionheart Set"
+    },
+    "root_abyss_bowman": {
+      "name": "Root Abyss Set (Bowman)"
+    },
+    "falcon_wing": {
+      "name": "Falcon Wing Set"
+    },
+    "fourth_bowman": {
+      "name": "4th Bowman Set"
     }
   },
   "hyperStat": {

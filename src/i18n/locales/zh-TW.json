@@ -591,6 +591,15 @@
     },
     "lionheart": {
       "name": "Lionheart Set"
+    },
+    "root_abyss_bowman": {
+      "name": "深淵 BOSS 套(弓箭手)"
+    },
+    "falcon_wing": {
+      "name": "Falcon Wing Set"
+    },
+    "fourth_bowman": {
+      "name": "4th Bowman Set"
     }
   },
   "hyperStat": {

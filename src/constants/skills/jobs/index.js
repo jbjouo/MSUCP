@@ -7,6 +7,7 @@ export * from './buccaneer/index.js'
 export * from './dark-knight/index.js'
 export * from './night-walker/index.js'
 export * from './shadower/index.js'
+export * from './wind-archer/index.js'
 
 import {
   ARCHMAGE_FP_SKILLS,
@@ -63,6 +64,17 @@ import {
   DARK_KNIGHT_HYPER_SKILLS_ALL,
   DARK_KNIGHT_LINK_SKILLS,
 } from './dark-knight/index.js'
+
+import {
+  WIND_ARCHER_SKILLS,
+  WIND_ARCHER_SIM_SKILLS,
+  WIND_ARCHER_PASSIVE_SKILLS,
+  WIND_ARCHER_BUFFS,
+  WIND_ARCHER_BATTLE_BUFFS,
+  WIND_ARCHER_VMATRIX_SKILLS,
+  WIND_ARCHER_HYPER_SKILLS_ALL,
+  WIND_ARCHER_LINK_SKILLS,
+} from './wind-archer/index.js'
 
 import {
   SHADOWER_SKILLS,
@@ -139,6 +151,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: BUCCANEER_VMATRIX_SKILLS,
     hyper: BUCCANEER_HYPER_SKILLS_ALL,
     link: BUCCANEER_LINK_SKILLS,
+  },
+  {
+    jobKey: 'windarcher',
+    branchKey: 'cygnus',
+    all: WIND_ARCHER_SKILLS,
+    sim: WIND_ARCHER_SIM_SKILLS,
+    passive: WIND_ARCHER_PASSIVE_SKILLS,
+    buffs: WIND_ARCHER_BUFFS,
+    battleBuffs: WIND_ARCHER_BATTLE_BUFFS,
+    vmatrix: WIND_ARCHER_VMATRIX_SKILLS,
+    hyper: WIND_ARCHER_HYPER_SKILLS_ALL,
+    link: WIND_ARCHER_LINK_SKILLS,
   },
   {
     jobKey: 'nightwalker',

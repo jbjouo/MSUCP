@@ -30,7 +30,7 @@ export const ALL_JOBS_5TH_SKILLS = [
     maxLevel: 1,
     masterLevel: 1,
     stats: { critRate: 10, critDmg: 8 },
-    cp: { role: 'buff' },
+    cp: { role: 'buff', group: 'sharp_eyes' },
     vmatrix: {
       kind: 'skill',
       passive: { type: 'allStat', per: 5 },

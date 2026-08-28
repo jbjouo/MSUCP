@@ -3808,6 +3808,438 @@
         "dex": 20
       },
       "imageUrl": "/msucp/images/items/1442116.png"
+    },
+    {
+      "id": "hat_royal_ranger_beret",
+      "apiItemId": 1003799,
+      "name": "Royal Ranger Beret",
+      "nameEn": "Royal Ranger Beret",
+      "type": "hat",
+      "level": 150,
+      "req": {
+        "dex": 450
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 40,
+        "dex": 40,
+        "hp": 360,
+        "mp": 360,
+        "def": 300,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1003799.png"
+    },
+    {
+      "id": "btm_trixter_ranger_pants",
+      "apiItemId": 1062167,
+      "name": "Trixter Ranger Pants",
+      "nameEn": "Trixter Ranger Pants",
+      "type": "bottom",
+      "level": 150,
+      "req": {
+        "dex": 450
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1062167.png"
+    },
+    {
+      "id": "top_eagle_eye_ranger_cowl",
+      "apiItemId": 1042256,
+      "name": "Eagle Eye Ranger Cowl",
+      "nameEn": "Eagle Eye Ranger Cowl",
+      "type": "top",
+      "level": 150,
+      "req": {
+        "dex": 450
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 135,
+        "ignoreDef": 5
+      },
+      "imageUrl": "/msucp/images/items/1042256.png"
+    },
+    {
+      "id": "shoulder_falcon_wing_sentinel_shoulder",
+      "apiItemId": 1152111,
+      "name": "Falcon Wing Sentinel Shoulder",
+      "nameEn": "Falcon Wing Sentinel Shoulder",
+      "type": "shoulder",
+      "level": 140,
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "matk": 7,
+        "str": 11,
+        "dex": 11,
+        "int": 11,
+        "luk": 11,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1152111.png"
+    },
+    {
+      "id": "hat_necromancer_sentinel_hat",
+      "apiItemId": 1004216,
+      "name": "Necromancer Sentinel Hat",
+      "nameEn": "Necromancer Sentinel Hat",
+      "type": "hat",
+      "level": 120,
+      "req": {
+        "dex": 340
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "str": 3,
+        "dex": 6,
+        "hp": 20,
+        "def": 75
+      },
+      "imageUrl": "/msucp/images/items/1004216.png"
+    },
+    {
+      "id": "sec_ereve_radiance",
+      "apiItemId": 1354220,
+      "name": "Ereve Radiance",
+      "nameEn": "Ereve Radiance",
+      "type": "secondary",
+      "subType": "jewel",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 3,
+        "matk": 3,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1354220.png"
+    },
+    {
+      "id": "hat_chaos_queens_tiara",
+      "apiItemId": 1003721,
+      "name": "Chaos Queen's Tiara",
+      "nameEn": "Chaos Queen's Tiara",
+      "type": "hat",
+      "level": 140,
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 23,
+        "dex": 23,
+        "int": 23,
+        "luk": 23,
+        "def": 300,
+        "moveSpeed": 5
+      },
+      "imageUrl": "/msucp/images/items/1003721.png"
+    },
+    {
+      "id": "hat_falcon_wing_sentinel_cap",
+      "apiItemId": 1003174,
+      "name": "Falcon Wing Sentinel Cap",
+      "nameEn": "Falcon Wing Sentinel Cap",
+      "type": "hat",
+      "level": 140,
+      "req": {
+        "dex": 420
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 25,
+        "dex": 25,
+        "hp": 300,
+        "mp": 300,
+        "def": 250
+      },
+      "imageUrl": "/msucp/images/items/1003174.png"
+    },
+    {
+      "id": "cape_falcon_wing_sentinel_cape",
+      "apiItemId": 1102277,
+      "name": "Falcon Wing Sentinel Cape",
+      "nameEn": "Falcon Wing Sentinel Cape",
+      "type": "cape",
+      "level": 140,
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 7,
+        "dex": 7,
+        "def": 150,
+        "moveSpeed": 10,
+        "jump": 5
+      },
+      "imageUrl": "/msucp/images/items/1102277.png"
+    },
+    {
+      "id": "glove_falcon_wing_sentinel_gloves",
+      "apiItemId": 1082297,
+      "name": "Falcon Wing Sentinel Gloves",
+      "nameEn": "Falcon Wing Sentinel Gloves",
+      "type": "glove",
+      "level": 140,
+      "req": {
+        "dex": 420
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "str": 16,
+        "dex": 16,
+        "hp": 350,
+        "def": 50
+      },
+      "imageUrl": "/msucp/images/items/1082297.png"
+    },
+    {
+      "id": "overall_falcon_wing_sentinel_suit",
+      "apiItemId": 1052316,
+      "name": "Falcon Wing Sentinel Suit",
+      "nameEn": "Falcon Wing Sentinel Suit",
+      "type": "overall",
+      "level": 140,
+      "req": {
+        "dex": 420
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "str": 30,
+        "dex": 30,
+        "def": 225
+      },
+      "imageUrl": "/msucp/images/items/1052316.png"
+    },
+    {
+      "id": "shoes_falcon_wing_sentinel_boots",
+      "apiItemId": 1072487,
+      "name": "Falcon Wing Sentinel Boots",
+      "nameEn": "Falcon Wing Sentinel Boots",
+      "type": "shoes",
+      "level": 140,
+      "req": {
+        "dex": 420
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 1,
+        "str": 15,
+        "dex": 15,
+        "def": 85,
+        "moveSpeed": 10,
+        "jump": 7
+      },
+      "imageUrl": "/msucp/images/items/1072487.png"
+    },
+    {
+      "id": "hat_green_arnah_cap",
+      "apiItemId": 1002408,
+      "name": "Green Arnah Cap",
+      "nameEn": "Green Arnah Cap",
+      "type": "hat",
+      "level": 100,
+      "req": {
+        "dex": 310
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "dex": 6,
+        "hp": 20,
+        "def": 63
+      },
+      "imageUrl": "/msucp/images/items/1002408.png",
+      "noEnhance": true
+    },
+    {
+      "id": "overall_green_arzuna",
+      "apiItemId": 1050106,
+      "name": "Green Arzuna",
+      "nameEn": "Green Arzuna",
+      "type": "overall",
+      "level": 100,
+      "req": {
+        "dex": 310
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "str": 6,
+        "dex": 4,
+        "def": 105
+      },
+      "imageUrl": "/msucp/images/items/1050106.png",
+      "noEnhance": true
+    },
+    {
+      "id": "glove_green_arcina",
+      "apiItemId": 1082160,
+      "name": "Green Arcina",
+      "nameEn": "Green Arcina",
+      "type": "glove",
+      "level": 100,
+      "req": {
+        "dex": 290
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "str": 2,
+        "dex": 6,
+        "mp": 30,
+        "def": 40
+      },
+      "imageUrl": "/msucp/images/items/1082160.png",
+      "noEnhance": true
+    },
+    {
+      "id": "shoes_green_arnah_shoes",
+      "apiItemId": 1072229,
+      "name": "Green Arnah Shoes",
+      "nameEn": "Green Arnah Shoes",
+      "type": "shoes",
+      "level": 100,
+      "req": {
+        "dex": 310
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "dex": 6,
+        "def": 58
+      },
+      "imageUrl": "/msucp/images/items/1072229.png",
+      "noEnhance": true
+    },
+    {
+      "id": "overall_green_armis",
+      "apiItemId": 1051105,
+      "name": "Green Armis",
+      "nameEn": "Green Armis",
+      "type": "overall",
+      "level": 100,
+      "req": {
+        "dex": 310
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "str": 6,
+        "dex": 4,
+        "def": 105
+      },
+      "imageUrl": "/msucp/images/items/1051105.png",
+      "noEnhance": true
+    },
+    {
+      "id": "sec_basic_jewel",
+      "apiItemId": 1352979,
+      "name": "Basic Jewel",
+      "nameEn": "Basic Jewel",
+      "type": "secondary",
+      "subType": "jewel",
+      "level": 20,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "atk": 1,
+        "matk": 1,
+        "str": 2,
+        "dex": 2,
+        "int": 2,
+        "luk": 2
+      },
+      "imageUrl": "/msucp/images/items/1352979.png",
+      "noEnhance": true
+    },
+    {
+      "id": "ring_pivotal_adventure_ring",
+      "apiItemId": 1113069,
+      "name": "Pivotal Adventure Ring",
+      "nameEn": "Pivotal Adventure Ring",
+      "type": "ring",
+      "level": 130,
+      "maxStars": 0,
+      "stats": {
+        "atk": 3,
+        "matk": 3,
+        "str": 3,
+        "dex": 3,
+        "int": 3,
+        "luk": 3,
+        "hp": 300,
+        "mp": 300,
+        "critRate": 15,
+        "critDmg": 3
+      },
+      "imageUrl": "/msucp/images/items/1113069.png",
+      "noEnhance": true,
+      "specialEffect": {
+        "critRate": 15,
+        "critDmg": 3
+      }
     }
   ]
 }

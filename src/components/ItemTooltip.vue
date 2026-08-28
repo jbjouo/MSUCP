@@ -108,6 +108,7 @@ const PCT_KEYS = new Set([
   'bossDmg', 'ignoreDef', 'allStatPct', 'dmgPct',
   'atkPct', 'matkPct', 'hpPct', 'mpPct',
   'strPct', 'dexPct', 'intPct', 'lukPct',
+  'critRate', 'critDmg',
 ])
 const STAT_ORDER = [
   'bossDmg', 'ignoreDef', 'dmgPct', 'allStatPct',
@@ -142,13 +143,26 @@ function rowFor(key) {
   }
 }
 
+const specialEffectKeys = computed(() =>
+  new Set(Object.keys(item.value?.specialEffect || {})),
+)
+
+const specialEffectLines = computed(() => {
+  const fx = item.value?.specialEffect
+  if (!fx) return []
+  return formatTierStats(fx)
+})
+
 const statRows = computed(() => {
   if (!item.value?.stats) return []
   const out = []
   const seen = new Set()
+  const skipKeys = specialEffectKeys.value
   for (const k of STAT_ORDER) {
-    const r = rowFor(k)
-    if (r) out.push(r)
+    if (!skipKeys.has(k)) {
+      const r = rowFor(k)
+      if (r) out.push(r)
+    }
     seen.add(k)
   }
   // 其餘未列在 STAT_ORDER 的屬性 (例如 bossDmg, ignoreDef 等 %)
@@ -158,7 +172,7 @@ const statRows = computed(() => {
     ...Object.keys(starStats.value || {}),
   ])
   for (const k of all) {
-    if (seen.has(k)) continue
+    if (seen.has(k) || skipKeys.has(k)) continue
     const r = rowFor(k)
     if (r) out.push(r)
   }
@@ -424,6 +438,18 @@ function formatTierStats(stats) {
 
     <p v-if="item.description" class="tip__desc">{{ item.description }}</p>
   </div>
+
+  <!-- 裝備特效面板 (右側,與套裝面板同區域) -->
+  <aside v-if="specialEffectLines.length" class="tip-set">
+    <header class="tip-set__head">{{ item.name }}</header>
+    <div class="tip-set__tiers">
+      <div class="tip-set__tier tip-set__tier--active">
+        <ul class="tip-set__tier-list">
+          <li v-for="(line, i) in specialEffectLines" :key="i">{{ line }}</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
 
   <!-- 套裝面板 (右側,多個套裝各一欄)
        已穿上 = 白字亮、未穿 = 灰字;觸發的階層屬性也用白色亮起,未觸發為灰字 -->

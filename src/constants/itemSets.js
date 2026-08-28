@@ -20,7 +20,7 @@ const ITEMS_MAP = Object.fromEntries(
 //   同系列的職業分版合併為一顆按鈕;「女皇」= Lv140 套裝總稱
 //   (Dragon Tail / Raven Horn;未來新增的 140 等 set 也歸此組)
 export const SET_FILTER_GROUPS = [
-  { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief', 'root_abyss_warrior'] },
+  { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief', 'root_abyss_warrior', 'root_abyss_bowman'] },
   { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief', 'absolab_warrior'] },
   { key: 'arcane_umbra',   setIds: ['arcane_umbra_magician', 'arcane_umbra_thief', 'arcane_umbra_warrior', 'arcane_umbra_bowman', 'arcane_umbra_pirate'] },
   { key: 'pitched_boss',   setIds: ['pitched_boss'] },
@@ -28,8 +28,8 @@ export const SET_FILTER_GROUPS = [
   { key: 'seven_days',     setIds: ['seven_days'] },
   { key: 'ifias_treasure', setIds: ['ifias_treasure'] },
   { key: 'von_leon',       setIds: ['royal_von_leon_magician', 'royal_von_leon_warrior'] },
-  { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn', 'lionheart'] },
-  { key: 'fourth_magician', setIds: ['fourth_magician'] },
+  { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn', 'lionheart', 'falcon_wing'] },
+  { key: 'fourth_magician', setIds: ['fourth_magician', 'fourth_bowman'] },
 ]
 
 export const ITEM_SETS = [
@@ -73,6 +73,21 @@ export const ITEM_SETS = [
       { id: 'btm_trixter_warrior_pants', name: 'Trixter Warrior Pants', type: 'bottom' },
       { id: 'wpn_fafnir_brionak', name: 'Fafnir Brionak', type: 'weapon' },
       { id: 'wpn_fafnir_moon_glaive', name: 'Fafnir Moon Glaive', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { hp: 1000, mp: 1000, str: 20, dex: 20 } },
+      { count: 3, stats: { hpPct: 10, mpPct: 10, atk: 50 } },
+      { count: 4, stats: { bossDmg: 30 } },
+    ],
+  },
+  {
+    id: 'root_abyss_bowman',
+    nameKey: 'itemSet.root_abyss_bowman.name',
+    members: [
+      { id: 'hat_royal_ranger_beret', name: 'Royal Ranger Beret', type: 'hat' },
+      { id: 'top_eagle_eye_ranger_cowl', name: 'Eagle Eye Ranger Cowl', type: 'top' },
+      { id: 'btm_trixter_ranger_pants', name: 'Trixter Ranger Pants', type: 'bottom' },
+      { id: 'wpn_fafnir_wind_chaser', name: 'Fafnir Wind Chaser', type: 'weapon' },
     ],
     tiers: [
       { count: 2, stats: { hp: 1000, mp: 1000, str: 20, dex: 20 } },
@@ -195,6 +210,21 @@ export const ITEM_SETS = [
     tiers: [
       { count: 3, stats: { hpPct: 5, mpPct: 5 } },
       { count: 4, stats: { matk: 5, int: 5 } },
+    ],
+  },
+  {
+    id: 'fourth_bowman',
+    nameKey: 'itemSet.fourth_bowman.name',
+    members: [
+      { id: 'hat_green_arnah_cap', name: 'Green Arnah Cap', type: 'hat' },
+      { id: 'overall_green_arzuna', name: 'Green Arzuna', type: 'overall' },
+      { id: 'glove_green_arcina', name: 'Green Arcina', type: 'glove' },
+      { id: 'shoes_green_arnah_shoes', name: 'Green Arnah Shoes', type: 'shoes' },
+      { id: 'overall_green_armis', name: 'Green Armis', type: 'overall' },
+    ],
+    tiers: [
+      { count: 3, stats: { hpPct: 5, mpPct: 5 } },
+      { count: 4, stats: { atk: 5, dex: 5 } },
     ],
   },
   {
@@ -437,6 +467,26 @@ export const ITEM_SETS = [
       { id: 'shoulder_lionheart_battle_shoulder', name: 'Lionheart Battle Shoulder', type: 'shoulder' },
       { id: 'wpn_lionheart_fuscina', name: 'Lionheart Fuscina', type: 'weapon' },
       { id: 'wpn_lionheart_partisan', name: 'Lionheart Partisan', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { def: 300 } },
+      { count: 3, stats: { hpPct: 15, mpPct: 15 } },
+      { count: 4, stats: { atk: 15 } },
+      { count: 5, stats: { allStat: 20 } },
+      { count: 6, stats: { atk: 30, bossDmg: 30 } },
+      { count: 7, stats: { hpPct: 15, mpPct: 15, atk: 10 } },
+    ],
+  },
+  {
+    id: 'falcon_wing',
+    nameKey: 'itemSet.falcon_wing.name',
+    members: [
+      { id: 'hat_falcon_wing_sentinel_cap', name: 'Falcon Wing Sentinel Cap', type: 'hat' },
+      { id: 'overall_falcon_wing_sentinel_suit', name: 'Falcon Wing Sentinel Suit', type: 'overall' },
+      { id: 'shoes_falcon_wing_sentinel_boots', name: 'Falcon Wing Sentinel Boots', type: 'shoes' },
+      { id: 'glove_falcon_wing_sentinel_gloves', name: 'Falcon Wing Sentinel Gloves', type: 'glove' },
+      { id: 'cape_falcon_wing_sentinel_cape', name: 'Falcon Wing Sentinel Cape', type: 'cape' },
+      { id: 'shoulder_falcon_wing_sentinel_shoulder', name: 'Falcon Wing Sentinel Shoulder', type: 'shoulder' },
     ],
     tiers: [
       { count: 2, stats: { def: 300 } },

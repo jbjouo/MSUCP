@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { SKILLS } from '../constants/skills.js'
+import { BUFFS } from '../constants/buffs.js'
 import { charKey } from './useActiveCharacter.js'
 
 // CP 頁面 (以及戰鬥模擬器) 共用的「啟用中」狀態
@@ -37,7 +38,19 @@ watch(activeTitleIds, (v) => {
 export function useCpToggles() {
   function toggleBuff(id) {
     const s = new Set(activeBuffs.value)
-    if (s.has(id)) s.delete(id); else s.add(id)
+    if (s.has(id)) {
+      s.delete(id)
+    } else {
+      const target = BUFFS.find((x) => x.id === id)
+      const targetGroup = target?.cp?.group
+      if (targetGroup) {
+        for (const other of BUFFS) {
+          if (other.id === id) continue
+          if (other.cp?.group === targetGroup) s.delete(other.id)
+        }
+      }
+      s.add(id)
+    }
     activeBuffs.value = s
   }
   function isBuffActive(id) { return activeBuffs.value.has(id) }
