@@ -44,7 +44,6 @@ const navTree = computed(() => {
     { key: 'equipment', labelKey: 'nav.equipment', path: '/equipment' },
     { key: 'cp', labelKey: 'nav.cp', path: '/cp' },
     { key: 'characterCompare', labelKey: 'nav.characterCompare', path: '/compare' },
-    { key: 'skillBrowser', labelKey: 'nav.skillBrowser', path: '/skill-browser' },
   ]
   if (BATTLE_JOBS.has(state.job)) {
     items.push({ key: 'battle', labelKey: 'nav.battle', path: '/battle' })
