@@ -59,7 +59,7 @@ const filtered = computed(() => {
     } else if (setFilter.value === 'skillRing') {
       if (!it.skillRing) return false
     } else if (setFilter.value === 'others') {
-      if (setsForItem(it.id).length > 0 || it.skillRing || it.systemGear || it.filterTag) return false
+      if (setsForItem(it.id).length > 0 || it.skillRing || it.systemGear || it.filterTag || ['star', 'arrow', 'bullet'].includes(it.type)) return false
     } else if (setFilter.value) {
       if (!itemInSetGroup(it, setFilter.value) && !(setFilter.value === 'fourth_magician' && it.systemGear) && it.filterTag !== setFilter.value) return false
     }
