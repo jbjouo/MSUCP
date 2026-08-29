@@ -10,6 +10,19 @@ import { ASSET } from './skills/_shared/helpers.js'
 
 export const TITLES = [
   {
+    id: 'yeti_x_pink_bean',
+    name: 'Yeti x Pink Bean',
+    nameKey: 'titles.yeti_x_pink_bean.name',
+    descriptionKey: 'titles.yeti_x_pink_bean.description',
+    icon: ASSET('skills/titles/3700683.png'),
+    stats: {
+      allStat: 20,
+      atk: 10,
+      matk: 10,
+      bossDmg: 10,
+    },
+  },
+  {
     id: 'mulung_600y_inner_power',
     name: 'One with 600 Years of Inner Power',
     nameKey: 'titles.mulung_600y_inner_power.name',

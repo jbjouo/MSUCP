@@ -371,6 +371,10 @@
       "name": "Blessed of the Maple Goddesses",
       "description": "稱號:全屬性 +20、ATT / MATK +10、Boss 傷害 +10%、無視防禦 +10%、爆擊率 +15%、Buff 持續 +15%。"
     },
+    "yeti_x_pink_bean": {
+      "name": "Yeti x Pink Bean",
+      "description": "稱號:全屬性 +20、ATT / MATK +10、Boss 傷害 +10%。"
+    },
     "mulung_600y_inner_power": {
       "name": "One with 600 Years of Inner Power",
       "description": "稱號(武陵道場職業第一名):全屬性 +15、ATT / MATK +9、最大 HP / MP +400、Boss 傷害 +10%。"

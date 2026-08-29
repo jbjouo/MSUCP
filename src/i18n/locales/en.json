@@ -371,6 +371,10 @@
       "name": "Blessed of the Maple Goddesses",
       "description": "Title granting all-stat +20, ATT / MATK +10, Boss Damage +10%, Ignore Defense +10%, Critical Rate +15%, Buff Duration +15%."
     },
+    "yeti_x_pink_bean": {
+      "name": "Yeti x Pink Bean",
+      "description": "All Stats +20, ATT / MATK +10, Boss Damage +10%."
+    },
     "mulung_600y_inner_power": {
       "name": "One with 600 Years of Inner Power",
       "description": "Title granted to the 1st-ranked character of each job in Mu Lung Dojo — all-stat +15, ATT / MATK +9, Max HP / MP +400, Boss Damage +10%."
