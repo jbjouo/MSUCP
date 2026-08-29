@@ -71,7 +71,26 @@ export const ALL_JOBS_0TH_SKILLS = [
       critRate: 15,
       buffDuration: 25,
     },
-    cp: { role: 'buff' },
+    cp: { role: 'buff', group: 'event_buff' },
+  },
+  {
+    id: 'golden_radiance',
+    name: 'Golden Radiance',
+    nameKey: 'skills.common.golden_radiance.name',
+    descriptionKey: 'skills.common.golden_radiance.description',
+    icon: ASSET('skills/golden_radiance.png'),
+    advancement: 0,
+    kind: 'buff',
+    stats: {
+      allStat: 20,
+      atk: 10,
+      matk: 10,
+      ignoreDef: 15,
+      bossDmg: 15,
+      critRate: 15,
+      buffDuration: 25,
+    },
+    cp: { role: 'buff', group: 'event_buff' },
   },
   // ── Hero's Echo ──────────────────────────────────────────────────────────
   // 可施放 buff 技能(Max Lv 1,Lv1 +4% ATT/MATK, 2400s, cooldown 300s)。

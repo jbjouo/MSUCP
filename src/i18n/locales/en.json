@@ -344,6 +344,10 @@
         "name": "Gold Richie Resort VIP",
         "description": "All Stats +20, ATT & Magic ATT +10, Ignore DEF +15%, Boss Damage +15%, Critical Rate +15%, Buff Duration +25%."
       },
+      "golden_radiance": {
+        "name": "Golden Radiance",
+        "description": "All Stats +20, ATT & Magic ATT +10, Ignore DEF +15%, Boss Damage +15%, Critical Rate +15%, Buff Duration +25%."
+      },
       "heros_echo": {
         "name": "Hero's Echo",
         "description": "Increases the Attack Power and Magic ATT of all nearby characters. Max Level 1 / Master Level 1. Lv1: MP Cost 30, Duration 2400 sec, ATT & Magic ATT +4%, Cooldown 300 sec."
@@ -370,6 +374,26 @@
     "mulung_600y_inner_power": {
       "name": "One with 600 Years of Inner Power",
       "description": "Title granted to the 1st-ranked character of each job in Mu Lung Dojo — all-stat +15, ATT / MATK +9, Max HP / MP +400, Boss Damage +10%."
+    },
+    "mulung_300y_inner_power": {
+      "name": "One with 300 Years of Inner Power",
+      "description": "Title granted to the 2nd-ranked character of each job in Mu Lung Dojo — all-stat +10, ATT / MATK +7, Max HP / MP +300, Boss Damage +5%."
+    },
+    "mulung_120y_inner_power": {
+      "name": "One with 120 Years of Inner Power",
+      "description": "Title granted to the 3rd-ranked character of each job in Mu Lung Dojo — all-stat +5, ATT / MATK +4, Max HP / MP +200."
+    },
+    "superior_hunter": {
+      "name": "Superior Hunter",
+      "description": "Title from Silent Crusade — All Stats +3, ATT / MATK +1, Max HP / MP +400."
+    },
+    "first_spider_exterminator": {
+      "name": "First Spider Exterminator",
+      "description": "All Stats +10, ATT / MATK +5, Boss Damage +10%."
+    },
+    "spider_exterminator": {
+      "name": "Spider Exterminator",
+      "description": "All Stats +10, ATT / MATK +5, Boss Damage +10%."
     },
     "holy_pink_beanity": {
       "name": "Holy Pink Beanity",
