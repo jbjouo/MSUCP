@@ -6,6 +6,7 @@ import BattlePage from '../pages/BattlePage.vue'
 import CharacterManagerPage from '../pages/CharacterManagerPage.vue'
 import CharacterComparePage from '../pages/CharacterComparePage.vue'
 import SkillBrowserPage from '../pages/SkillBrowserPage.vue'
+import ItemBrowserPage from '../pages/ItemBrowserPage.vue'
 import { useCharacter } from '../composables/useCharacter.js'
 
 // 開放戰鬥模擬頁的職業 — 側欄入口 (Sidebar) 與路由守衛共用此清單
@@ -56,6 +57,11 @@ export const routes = [
     path: '/skill-browser',
     name: 'skillBrowser',
     component: SkillBrowserPage,
+  },
+  {
+    path: '/item-browser',
+    name: 'itemBrowser',
+    component: ItemBrowserPage,
   },
   // /legion 已併入 /character,相容舊連結
   {

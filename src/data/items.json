@@ -2126,7 +2126,8 @@
       },
       "defaultPotentialTier": "unique",
       "defaultBonusPotentialTier": "epic",
-      "imageUrl": "/msucp/images/items/1382274.png"
+      "imageUrl": "/msucp/images/items/1382274.png",
+      "filterTag": "genesis"
     },
     {
       "id": "pocket_cursed_red_spellbook",
@@ -4497,6 +4498,135 @@
         "statKey": "luk",
         "temporary": true
       }
+    },
+    {
+      "id": "pendant_source_of_suffering",
+      "apiItemId": 1122430,
+      "name": "Source of Suffering",
+      "nameEn": "Source of Suffering",
+      "type": "pendant",
+      "level": 160,
+      "maxStars": 25,
+      "stats": {
+        "atk": 3,
+        "matk": 3,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10,
+        "def": 200,
+        "hpPct": 5
+      },
+      "imageUrl": "/msucp/images/items/1122430.png"
+    },
+    {
+      "id": "earrings_estella_earrings",
+      "apiItemId": 1032330,
+      "name": "Estella Earrings",
+      "nameEn": "Estella Earrings",
+      "type": "earring",
+      "level": 160,
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "hp": 300,
+        "mp": 300,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1032330.png"
+    },
+    {
+      "id": "pendant_daybreak_pendant",
+      "apiItemId": 1122443,
+      "name": "Daybreak Pendant",
+      "nameEn": "Daybreak Pendant",
+      "type": "pendant",
+      "level": 140,
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 8,
+        "dex": 8,
+        "int": 8,
+        "luk": 8,
+        "def": 100,
+        "hpPct": 5
+      },
+      "imageUrl": "/msucp/images/items/1122443.png"
+    },
+    {
+      "id": "earrings_commanding_force_earring",
+      "apiItemId": 1032316,
+      "name": "Commanding Force Earring",
+      "nameEn": "Commanding Force Earring",
+      "type": "earring",
+      "level": 200,
+      "maxStars": 25,
+      "stats": {
+        "atk": 5,
+        "matk": 5,
+        "str": 7,
+        "dex": 7,
+        "int": 7,
+        "luk": 7,
+        "hp": 500,
+        "mp": 500,
+        "def": 100
+      },
+      "imageUrl": "/msucp/images/items/1032316.png"
+    },
+    {
+      "id": "ring_endless_terror",
+      "apiItemId": 1113306,
+      "name": "Endless Terror",
+      "nameEn": "Endless Terror",
+      "type": "ring",
+      "level": 200,
+      "maxStars": 25,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5,
+        "hp": 250,
+        "mp": 250
+      },
+      "imageUrl": "/msucp/images/items/1113306.png"
+    },
+    {
+      "id": "ring_dawn_guardian_angel_ring",
+      "name": "Dawn Guardian Angel Ring",
+      "nameEn": "Dawn Guardian Angel Ring",
+      "type": "ring",
+      "level": 160,
+      "classes": [
+        "warrior",
+        "magician",
+        "bowman",
+        "thief",
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 5,
+        "dex": 5,
+        "int": 5,
+        "luk": 5,
+        "hp": 200,
+        "mp": 200
+      },
+      "imageUrl": "/msucp/images/items/1113313.png",
+      "_pending": true
     }
   ]
 }

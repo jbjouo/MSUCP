@@ -137,6 +137,12 @@ function onKey(e) {
         <!-- 快捷篩選第二排:套裝俗稱 (再點一次取消);「其他」= 無套裝裝備 -->
         <div class="picker__quick">
           <button
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': setFilter === 'genesis' }"
+            @click="toggleSetFilter('genesis')"
+          >{{ t('itemSet.filter.genesis') }}</button>
+          <button
             v-for="g in SET_FILTER_GROUPS"
             :key="g.key"
             type="button"

@@ -529,9 +529,11 @@
       "name": "4th Magician Set"
     },
     "filter": {
+      "genesis": "Genesis",
       "root_abyss": "Root Abyss",
       "absolab": "AbsoLab",
       "arcane_umbra": "Arcane Umbra",
+      "boss_of_dawn": "Boss of Dawn",
       "pitched_boss": "Pitched Boss",
       "boss_accessory": "Boss Accessory",
       "seven_days": "Seven Days",
@@ -603,6 +605,9 @@
     },
     "fourth_bowman": {
       "name": "4th Bowman Set"
+    },
+    "boss_of_dawn": {
+      "name": "Boss of Dawn Set"
     }
   },
   "hyperStat": {

@@ -24,6 +24,7 @@ export const SET_FILTER_GROUPS = [
   { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief', 'absolab_warrior'] },
   { key: 'arcane_umbra',   setIds: ['arcane_umbra_magician', 'arcane_umbra_thief', 'arcane_umbra_warrior', 'arcane_umbra_bowman', 'arcane_umbra_pirate'] },
   { key: 'pitched_boss',   setIds: ['pitched_boss'] },
+  { key: 'boss_of_dawn',   setIds: ['boss_of_dawn'] },
   { key: 'boss_accessory', setIds: ['boss_accessory'] },
   { key: 'seven_days',     setIds: ['seven_days'] },
   { key: 'ifias_treasure', setIds: ['ifias_treasure'] },
@@ -96,10 +97,28 @@ export const ITEM_SETS = [
     ],
   },
   {
+    id: 'boss_of_dawn',
+    nameKey: 'itemSet.boss_of_dawn.name',
+    members: [
+      { id: 'face_twilight_mark', name: 'Twilight Mark', type: 'face' },
+      { id: 'ring_dawn_guardian_angel_ring', name: 'Dawn Guardian Angel Ring', type: 'ring' },
+      { id: 'earrings_estella_earrings', name: 'Estella Earrings', type: 'earring' },
+      { id: 'pendant_daybreak_pendant', name: 'Daybreak Pendant', type: 'pendant' },
+    ],
+    tiers: [
+      { count: 2, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, bossDmg: 10 } },
+      { count: 3, stats: { allStat: 10, hp: 250, atk: 10, matk: 10 } },
+      { count: 4, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, def: 100, ignoreDef: 10 } },
+    ],
+  },
+  {
     id: 'pitched_boss',
     nameKey: 'itemSet.pitched_boss.name',
     members: [
       { id: 'face_berserked', name: 'Berserked', type: 'face' },
+      { id: 'ring_endless_terror', name: 'Endless Terror', type: 'ring' },
+      { id: 'earrings_commanding_force_earring', name: 'Commanding Force Earring', type: 'earring' },
+      { id: 'pendant_source_of_suffering', name: 'Source of Suffering', type: 'pendant' },
       {
         group: true,
         nameKey: 'itemSet.pitched_boss.cursed_spellbook',
@@ -118,6 +137,9 @@ export const ITEM_SETS = [
       { count: 2, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, bossDmg: 10 } },
       { count: 3, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, def: 250, ignoreDef: 10 } },
       { count: 4, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, critDmg: 5 } },
+      { count: 5, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, bossDmg: 10 } },
+      { count: 6, stats: { allStat: 15, hp: 375, atk: 15, matk: 15 } },
+      { count: 7, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, critDmg: 5 } },
     ],
   },
   {

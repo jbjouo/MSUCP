@@ -529,9 +529,11 @@
       "name": "4th Magician Set"
     },
     "filter": {
+      "genesis": "創世",
       "root_abyss": "深淵",
       "absolab": "航海",
       "arcane_umbra": "神秘",
+      "boss_of_dawn": "黎明",
       "pitched_boss": "漆黑",
       "boss_accessory": "boss飾品",
       "seven_days": "七日怪公",
@@ -603,6 +605,9 @@
     },
     "fourth_bowman": {
       "name": "4th Bowman Set"
+    },
+    "boss_of_dawn": {
+      "name": "Boss of Dawn Set"
     }
   },
   "hyperStat": {
