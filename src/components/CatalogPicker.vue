@@ -54,10 +54,14 @@ const filtered = computed(() => {
   return CATALOG.filter((it) => {
     if (cc !== 'all' && it.classes && it.classes.length > 0 && !it.classes.includes(cc)) return false
     if (typeFilter.value !== 'all' && it.type !== typeFilter.value) return false
-    if (setFilter.value === 'others') {
-      if (setsForItem(it.id).length > 0) return false
+    if (setFilter.value === 'projectile') {
+      if (!['star', 'arrow', 'bullet'].includes(it.type)) return false
+    } else if (setFilter.value === 'skillRing') {
+      if (!it.skillRing) return false
+    } else if (setFilter.value === 'others') {
+      if (setsForItem(it.id).length > 0 || it.skillRing || it.systemGear || it.filterTag) return false
     } else if (setFilter.value) {
-      if (!itemInSetGroup(it, setFilter.value)) return false
+      if (!itemInSetGroup(it, setFilter.value) && !(setFilter.value === 'fourth_magician' && it.systemGear) && it.filterTag !== setFilter.value) return false
     }
     if (!kw) return true
     return (
@@ -140,6 +144,18 @@ function onKey(e) {
             :class="{ 'picker__chip--active': setFilter === g.key }"
             @click="toggleSetFilter(g.key)"
           >{{ t(`itemSet.filter.${g.key}`) }}</button>
+          <button
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': setFilter === 'projectile' }"
+            @click="toggleSetFilter('projectile')"
+          >{{ t('itemSet.filter.projectile') }}</button>
+          <button
+            type="button"
+            class="picker__chip"
+            :class="{ 'picker__chip--active': setFilter === 'skillRing' }"
+            @click="toggleSetFilter('skillRing')"
+          >{{ t('itemSet.filter.skillRing') }}</button>
           <button
             type="button"
             class="picker__chip"

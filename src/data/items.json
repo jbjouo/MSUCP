@@ -1829,7 +1829,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_mano",
@@ -1853,7 +1854,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_wodan",
@@ -1877,7 +1879,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_donarr",
@@ -1901,7 +1904,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_pruba",
@@ -1925,7 +1929,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_saturnus",
@@ -1949,7 +1954,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "badge_badge_of_junna",
@@ -1973,7 +1979,8 @@
         "stats": {
           "ignoreDef": 10
         }
-      }
+      },
+      "filterTag": "seven_days"
     },
     {
       "id": "medal_the_black",
@@ -2830,7 +2837,8 @@
         "matk": 113
       },
       "imageUrl": "/msucp/images/items/1372010.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "hat_blue_varr_hat",
@@ -2852,7 +2860,8 @@
         "def": 52
       },
       "imageUrl": "/msucp/images/items/1002399.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "overall_blue_varuna",
@@ -2875,7 +2884,8 @@
         "def": 84
       },
       "imageUrl": "/msucp/images/items/1050103.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "glove_blue_ciara",
@@ -2897,7 +2907,8 @@
         "def": 38
       },
       "imageUrl": "/msucp/images/items/1082152.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "shoes_blue_varr_shoes",
@@ -2919,7 +2930,8 @@
         "def": 39
       },
       "imageUrl": "/msucp/images/items/1072224.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "badge_adventure_lux_badge",
@@ -2938,7 +2950,8 @@
         "luk": 5
       },
       "imageUrl": "/msucp/images/items/1182305.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "pocket_adventure_lux_charm",
@@ -2957,7 +2970,8 @@
         "luk": 2
       },
       "imageUrl": "/msucp/images/items/1162086.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "ring_adventure_lux_ring",
@@ -2976,7 +2990,8 @@
         "luk": 3
       },
       "imageUrl": "/msucp/images/items/1113343.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "ring_critical_adventure_ring",
@@ -3056,7 +3071,8 @@
         "atk": 95
       },
       "imageUrl": "/msucp/images/items/1452019.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "hat_royal_warrior_helm",
@@ -4097,7 +4113,8 @@
         "def": 63
       },
       "imageUrl": "/msucp/images/items/1002408.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "overall_green_arzuna",
@@ -4119,7 +4136,8 @@
         "def": 105
       },
       "imageUrl": "/msucp/images/items/1050106.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "glove_green_arcina",
@@ -4142,7 +4160,8 @@
         "def": 40
       },
       "imageUrl": "/msucp/images/items/1082160.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "shoes_green_arnah_shoes",
@@ -4163,7 +4182,8 @@
         "def": 58
       },
       "imageUrl": "/msucp/images/items/1072229.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "overall_green_armis",
@@ -4185,7 +4205,8 @@
         "def": 105
       },
       "imageUrl": "/msucp/images/items/1051105.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "sec_basic_jewel",
@@ -4212,7 +4233,8 @@
         "luk": 2
       },
       "imageUrl": "/msucp/images/items/1352979.png",
-      "noEnhance": true
+      "noEnhance": true,
+      "systemGear": true
     },
     {
       "id": "ring_pivotal_adventure_ring",
