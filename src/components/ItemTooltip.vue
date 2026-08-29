@@ -210,7 +210,7 @@ function findEquippedSlotForUid(uid) {
 // 沒有同類型已裝備時(全空)才退回第一個可接受的槽 → 顯示「加裝」的全 CP 加成。
 // 多槽類型(戒指/項鍊):有 1 個已裝備就會比那個;全裝滿就比 slot[0]。
 function pickCompareSlot(item) {
-  const slots = slotsAcceptingType(item.type)
+  const slots = slotsAcceptingType(item.type, item)
   if (!slots.length) return null
   const occupied = slots.find((s) => equipState.equipped[s.key])
   return occupied || slots[0]
@@ -345,7 +345,7 @@ function formatTierStats(stats) {
 
     <!-- 名稱 + 副標 -->
     <div class="tip__header">
-      <div class="tip__name">{{ item.name }}</div>
+      <div class="tip__name">{{ entry.displayName || item.name }}</div>
       <div v-if="item.nameEn && item.nameEn !== item.name" class="tip__name-en">{{ item.nameEn }}</div>
     </div>
 

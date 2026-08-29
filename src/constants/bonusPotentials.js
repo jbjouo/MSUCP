@@ -1156,6 +1156,7 @@ export function findBonusPotentialOptionForLine(item, tier, lineIndex, label) {
 }
 
 export function itemHasBonusPotentialPool(item) {
+  if (item?.skillRing) return false
   const cat = categoryOf(item)
   if (!cat) return false
   const bucket = getLevelBucket(cat, item.level || 0)

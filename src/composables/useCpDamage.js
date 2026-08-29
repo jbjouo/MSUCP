@@ -416,6 +416,36 @@ export function useCpDamage() {
       }
     }
 
+    // 技能戒指效果（toggle 開關控制，不影響 CP）
+    const wpnEntry = equippedEntries.find((e) => e?.item?.type === 'weapon') || null
+    const wpnAtt = (() => {
+      if (!wpnEntry) return 0
+      const b = wpnEntry.item.stats || {}
+      const s = wpnEntry.starStats || {}
+      const x = wpnEntry.bonusStats || {}
+      return Math.max((b.atk||0)+(s.atk||0)+(x.atk||0), (b.matk||0)+(s.matk||0)+(x.matk||0))
+    })()
+    for (const ee of equippedEntries) {
+      if (!ee?.item?.skillEffect) continue
+      const toggleId = `skillring_${ee.item.id}`
+      if (!activeSkillIds.value.has(toggleId)) continue
+      const fx = ee.item.skillEffect
+      const lv = ee.skillLevel || 1
+      const label = t('cp.tip.skillPrefix', { name: `${fx.name} Lv.${lv}` })
+      if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
+        const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
+        const val = Math.floor(wpnAtt * pct / 100)
+        if (val) addFlat(fx.statKey, label, val, false, true)
+      } else {
+        for (const [k, base] of Object.entries(fx.base)) {
+          const val = base + (fx.perLevel[k] || 0) * lv
+          if (!val) continue
+          if (PCT_KEYS.has(k)) addPct(k, label, val, true)
+          else addFlat(k, label, val, false, true)
+        }
+      }
+    }
+
     // 圖鑑
     for (const contrib of collectionContribs.value) {
       const addFn = PCT_KEYS.has(contrib.stat.key) ? addPct : addFlat

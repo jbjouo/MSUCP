@@ -960,6 +960,7 @@ export function getPotentialOptionsForLine(item, tier, lineIndex) {
 
 // 是否該裝備有任何可用階級 (不論哪個 tier)
 export function itemHasPotentialPool(item) {
+  if (item?.skillRing) return false
   const cat = categoryOf(item)
   if (!cat) return false
   const bucket = getLevelBucket(cat, item.level || 0)

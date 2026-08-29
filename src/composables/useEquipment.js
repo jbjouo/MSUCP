@@ -173,9 +173,11 @@ function loadState() {
       const bs = noEnh ? null : sanitizeBonusStats(e.bonusStats, item)
       const pt = noEnh ? null : sanitizePotential(e.potential, item)
       const bp = noEnh ? null : sanitizeBonusPotential(e.bonusPotential, item)
+      const skillLv = item.skillMaxLevel ? Math.max(1, Math.min(item.skillMaxLevel, Math.floor(Number(e.skillLevel) || 1))) : undefined
       entries[uid] = {
         itemId: e.itemId,
         stars: noEnh ? 0 : clampStars(e.stars, item),
+        ...(skillLv !== undefined ? { skillLevel: skillLv } : {}),
         ...(bs ? { bonusStats: bs } : {}),
         ...(pt ? { potential: pt } : {}),
         ...(bp ? { bonusPotential: bp } : {}),
@@ -237,10 +239,13 @@ function resolveEntry(uid) {
   if (!e) return null
   const item = ITEMS_BY_ID[e.itemId]
   if (!item) return null
+  const skillLevel = e.skillLevel || (item.skillMaxLevel ? 1 : undefined)
   return {
     uid,
     stars: e.stars,
+    skillLevel,
     item,
+    displayName: item.skillMaxLevel ? `${item.name} Lv.${skillLevel}` : item.name,
     starStats: computeStarStats(item, e.stars),
     bonusStats: e.bonusStats || null,
     potential: e.potential || null,
@@ -249,14 +254,45 @@ function resolveEntry(uid) {
 }
 
 function resolveTargetSlot(item, preferredSlotKey = null) {
-  const slots = slotsAcceptingType(item.type)
+  const slots = slotsAcceptingType(item.type, item)
   if (slots.length === 0) return null
   if (preferredSlotKey) {
     const preferred = slots.find((s) => s.key === preferredSlotKey)
     if (preferred) return preferred
   }
+  if (item.skillRing) {
+    const sameTypeSlot = slots.find((s) => {
+      const uid = state.equipped[s.key]
+      if (!uid) return false
+      const e = state.entries[uid]
+      return e && getItem(e.itemId)?.skillRing === item.skillRing
+    })
+    if (sameTypeSlot) return sameTypeSlot
+  }
   const empty = slots.find((s) => !state.equipped[s.key])
   return empty || slots[0]
+}
+
+function getEquippedSkillRings() {
+  const result = { active: [], passive: [] }
+  for (const [slotKey, uid] of Object.entries(state.equipped)) {
+    if (!uid) continue
+    const e = state.entries[uid]
+    if (!e) continue
+    const it = getItem(e.itemId)
+    if (it?.skillRing) result[it.skillRing].push(slotKey)
+  }
+  return result
+}
+
+function canEquipSkillRing(item, targetSlotKey) {
+  if (!item.skillRing) return true
+  const equipped = getEquippedSkillRings()
+  const currentUid = state.equipped[targetSlotKey]
+  const currentItem = currentUid ? getItem(state.entries[currentUid]?.itemId) : null
+  const isReplacingSameType = currentItem?.skillRing === item.skillRing
+  if (isReplacingSameType) return true
+  return equipped[item.skillRing].length === 0
 }
 
 function equipEntry(uid, targetSlotKey = null) {
@@ -264,6 +300,7 @@ function equipEntry(uid, targetSlotKey = null) {
   if (!entry) return false
   const slot = resolveTargetSlot(entry.item, targetSlotKey)
   if (!slot) return false
+  if (!canEquipSkillRing(entry.item, slot.key)) return false
   // 目標槽有裝備 → 退回背包
   const previousUid = state.equipped[slot.key]
   if (previousUid && previousUid !== uid) state.inventory.push(previousUid)
@@ -311,6 +348,17 @@ function removeEntry(uid) {
     if (u === uid) state.equipped[key] = null
   }
   delete state.entries[uid]
+  persist()
+  return true
+}
+
+function setSkillLevel(uid, level) {
+  const entry = resolveEntry(uid)
+  if (!entry) return false
+  const max = entry.item.skillMaxLevel || 0
+  if (!max) return false
+  const lv = Math.max(1, Math.min(max, Math.floor(Number(level) || 1)))
+  state.entries[uid].skillLevel = lv
   persist()
   return true
 }
@@ -467,6 +515,7 @@ export function useEquipment() {
     unequipSlot,
     addToInventory,
     removeEntry,
+    setSkillLevel,
     setStars,
     setBonusStats,
     setPotential,

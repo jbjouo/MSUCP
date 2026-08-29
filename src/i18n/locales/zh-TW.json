@@ -9,7 +9,8 @@
     "equipment": "裝備",
     "cp": "戰鬥力計算",
     "characterCompare": "角色比較",
-    "battle": "戰鬥模擬"
+    "battle": "戰鬥模擬",
+    "skillBrowser": "技能圖鑑"
   },
   "charManager": {
     "title": "角色管理",
@@ -694,11 +695,13 @@
     "editor": {
       "title": "編輯裝備",
       "tab": {
+        "skillLevel": "技能等級",
         "stars": "星力",
         "bonusStats": "Bonus Stats",
         "potential": "潛能",
         "bonus": "附加潛能"
       },
+      "skillLevel": "技能等級",
       "soon": "建置中",
       "currentStars": "目前星力",
       "starHint": "點擊星條任一顆星即可設定星數,Shift+點擊可歸零。",
@@ -768,6 +771,7 @@
       "attackSpeed": "Attack Speed"
     },
     "slots": {
+      "skillRing": "技能戒指",
       "ring1": "戒指1",
       "ring2": "戒指2",
       "ring3": "戒指3",
@@ -1340,6 +1344,7 @@
     "skillHeader": "技能",
     "buffHeader": "增益",
     "titleHeader": "稱號",
+    "tempBuffHeader": "臨時增益",
     "simDps": {
       "toggle": "戰鬥模擬 DPS"
     },

@@ -49,13 +49,14 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { t } = useI18n()
-const { resolveEntry, setStars, setBonusStats, setPotential, setBonusPotential } = useEquipment()
+const { resolveEntry, setSkillLevel, setStars, setBonusStats, setPotential, setBonusPotential } = useEquipment()
 
 const entry = computed(() => (props.uid ? resolveEntry(props.uid) : null))
 const item = computed(() => entry.value?.item || null)
 
 // 不適用的分頁直接隱藏 (例:戒指沒有 Bonus Stats)
 const tabs = computed(() => [
+  { key: 'skillLevel', i18n: 'equipment.editor.tab.skillLevel', ready: (item.value?.skillMaxLevel || 0) > 0 },
   { key: 'stars',      i18n: 'equipment.editor.tab.stars',      ready: (item.value?.maxStars || 0) > 0 },
   { key: 'bonusStats', i18n: 'equipment.editor.tab.bonusStats', ready: supportsBonusStats(item.value) },
   { key: 'potential',  i18n: 'equipment.editor.tab.potential',  ready: itemHasPotentialPool(item.value) },
@@ -88,6 +89,7 @@ function cloneTieredLines(src) {
 
 // 草稿 (編輯中的值) — 確定時才寫回
 const draft = ref({
+  skillLevel: 1,
   stars: 0,
   bonusStats: emptyBonusStats(),
   potential: emptyTieredLines(),
@@ -102,6 +104,7 @@ watch(
     activeTab.value = tabs.value[0]?.key || 'stars'
     const e = resolveEntry(uid)
     draft.value = {
+      skillLevel: e?.skillLevel ?? 1,
       stars: e?.stars ?? 0,
       bonusStats: { ...emptyBonusStats(), ...(e?.bonusStats || {}) },
       potential: cloneTieredLines(e?.potential),
@@ -185,6 +188,7 @@ function bonusTiersForField(key) {
 
 function onConfirm() {
   if (!entry.value) return emit('close')
+  if (item.value?.skillMaxLevel) setSkillLevel(entry.value.uid, draft.value.skillLevel)
   setStars(entry.value.uid, draft.value.stars)
   setBonusStats(entry.value.uid, draft.value.bonusStats)
   setPotential(entry.value.uid, draft.value.potential)
@@ -226,7 +230,7 @@ function onKey(e) {
             <span v-else class="editor__thumb-ph" aria-hidden="true" />
           </div>
           <div class="editor__title">
-            <div class="editor__name">{{ item.name }}</div>
+            <div class="editor__name">{{ entry.displayName }}</div>
             <div class="editor__meta">
               <span>{{ t(`equipment.types.${item.type}`) }}</span>
               <span>·</span>
@@ -251,7 +255,22 @@ function onKey(e) {
 
         <!-- panels -->
         <div class="editor__body">
-          <section v-if="activeTab === 'stars'" class="panel">
+          <section v-if="activeTab === 'skillLevel'" class="panel">
+            <div class="panel__label">
+              {{ t('equipment.editor.skillLevel') }}
+              <strong class="panel__max">Lv.{{ draft.skillLevel || 1 }} / {{ item.skillMaxLevel }}</strong>
+            </div>
+            <div class="panel__skill-level">
+              <button
+                v-for="lv in item.skillMaxLevel"
+                :key="lv"
+                class="sl-btn"
+                :class="{ 'sl-btn--active': (draft.skillLevel || 1) === lv }"
+                @click="draft.skillLevel = lv"
+              >{{ lv }}</button>
+            </div>
+          </section>
+          <section v-else-if="activeTab === 'stars'" class="panel">
             <div v-if="maxStars === 0" class="panel__note">
               {{ t('equipment.editor.starNotSupported') }}
             </div>
@@ -653,6 +672,30 @@ function onKey(e) {
   color: #8089a3;
   font-size: 0.75rem;
   margin: 0;
+}
+.panel__skill-level {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+.sl-btn {
+  width: 42px;
+  height: 42px;
+  border: 2px solid #3a4270;
+  border-radius: 8px;
+  background: #0e1225;
+  color: #8089a3;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sl-btn:hover { border-color: #6c8cff; color: #c0c8e0; }
+.sl-btn--active {
+  border-color: #22c55e;
+  background: #0f2a1a;
+  color: #22c55e;
 }
 .panel__note {
   color: #8089a3;

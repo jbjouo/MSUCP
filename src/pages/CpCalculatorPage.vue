@@ -194,8 +194,59 @@ const visibleTitles = computed(() => {
   return TITLES.filter((t) => !t.jobs || t.jobs.includes(jobKey))
 })
 
-// 側欄只列出「可切換」的共通技能 — 依 cp.role 判斷,不再依技能本體的 passive 欄位
-const toggleableSkills = computed(() => SKILLS.filter((s) => s.cp?.role === 'toggle'))
+// 已裝備武器的 ATK/MATK（取較高值）— Weapon Jump 系列用
+const equippedWeaponAtt = computed(() => {
+  const wpnUid = equipState.equipped.weapon
+  if (!wpnUid) return 0
+  const e = resolveEntry(wpnUid)
+  if (!e) return 0
+  const base = e.item.stats || {}
+  const star = e.starStats || {}
+  const bonus = e.bonusStats || {}
+  const atk = (base.atk || 0) + (star.atk || 0) + (bonus.atk || 0)
+  const matk = (base.matk || 0) + (star.matk || 0) + (bonus.matk || 0)
+  return Math.max(atk, matk)
+})
+
+// 已裝備的技能戒指 → 動態產生 toggle 物件
+const equipSkillRingToggles = computed(() => {
+  const result = []
+  for (const uid of Object.values(equipState.equipped)) {
+    const entry = resolveEntry(uid)
+    if (!entry?.item?.skillEffect) continue
+    const fx = entry.item.skillEffect
+    const lv = entry.skillLevel || 1
+    const bag = {}
+    if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
+      const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
+      const val = Math.floor(equippedWeaponAtt.value * pct / 100)
+      if (val) bag[fx.statKey] = val
+    } else {
+      for (const [k, base] of Object.entries(fx.base)) {
+        const val = base + (fx.perLevel[k] || 0) * lv
+        if (val) bag[k] = val
+      }
+    }
+    result.push({
+      id: `skillring_${entry.item.id}`,
+      name: `${fx.name} Lv.${lv}`,
+      icon: entry.item.imageUrl,
+      stats: bag,
+      cp: { role: 'toggle' },
+      temporary: !!fx.temporary,
+    })
+  }
+  return result
+})
+
+// 臨時 buff（CD > 持續時間的技能戒指效果）
+const temporaryBuffs = computed(() => equipSkillRingToggles.value.filter((s) => s.temporary))
+
+// 側欄技能：常駐技能戒指 + 共通 toggle 技能
+const toggleableSkills = computed(() => [
+  ...equipSkillRingToggles.value.filter((s) => !s.temporary),
+  ...SKILLS.filter((s) => s.cp?.role === 'toggle'),
+])
 
 // BUFF 側欄只顯示符合當前職業的 buff
 const visibleBuffs = computed(() => {
@@ -616,6 +667,16 @@ const breakdowns = computed(() => {
     for (const [k, v] of Object.entries(bag)) {
       if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
       else addFlat(k, skillLabel, v, false, cpExc)
+    }
+  }
+
+  // 技能戒指效果（toggle 開關控制，不影響 CP）
+  for (const srt of equipSkillRingToggles.value) {
+    if (!activeSkillIds.value.has(srt.id)) continue
+    const label = t('cp.tip.skillPrefix', { name: srt.name })
+    for (const [k, v] of Object.entries(srt.stats)) {
+      if (PCT_KEYS.has(k)) addPct(k, label, v, true)
+      else addFlat(k, label, v, false, true)
     }
   }
 
@@ -1467,6 +1528,23 @@ function onPanelOut(e) {
             @click="toggleBuff(buff.id)"
           >
             <img :src="buff.icon" :alt="displayName(buff)" />
+          </button>
+        </div>
+      </section>
+
+      <section v-if="temporaryBuffs.length" class="buff-panel">
+        <header class="buff-panel__head">{{ t('cp.tempBuffHeader') }}</header>
+        <div class="buff-grid">
+          <button
+            v-for="tb in temporaryBuffs"
+            :key="tb.id"
+            type="button"
+            class="buff-cell"
+            :class="{ 'buff-cell--on': isSkillActive(tb.id) }"
+            :title="tooltipText(tb)"
+            @click="toggleSkill(tb.id)"
+          >
+            <img :src="tb.icon" :alt="tb.name" />
           </button>
         </div>
       </section>

@@ -5,6 +5,7 @@ import { useEquipment } from '../composables/useEquipment.js'
 
 const props = defineProps({
   acceptTypes: { type: Array, default: null },
+  skillRingOnly: { type: Boolean, default: false },
   columns: { type: Number, default: 8 },
   minCells: { type: Number, default: 32 },
 })
@@ -27,6 +28,7 @@ const filtered = computed(() => {
   let list = inventoryEntries.value
   if (props.acceptTypes && props.acceptTypes.length) {
     list = list.filter((e) => props.acceptTypes.includes(e.item.type))
+    if (props.skillRingOnly) list = list.filter((e) => !!e.item.skillRing)
   } else if (filterType.value !== 'all') {
     list = list.filter((e) => e.item.type === filterType.value)
   }
@@ -127,7 +129,7 @@ function cancelCopy() {
           class="bag-cell"
           :class="cell.empty ? 'bag-cell--empty' : 'bag-cell--filled'"
           :disabled="cell.empty"
-          :title="cell.entry ? cell.entry.item.name : ''"
+          :title="cell.entry ? cell.entry.displayName : ''"
           @click="onClick(cell.entry)"
           @mouseenter="onEnter(cell.entry)"
           @mouseleave="onLeave"
@@ -143,7 +145,7 @@ function cancelCopy() {
               loading="lazy"
             />
             <span v-else class="bag-cell__img bag-cell__img--placeholder" aria-hidden="true" />
-            <span class="bag-cell__name">{{ cell.entry.item.name }}</span>
+            <span class="bag-cell__name">{{ cell.entry.displayName }}</span>
           </template>
         </button>
         <span
@@ -158,9 +160,9 @@ function cancelCopy() {
             :aria-label="t('equipment.bag.copy')"
             @click="onCopy($event, cell.entry)"
           >⧉</button>
-          <!-- noEnhance (unmintable) 道具完全不可強化 — 不顯示編輯按鈕,數值保持乾淨 -->
+          <!-- noEnhance 道具不顯示編輯按鈕,但技能戒指例外 (可編輯等級) -->
           <button
-            v-if="!cell.entry.item?.noEnhance"
+            v-if="!cell.entry.item?.noEnhance || cell.entry.item?.skillMaxLevel"
             class="bag-cell__btn bag-cell__btn--edit"
             :title="t('equipment.bag.edit')"
             :aria-label="t('equipment.bag.edit')"

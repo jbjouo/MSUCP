@@ -10,6 +10,7 @@ export const PROJECTILE_TYPES = ['star', 'arrow', 'bullet']
 export const EQUIP_SLOTS = [
   // Row 1
   { key: 'ring1',     row: 1, col: 1, accepts: ['ring'] },
+  { key: 'skillRing', row: 1, col: 2, accepts: ['ring'], skillRingOnly: true },
   { key: 'hat',       row: 1, col: 3, accepts: ['hat'] },
   { key: 'emblem',    row: 1, col: 5, accepts: ['emblem'] },
   // Row 2
@@ -49,7 +50,12 @@ export const EQUIP_ACCEPT_TYPES = new Set(
 )
 
 // 取得可接受此 item type 的所有槽位
-export function slotsAcceptingType(type) {
-  return EQUIP_SLOTS.filter((s) => s.accepts.includes(type))
+// skillRingOnly 槽只接受有 skillRing 屬性的戒指;一般戒指和技能戒指都能放普通 ring 槽
+export function slotsAcceptingType(type, item = null) {
+  return EQUIP_SLOTS.filter((s) => {
+    if (!s.accepts.includes(type)) return false
+    if (s.skillRingOnly && !item?.skillRing) return false
+    return true
+  })
 }
 

@@ -9,7 +9,8 @@
     "equipment": "Equipment",
     "cp": "CP Calculator",
     "characterCompare": "Compare",
-    "battle": "Battle Sim"
+    "battle": "Battle Sim",
+    "skillBrowser": "Skill Browser"
   },
   "charManager": {
     "title": "Character Manager",
@@ -694,11 +695,13 @@
     "editor": {
       "title": "Edit item",
       "tab": {
+        "skillLevel": "Skill Level",
         "stars": "Star Force",
         "bonusStats": "Bonus Stats",
         "potential": "Potential",
         "bonus": "Bonus Potential"
       },
+      "skillLevel": "Skill Level",
       "soon": "soon",
       "currentStars": "Current stars",
       "starHint": "Click a star to set the count. Shift+click to reset to 0.",
@@ -768,6 +771,7 @@
       "attackSpeed": "Attack Speed"
     },
     "slots": {
+      "skillRing": "Skill Ring",
       "ring1": "Ring 1",
       "ring2": "Ring 2",
       "ring3": "Ring 3",
@@ -1340,6 +1344,7 @@
     "skillHeader": "SKILL",
     "buffHeader": "BUFF",
     "titleHeader": "TITLE",
+    "tempBuffHeader": "TEMP BUFF",
     "simDps": {
       "toggle": "Battle Sim DPS"
     },

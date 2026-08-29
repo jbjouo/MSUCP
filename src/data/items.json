@@ -4240,6 +4240,241 @@
         "critRate": 15,
         "critDmg": 3
       }
+    },
+    {
+      "id": "ring_ring_of_restraint",
+      "apiItemId": 1113098,
+      "name": "Ring of Restraint",
+      "nameEn": "Ring of Restraint",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113098.png",
+      "skillRing": "active",
+      "noEnhance": true,
+      "skillMaxLevel": 6,
+      "skillEffect": {
+        "skillId": 80001455,
+        "name": "Ring of Restraint",
+        "base": {
+          "atkPct": 0,
+          "matkPct": 0
+        },
+        "perLevel": {
+          "atkPct": 17,
+          "matkPct": 17
+        },
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_continuous_ring",
+      "apiItemId": 1113329,
+      "name": "Continuous Ring",
+      "nameEn": "Continuous Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113329.png",
+      "skillRing": "passive",
+      "noEnhance": true,
+      "skillMaxLevel": 6,
+      "skillEffect": {
+        "skillId": 80003341,
+        "name": "Continuous Ring",
+        "base": {
+          "atkPct": 2,
+          "matkPct": 2,
+          "bossDmg": 0
+        },
+        "perLevel": {
+          "atkPct": 2,
+          "matkPct": 2,
+          "bossDmg": 9
+        }
+      }
+    },
+    {
+      "id": "ring_risk_taker_ring",
+      "apiItemId": 1113122,
+      "name": "Risk Taker Ring",
+      "nameEn": "Risk Taker Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113122.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001479,
+        "name": "Risk Taker Ring",
+        "base": {
+          "atkPct": 0,
+          "matkPct": 0
+        },
+        "perLevel": {
+          "atkPct": 6,
+          "matkPct": 6
+        },
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_weapon_jump_s_ring",
+      "apiItemId": 1113113,
+      "name": "Weapon Jump S Ring",
+      "nameEn": "Weapon Jump S Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113113.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001470,
+        "name": "Weapon Jump S Ring",
+        "base": {
+          "weaponJumpStat": 0
+        },
+        "perLevel": {
+          "weaponJumpStat": 65
+        },
+        "statKey": "str",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_weapon_jump_d_ring",
+      "apiItemId": 1113114,
+      "name": "Weapon Jump D Ring",
+      "nameEn": "Weapon Jump D Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113114.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001471,
+        "name": "Weapon Jump D Ring",
+        "base": {
+          "weaponJumpStat": 0
+        },
+        "perLevel": {
+          "weaponJumpStat": 65
+        },
+        "statKey": "dex",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_weapon_jump_i_ring",
+      "apiItemId": 1113115,
+      "name": "Weapon Jump I Ring",
+      "nameEn": "Weapon Jump I Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113115.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001472,
+        "name": "Weapon Jump I Ring",
+        "base": {
+          "weaponJumpStat": 0
+        },
+        "perLevel": {
+          "weaponJumpStat": 65
+        },
+        "statKey": "int",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_weapon_jump_l_ring",
+      "apiItemId": 1113116,
+      "name": "Weapon Jump L Ring",
+      "nameEn": "Weapon Jump L Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113116.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001473,
+        "name": "Weapon Jump L Ring",
+        "base": {
+          "weaponJumpStat": 0
+        },
+        "perLevel": {
+          "weaponJumpStat": 65
+        },
+        "statKey": "luk",
+        "temporary": true
+      }
     }
   ]
 }

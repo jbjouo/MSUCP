@@ -72,7 +72,7 @@ function onLeave() {
             'equip-slot--filled': !!entryIn(slot.key),
             'equip-slot--selected': selectedSlotKey === slot.key,
           }"
-          :title="entryIn(slot.key)?.item.name || slotLabel(slot.key)"
+          :title="entryIn(slot.key)?.displayName || slotLabel(slot.key)"
           :aria-label="slotLabel(slot.key)"
           @click="onClick(slot)"
           @mouseenter="onEnter(slot)"
@@ -89,7 +89,7 @@ function onLeave() {
               loading="lazy"
             />
             <span v-else class="equip-slot__img equip-slot__img--placeholder" aria-hidden="true" />
-            <span class="equip-slot__name">{{ entryIn(slot.key).item.name }}</span>
+            <span class="equip-slot__name">{{ entryIn(slot.key).displayName }}</span>
           </template>
           <span v-else class="equip-slot__label">{{ slotLabel(slot.key) }}</span>
         </button>
