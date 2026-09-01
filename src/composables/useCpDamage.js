@@ -353,18 +353,13 @@ export function useCpDamage() {
     for (const set of ITEM_SETS) {
       const count = countActiveSet(set, equippedItems, activeLucky)
       if (!count) continue
-      const setBag = {}
+      const label = t('cp.tip.setPrefix', { name: t(set.nameKey) })
       for (const tier of set.tiers) {
         if (count < tier.count) break
         for (const [k, v] of Object.entries(tier.stats || {})) {
-          setBag[k] = (setBag[k] || 0) + v
+          if (PCT_KEYS.has(k)) addPct(k, label, v)
+          else addFlat(k, label, v)
         }
-      }
-      if (!Object.keys(setBag).length) continue
-      const label = t('cp.tip.setPrefix', { name: t(set.nameKey) })
-      for (const [k, v] of Object.entries(setBag)) {
-        if (PCT_KEYS.has(k)) addPct(k, label, v)
-        else addFlat(k, label, v)
       }
     }
 
@@ -408,6 +403,7 @@ export function useCpDamage() {
         continue // 沒 CP 角色
       }
       if (!bag) continue
+      if (skill.cpExclude) continue
       const cpExc = !CP_SKILL_ALLOWLIST.has(skill.id)
       const skillLabel = t('cp.tip.skillPrefix', { name: displayName(skill) })
       for (const [k, v] of Object.entries(bag)) {
@@ -771,6 +767,7 @@ export function useCpDamage() {
     const entry = equippedEntries.find((e) => e?.item?.type === 'weapon')
     const item = entry?.item
     if (!item || item.type !== 'weapon') return null
+    if (item.unchainedTiers) return null
     const canonical = jobCpReferenceWeapon(charState.job, item.level)
     if (!canonical) return null
     const bow = universalBowReference(item.level)
@@ -827,7 +824,9 @@ export function useCpDamage() {
     const contribs = computeWeaponContribsForCp(equippedEntries, attKey)
     const replacement = contribs ? sub(contribs.canonicalW, contribs.actualW) : 0
     const delta = contribs?.weaponDelta || 0
-    const flatAttForCp = clean(flatAtt + replacement)
+    const wpnEntry = equippedEntries.find((e) => e?.item?.type === 'weapon')
+    const unchainedBonus = wpnEntry?.item?.unchainedTiers ? 12 : 0
+    const flatAttForCp = clean(flatAtt + replacement + unchainedBonus)
     const z2A = clean(Math.round(mul(flatAttForCp, attMul) * 100) / 100)
     const z2B = floor(mul(sub(flatAttForCp, delta), attMul))
     const z2Diff = sub(z2A, z2B)

@@ -1,4 +1,5 @@
 import { reactive, computed } from 'vue'
+import { useCharacter } from './useCharacter.js'
 import itemsData from '../data/items.json'
 import {
   EQUIP_SLOTS,
@@ -37,7 +38,7 @@ const NO_BONUS_TYPES = new Set(['ring', 'shoulder', 'secondary', 'emblem', 'badg
 const WEAPON_ONLY_KEYS = new Set(['bossDmg', 'dmgPct'])
 
 export function allowedBonusStatKeys(item) {
-  if (!item || NO_BONUS_TYPES.has(item.type)) return []
+  if (!item || NO_BONUS_TYPES.has(item.type) || item.noBonusStats) return []
   if (item.type === 'weapon') return [...BONUS_STATS_KEYS]
   return BONUS_STATS_KEYS.filter((k) => !WEAPON_ONLY_KEYS.has(k))
 }
@@ -233,6 +234,16 @@ function getItem(id) {
   return id ? ITEMS_BY_ID[id] || null : null
 }
 
+function resolveUnchainedStats(item, charLevel) {
+  if (!item.unchainedTiers) return item.stats
+  const tiers = item.unchainedTiers
+  let active = tiers[0]?.stats || item.stats
+  for (const t of tiers) {
+    if (charLevel >= t.level) active = t.stats
+  }
+  return active
+}
+
 function resolveEntry(uid) {
   if (!uid) return null
   const e = state.entries[uid]
@@ -240,13 +251,17 @@ function resolveEntry(uid) {
   const item = ITEMS_BY_ID[e.itemId]
   if (!item) return null
   const skillLevel = e.skillLevel || (item.skillMaxLevel ? 1 : undefined)
+  const { state: charState } = useCharacter()
+  const resolvedItem = item.unchainedTiers
+    ? { ...item, stats: resolveUnchainedStats(item, charState.level) }
+    : item
   return {
     uid,
     stars: e.stars,
     skillLevel,
-    item,
+    item: resolvedItem,
     displayName: item.skillMaxLevel ? `${item.name} Lv.${skillLevel}` : item.name,
-    starStats: computeStarStats(item, e.stars),
+    starStats: item.noStarStats ? {} : computeStarStats(resolvedItem, e.stars),
     bonusStats: e.bonusStats || null,
     potential: e.potential || null,
     bonusPotential: e.bonusPotential || null,
@@ -323,6 +338,25 @@ function unequipSlot(slotKey) {
   state.inventory.push(uid)
   persist()
   return true
+}
+
+function unequipAll() {
+  for (const key of Object.keys(state.equipped)) {
+    const uid = state.equipped[key]
+    if (uid) {
+      state.equipped[key] = null
+      state.inventory.push(uid)
+    }
+  }
+  persist()
+}
+
+function clearInventory() {
+  for (const uid of state.inventory) {
+    delete state.entries[uid]
+  }
+  state.inventory = []
+  persist()
 }
 
 function addToInventory(itemId, stars = 0) {
@@ -513,6 +547,8 @@ export function useEquipment() {
     resolveTargetSlot,
     equipEntry,
     unequipSlot,
+    unequipAll,
+    clearInventory,
     addToInventory,
     removeEntry,
     setSkillLevel,

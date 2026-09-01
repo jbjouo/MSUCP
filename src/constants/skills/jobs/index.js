@@ -5,6 +5,7 @@ export * from './archmage-fp/index.js'
 export * from './bishop/index.js'
 export * from './buccaneer/index.js'
 export * from './dark-knight/index.js'
+export * from './luminous/index.js'
 export * from './night-walker/index.js'
 export * from './shadower/index.js'
 export * from './wind-archer/index.js'
@@ -64,6 +65,18 @@ import {
   DARK_KNIGHT_HYPER_SKILLS_ALL,
   DARK_KNIGHT_LINK_SKILLS,
 } from './dark-knight/index.js'
+
+import {
+  LUMINOUS_SKILLS,
+  LUMINOUS_SIM_SKILLS,
+  LUMINOUS_PASSIVE_SKILLS,
+  LUMINOUS_BUFFS,
+  LUMINOUS_BATTLE_BUFFS,
+  LUMINOUS_VMATRIX_SKILLS,
+  LUMINOUS_HYPER_SKILLS_ALL,
+  LUMINOUS_LINK_SKILLS,
+  LUMINOUS_TOGGLE_SKILLS,
+} from './luminous/index.js'
 
 import {
   WIND_ARCHER_SKILLS,
@@ -153,6 +166,19 @@ export const JOB_SKILL_REGISTRY = [
     link: BUCCANEER_LINK_SKILLS,
   },
   {
+    jobKey: 'luminous',
+    branchKey: 'magician',
+    all: LUMINOUS_SKILLS,
+    sim: LUMINOUS_SIM_SKILLS,
+    passive: LUMINOUS_PASSIVE_SKILLS,
+    buffs: LUMINOUS_BUFFS,
+    battleBuffs: LUMINOUS_BATTLE_BUFFS,
+    vmatrix: LUMINOUS_VMATRIX_SKILLS,
+    hyper: LUMINOUS_HYPER_SKILLS_ALL,
+    link: LUMINOUS_LINK_SKILLS,
+    toggle: LUMINOUS_TOGGLE_SKILLS,
+  },
+  {
     jobKey: 'windarcher',
     branchKey: 'cygnus',
     all: WIND_ARCHER_SKILLS,
@@ -203,3 +229,4 @@ export const ALL_JOBS_JOB_BATTLE_BUFFS  = JOB_SKILL_REGISTRY.flatMap((j) => j.ba
 export const ALL_JOBS_JOB_VMATRIX       = JOB_SKILL_REGISTRY.flatMap((j) => j.vmatrix)
 export const ALL_JOBS_HYPER_SKILLS      = JOB_SKILL_REGISTRY.flatMap((j) => j.hyper)
 export const ALL_JOBS_LINK_SKILLS       = JOB_SKILL_REGISTRY.flatMap((j) => j.link)
+export const ALL_JOBS_JOB_TOGGLE_SKILLS = JOB_SKILL_REGISTRY.flatMap((j) => j.toggle || [])

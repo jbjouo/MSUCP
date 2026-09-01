@@ -235,7 +235,7 @@ export const ARCHMAGE_FP_3RD_SKILLS = [
     jobs: ['archmageFP'],
     advancement: 3,
     kind: 'passive',
-    stats: { finalDmg: 40 },
+    stats: { finalDmg: 40, elementalResist: 10 },
     cp: { role: 'passive' },
   },
   {

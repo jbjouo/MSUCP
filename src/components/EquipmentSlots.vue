@@ -13,7 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['slot-click', 'slot-hover'])
 
 const { t } = useI18n()
-const { state, EQUIP_SLOTS, resolveEntry } = useEquipment()
+const { state, EQUIP_SLOTS, resolveEntry, unequipAll } = useEquipment()
 const { state: charState } = useCharacter()
 
 const currentProjectile = computed(() => projectileTypeOf(charState.job))
@@ -49,6 +49,7 @@ function onLeave() {
   <div class="equip-panel">
     <header class="equip-panel__header">
       <h2>{{ t('equipment.panel.title') }}</h2>
+      <button class="btn btn--ghost btn--sm" @click="unequipAll">{{ t('equipment.panel.unequipAll') }}</button>
     </header>
     <div
       class="equip-grid"

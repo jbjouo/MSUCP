@@ -13,11 +13,12 @@ const props = defineProps({
 const emit = defineEmits(['entry-click', 'entry-hover', 'entry-edit', 'open-picker'])
 
 const { t } = useI18n()
-const { state, inventoryEntries, removeEntry, importEntries } = useEquipment()
+const { state, inventoryEntries, removeEntry, clearInventory, importEntries } = useEquipment()
 
 const filterType = ref('all')
 const pendingRemove = ref(null)
 const pendingCopy = ref(null)
+const pendingClearAll = ref(false)
 
 const typeOptions = computed(() => {
   const set = new Set(inventoryEntries.value.map((e) => e.item.type))
@@ -114,6 +115,11 @@ function cancelCopy() {
         <button class="bag-panel__add" @click="emit('open-picker')">
           + {{ t('equipment.bag.add') }}
         </button>
+        <button
+          v-if="inventoryEntries.length > 0"
+          class="bag-panel__clear"
+          @click="pendingClearAll = true"
+        >{{ t('equipment.bag.clearAll') }}</button>
       </div>
     </header>
     <div
@@ -211,6 +217,21 @@ function cancelCopy() {
           </div>
         </div>
       </div>
+      <div v-if="pendingClearAll" class="confirm-backdrop" @click.self="pendingClearAll = false">
+        <div class="confirm-dialog">
+          <p class="confirm-dialog__msg">
+            {{ t('equipment.bag.confirmClearAll', { n: inventoryEntries.length }) }}
+          </p>
+          <div class="confirm-dialog__actions">
+            <button class="confirm-dialog__btn confirm-dialog__btn--cancel" @click="pendingClearAll = false">
+              {{ t('equipment.bag.cancel') }}
+            </button>
+            <button class="confirm-dialog__btn confirm-dialog__btn--danger" @click="clearInventory(); pendingClearAll = false">
+              {{ t('equipment.bag.confirmClearAllOk') }}
+            </button>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -270,6 +291,18 @@ function cancelCopy() {
   transition: background 100ms ease, border-color 100ms ease;
 }
 .bag-panel__add:hover { background: #232a4f; border-color: #7ee8fa; }
+.bag-panel__clear {
+  background: #1b2140;
+  color: #f87171;
+  border: 1px solid #2a3152;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  transition: background 100ms ease, border-color 100ms ease;
+}
+.bag-panel__clear:hover { background: #2a1520; border-color: #f87171; }
 
 .bag-grid {
   display: grid;

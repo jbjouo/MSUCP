@@ -30,6 +30,7 @@ export const SET_FILTER_GROUPS = [
   { key: 'ifias_treasure', setIds: ['ifias_treasure'] },
   { key: 'von_leon',       setIds: ['royal_von_leon_magician', 'royal_von_leon_warrior'] },
   { key: 'empress',        setIds: ['dragon_tail_magician', 'raven_horn', 'lionheart', 'falcon_wing'] },
+  { key: 'unchained',       setIds: ['unchained_magician'] },
   { key: 'fourth_magician', setIds: ['fourth_magician', 'fourth_bowman'] },
 ]
 
@@ -299,6 +300,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_magician.name',
     members: [
       { id: 'shoes_arcane_umbra_mage_shoes', name: 'Arcane Umbra Mage Shoes', type: 'shoes' },
+      { id: 'wpn_arcane_umbra_shining_rod', name: 'Arcane Umbra Shining Rod', type: 'weapon' },
       { id: 'shoulder_arcane_umbra_mage_shoulder', name: 'Arcane Umbra Mage Shoulder', type: 'shoulder' },
       { id: 'glove_arcane_umbra_mage_gloves', name: 'Arcane Umbra Mage Gloves', type: 'glove' },
       { id: 'cape_arcane_umbra_mage_cape', name: 'Arcane Umbra Mage Cape', type: 'cape' },
@@ -517,6 +519,23 @@ export const ITEM_SETS = [
       { count: 5, stats: { allStat: 20 } },
       { count: 6, stats: { atk: 30, bossDmg: 30 } },
       { count: 7, stats: { hpPct: 15, mpPct: 15, atk: 10 } },
+    ],
+  },
+  {
+    id: 'unchained_magician',
+    nameKey: 'itemSet.unchained_magician.name',
+    members: [
+      { id: 'hat_unchained_magician_helm', name: 'Unchained Magician Helm', type: 'hat' },
+      { id: 'overall_unchained_mage_suit', name: 'Unchained Mage Suit', type: 'overall' },
+      { id: 'shoes_unchained_magician_boots', name: 'Unchained Magician Boots', type: 'shoes' },
+      { id: 'glove_unchained_mage_hands', name: 'Unchained Mage Hands', type: 'glove' },
+      { id: 'wpn_unchained_shining_rod', name: 'Unchained Shining Rod', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { allStat: 5, def: 100 } },
+      { count: 3, stats: { allStat: 10, atk: 5, matk: 5, def: 200 } },
+      { count: 4, stats: { hpPct: 5, mpPct: 5, atk: 10, matk: 10, def: 300, ignoreDef: 5, bossDmg: 5 } },
+      { count: 5, stats: { allStat: 15, atk: 15, matk: 15, ignoreDef: 10, bossDmg: 10 } },
     ],
   },
 ]

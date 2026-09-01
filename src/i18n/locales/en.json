@@ -399,6 +399,10 @@
       "name": "Spider Exterminator",
       "description": "All Stats +10, ATT / MATK +5, Boss Damage +10%."
     },
+    "mvp_black": {
+      "name": "MVP Black",
+      "description": "All Stats +10, ATT / MATK +10, Max HP / MP +500, Ignore DEF +8%."
+    },
     "holy_pink_beanity": {
       "name": "Holy Pink Beanity",
       "description": "All Stats +10, Attack Power / Magic ATT +5, Boss Damage +10%."
@@ -568,6 +572,7 @@
       "ifias_treasure": "Ifia's Treasure",
       "von_leon": "Royal Von Leon",
       "empress": "Empress (Lv140)",
+      "unchained": "Unchained",
       "fourth_magician": "4th Magician",
       "projectile": "Projectile",
       "skillRing": "Skill Ring",
@@ -636,6 +641,9 @@
     },
     "boss_of_dawn": {
       "name": "Boss of Dawn Set"
+    },
+    "unchained_magician": {
+      "name": "Unchained Set (Magician)"
     }
   },
   "hyperStat": {
@@ -710,7 +718,7 @@
     }
   },
   "equipment": {
-    "panel": { "title": "Equipment" },
+    "panel": { "title": "Equipment", "unequipAll": "Unequip All" },
     "bag": {
       "title": "Inventory",
       "filter": "Filter",
@@ -725,7 +733,10 @@
       "confirmDelete": "Delete",
       "copy": "Copy item",
       "confirmCopy": "Copy \"{name}\"?",
-      "confirmCopyOk": "Copy"
+      "confirmCopyOk": "Copy",
+      "clearAll": "Clear All",
+      "confirmClearAll": "Delete all {n} items in your bag? Equipped items are not affected.",
+      "confirmClearAllOk": "Delete All"
     },
     "editor": {
       "title": "Edit item",

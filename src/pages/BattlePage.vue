@@ -13,6 +13,7 @@ import { useBattleBuffs } from '../composables/useBattleBuffs.js'
 import { visibleBuffsForJob, BATTLE_BUFFS } from '../constants/battleBuffs.js'
 const BUFFS_BY_ID = Object.fromEntries(BATTLE_BUFFS.map((b) => [b.id, b]))
 import { useCharacter } from '../composables/useCharacter.js'
+import { appliedSkills } from '../composables/useLinkSkills.js'
 
 import { useBattleRecord } from '../composables/useBattleRecord.js'
 
@@ -46,6 +47,63 @@ function stopSim() {
 const { state: vmState } = useVMatrix()
 const { state: charStateBattle } = useCharacter()
 const { state: buffState, buffInfo, toggleBuff } = useBattleBuffs()
+
+// ── 夜光光暗狀態鏡 ──
+const mirrorState = ref('light')   // 'light' | 'dark' | 'equilibrium'
+const mirrorPrevState = ref('light') // state before equilibrium
+const mirrorEnergy = ref(10000)
+const mirrorEqRemaining = ref(0)
+let mirrorEqTimer = null
+
+const mirrorStateLabel = computed(() => {
+  if (mirrorState.value === 'light') return 'Sunfire (Light)'
+  if (mirrorState.value === 'dark') return 'Eclipse (Dark)'
+  return 'Equilibrium'
+})
+
+const mirrorSingleColor = computed(() =>
+  mirrorState.value === 'light' ? '#d0eeff' : '#b080e8'
+)
+
+function spikePoints() {
+  return '65,5 74,26 56,26'
+}
+
+const mirrorEclipseClip = computed(() => {
+  const pct = mirrorEnergy.value / 10000
+  const rx = Math.round(pct * 55)
+  const cx = Math.round(100 - pct * 50)
+  return `ellipse(${rx}% 50% at ${cx}% 50%)`
+})
+
+function mirrorAddEnergy(amount) {
+  if (mirrorState.value === 'equilibrium') return
+  mirrorEnergy.value = Math.min(10000, mirrorEnergy.value + amount)
+}
+
+function mirrorEnterEquilibrium() {
+  if (mirrorState.value === 'equilibrium') return
+  mirrorPrevState.value = mirrorState.value
+  mirrorState.value = 'equilibrium'
+  mirrorEnergy.value = 0
+  mirrorEqRemaining.value = 17
+  clearInterval(mirrorEqTimer)
+  mirrorEqTimer = setInterval(() => {
+    mirrorEqRemaining.value -= 0.1
+    if (mirrorEqRemaining.value <= 0) {
+      clearInterval(mirrorEqTimer)
+      mirrorEqRemaining.value = 0
+      mirrorState.value = mirrorPrevState.value === 'light' ? 'dark' : 'light'
+    }
+  }, 100)
+}
+
+function mirrorReset() {
+  clearInterval(mirrorEqTimer)
+  mirrorState.value = 'light'
+  mirrorEnergy.value = 10000
+  mirrorEqRemaining.value = 0
+}
 
 // 觸發新疊層時的短暫閃光(420ms)
 const flashingBuffs = ref({})
@@ -147,8 +205,10 @@ const allToggleEntries = computed(() => {
     seen.add(s.id)
     out.push({ ...s, _source: 'sim' })
   }
+  const appliedIds = new Set(appliedSkills.value.map((a) => a.skillId))
   for (const b of BATTLE_BUFFS) {
     if (!b.jobs || b.jobs.includes(charStateBattle.job)) {
+      if (b.source === 'linkCycle' && !appliedIds.has(b.id)) continue
       if (seen.has(b.id)) continue
       seen.add(b.id)
       out.push({ ...b, _source: 'buff' })
@@ -1014,6 +1074,67 @@ const timelineRows = computed(() => {
 
     <!-- 右:技能時間軸 -->
     <aside class="bp-timeline">
+
+      <!-- 夜光：光暗狀態鏡 -->
+      <section v-if="charStateBattle.job === 'luminous'" class="state-mirror">
+        <header class="state-mirror__head">State Mirror</header>
+        <div
+          class="state-mirror__orb"
+          :class="[
+            'state-mirror__orb--' + mirrorState,
+            { 'state-mirror__orb--full': mirrorEnergy >= 10000 && mirrorState !== 'equilibrium' },
+            { 'state-mirror__orb--empty': mirrorEnergy === 0 && mirrorState !== 'equilibrium' },
+          ]"
+        >
+          <template v-if="mirrorState !== 'equilibrium'">
+            <svg class="state-mirror__ring state-mirror__ring--cw"
+              viewBox="0 0 130 130" fill="none">
+              <circle cx="65" cy="65" r="48" :stroke="mirrorSingleColor" stroke-width="1.5" opacity="0.7"/>
+              <circle cx="65" cy="65" r="40" :stroke="mirrorSingleColor" stroke-width="2" opacity="0.8"/>
+              <polygon v-for="(_, i) in 8" :key="i"
+                :points="spikePoints()" :fill="mirrorSingleColor" opacity="0.9"
+                :transform="`rotate(${i * 45} 65 65)`"/>
+            </svg>
+          </template>
+          <template v-else>
+            <div class="state-mirror__ring state-mirror__ring-half state-mirror__ring-half--left">
+              <svg class="state-mirror__ring-halfsv state-mirror__ring--ccw"
+                viewBox="0 0 130 130" fill="none">
+                <circle cx="65" cy="65" r="48" stroke="#8040c0" stroke-width="1.5" opacity="0.7"/>
+                <circle cx="65" cy="65" r="40" stroke="#8040c0" stroke-width="2" opacity="0.8"/>
+                <polygon v-for="(_, i) in 8" :key="'l'+i"
+                  :points="spikePoints()" fill="#8040c0" opacity="0.9"
+                  :transform="`rotate(${i * 45} 65 65)`"/>
+              </svg>
+            </div>
+            <div class="state-mirror__ring state-mirror__ring-half state-mirror__ring-half--right">
+              <svg class="state-mirror__ring-halfsv state-mirror__ring--ccw"
+                viewBox="0 0 130 130" fill="none">
+                <circle cx="65" cy="65" r="48" stroke="#7dd8f7" stroke-width="1.5" opacity="0.7"/>
+                <circle cx="65" cy="65" r="40" stroke="#7dd8f7" stroke-width="2" opacity="0.8"/>
+                <polygon v-for="(_, i) in 8" :key="'r'+i"
+                  :points="spikePoints()" fill="#7dd8f7" opacity="0.9"
+                  :transform="`rotate(${i * 45} 65 65)`"/>
+              </svg>
+            </div>
+          </template>
+          <div class="state-mirror__core">
+            <div
+              v-if="mirrorState !== 'equilibrium'"
+              class="state-mirror__eclipse"
+              :style="{ clipPath: mirrorEclipseClip }"
+            ></div>
+          </div>
+        </div>
+        <div class="state-mirror__label">{{ mirrorStateLabel }}</div>
+        <div class="state-mirror__bar-wrap">
+          <div class="state-mirror__bar" :style="{ width: (mirrorEnergy / 10000 * 100) + '%' }"></div>
+        </div>
+        <div class="state-mirror__energy">{{ mirrorEnergy.toLocaleString() }} / 10,000</div>
+        <div v-if="mirrorState === 'equilibrium'" class="state-mirror__timer">
+          {{ mirrorEqRemaining.toFixed(1) }}s
+        </div>
+      </section>
       <header class="bp-timeline__head">
         <span>{{ t('battle.timeline.title') }}</span>
         <span class="bp-timeline__count" v-if="result">
@@ -2299,8 +2420,206 @@ input.bp-enemy__field { text-align: right; }
   justify-content: center;
   gap: 0.5rem;
 }
-</style>
 
+/* ── 夜光光暗狀態鏡 ── */
+.state-mirror {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, rgba(15,18,35,0.95), rgba(20,25,50,0.95));
+  border: 1px solid #2a3152;
+  border-radius: 10px;
+  text-align: center;
+}
+.state-mirror__head {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8089a3;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+/* Orb container */
+.state-mirror__orb {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 0.5rem;
+}
+
+/* Core — the inner sphere with eclipse effect */
+.state-mirror__core {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  transition: box-shadow 0.4s;
+  overflow: hidden;
+  z-index: 1;
+}
+/* Light state: base light, dark eclipse sweeps over */
+.state-mirror__orb--light .state-mirror__core {
+  background: radial-gradient(circle, #c0f0ff, #70d0f0, #3bb0e0);
+  box-shadow: 0 0 12px rgba(100,200,255,0.4);
+}
+.state-mirror__orb--light .state-mirror__eclipse {
+  background: radial-gradient(circle, #8050c0, #5020a0, #3a1080);
+}
+/* Dark state: base dark, light eclipse sweeps over */
+.state-mirror__orb--dark .state-mirror__core {
+  background: radial-gradient(circle, #9060d0, #6030a0, #3a1080);
+  box-shadow: 0 0 12px rgba(140,60,200,0.4);
+}
+.state-mirror__orb--dark .state-mirror__eclipse {
+  background: radial-gradient(circle, #c0f0ff, #70d0f0, #3bb0e0);
+}
+/* Full energy — pupil burst: dark center, light/dark rays, blurred edge */
+.state-mirror__orb--full .state-mirror__core {
+  background:
+    radial-gradient(circle, #6030a0 20%, #3a1070 30%, transparent 42%),
+    conic-gradient(from 0deg,
+      #8050c0, #60c8f0, #6030a0, #80d8ff,
+      #7040b0, #50b8e8, #5020a0, #70d0f0,
+      #9060d0, #60c0f0, #7030a0, #80d8ff,
+      #8050c0
+    );
+  box-shadow:
+    0 0 15px rgba(140,80,220,0.5),
+    inset 0 0 8px rgba(80,40,150,0.4);
+  animation: pupil-spin 6s linear infinite;
+}
+.state-mirror__orb--full .state-mirror__eclipse { display: none; }
+@keyframes pupil-spin {
+  from { filter: blur(0px) brightness(1); background-position: 0 0; }
+  25% { filter: blur(1px) brightness(1.15); }
+  50% { filter: blur(0px) brightness(1); }
+  75% { filter: blur(1px) brightness(1.15); }
+  to { filter: blur(0px) brightness(1); }
+}
+.state-mirror__eclipse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: clip-path 0.3s ease;
+}
+/* Equilibrium: split gradient */
+.state-mirror__orb--equilibrium .state-mirror__core {
+  background: radial-gradient(circle, #ffffff 0%, #c0c0ff 40%, #a080e0 70%, #6030a0 100%);
+  box-shadow: 0 0 25px rgba(180,160,255,0.7);
+}
+
+/* Ring — SVG magic circle */
+.state-mirror__ring {
+  position: absolute;
+  inset: -16px;
+  width: calc(100% + 32px);
+  height: calc(100% + 32px);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px var(--ring-glow, rgba(200,230,255,0.5)));
+}
+.state-mirror__orb--full .state-mirror__ring,
+.state-mirror__orb--empty .state-mirror__ring {
+  opacity: 1;
+}
+.state-mirror__orb--full.state-mirror__orb--light .state-mirror__ring,
+.state-mirror__orb--empty.state-mirror__orb--light .state-mirror__ring {
+  --ring-glow: rgba(200,235,255,0.7);
+}
+.state-mirror__orb--full.state-mirror__orb--dark .state-mirror__ring,
+.state-mirror__orb--empty.state-mirror__orb--dark .state-mirror__ring {
+  --ring-glow: rgba(160,80,220,0.7);
+}
+.state-mirror__orb--equilibrium .state-mirror__ring {
+  opacity: 1;
+  --ring-glow: rgba(180,160,255,0.6);
+}
+.state-mirror__ring--cw { animation: ring-cw 8s linear infinite; }
+.state-mirror__ring--ccw { animation: ring-ccw 8s linear infinite; }
+/* Equilibrium split halves — fixed containers that clip rotating SVGs */
+.state-mirror__ring-half {
+  overflow: hidden;
+}
+.state-mirror__ring-half--left { clip-path: inset(0 50% 0 0); }
+.state-mirror__ring-half--right { clip-path: inset(0 0 0 50%); }
+.state-mirror__ring-halfsv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes ring-cw { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ring-ccw { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+/* Label */
+.state-mirror__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.state-mirror__orb--light ~ .state-mirror__label { color: #7dd8f7; }
+.state-mirror__orb--dark ~ .state-mirror__label { color: #b080e8; }
+.state-mirror__orb--equilibrium ~ .state-mirror__label { color: #d0b0ff; }
+.state-mirror__orb--full.state-mirror__orb--light ~ .state-mirror__label { color: #b080e8; }
+.state-mirror__orb--full.state-mirror__orb--dark ~ .state-mirror__label { color: #7dd8f7; }
+
+/* Energy bar */
+.state-mirror__bar-wrap {
+  height: 8px;
+  background: #0e1225;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 0.5rem 0.25rem;
+  border: 1px solid #2a3152;
+}
+.state-mirror__bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease, background 0.4s;
+}
+.state-mirror__orb--light ~ .state-mirror__bar-wrap .state-mirror__bar {
+  background: linear-gradient(90deg, #4a1a8a, #b080e8);
+}
+.state-mirror__orb--dark ~ .state-mirror__bar-wrap .state-mirror__bar {
+  background: linear-gradient(90deg, #1a7ab5, #7dd8f7);
+}
+.state-mirror__orb--equilibrium ~ .state-mirror__bar-wrap .state-mirror__bar {
+  background: linear-gradient(90deg, #7dd8f7, #b080e8);
+}
+.state-mirror__energy {
+  font-size: 0.7rem;
+  color: #6a7290;
+  margin-bottom: 0.5rem;
+}
+.state-mirror__timer {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #d0b0ff;
+  margin-top: 0.3rem;
+}
+.state-mirror__controls {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.state-mirror__btn {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #3a4270;
+  border-radius: 4px;
+  background: #1b2140;
+  color: #8089a3;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.state-mirror__btn:hover { border-color: #6c8cff; color: #c0c8e0; }
+.state-mirror__btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.state-mirror__btn--eq { color: #d0b0ff; border-color: #6040a0; }
+.state-mirror__btn--eq:hover { border-color: #b080e8; }
+.state-mirror__btn--reset { color: #f87171; border-color: #5a2020; }
+.state-mirror__btn--reset:hover { border-color: #f87171; }
+</style>
 <!-- 放寬 .layout__main 上限 (只在 battle 頁生效) -->
 <style>
 body.page-battle .layout__main {

@@ -399,6 +399,10 @@
       "name": "Spider Exterminator",
       "description": "稱號:全屬性 +10、ATT / MATK +5、Boss 傷害 +10%。"
     },
+    "mvp_black": {
+      "name": "MVP Black",
+      "description": "稱號:全屬性 +10、ATT / MATK +10、HP / MP +500、無視防禦 +8%。"
+    },
     "holy_pink_beanity": {
       "name": "Holy Pink Beanity",
       "description": "稱號:全屬性 +10、ATT / MATK +5、Boss 傷害 +10%。"
@@ -568,6 +572,7 @@
       "ifias_treasure": "依菲雅",
       "von_leon": "獅子",
       "empress": "女皇",
+      "unchained": "Unchained",
       "fourth_magician": "100系統",
       "projectile": "職業特殊裝備",
       "skillRing": "技能戒指",
@@ -636,6 +641,9 @@
     },
     "boss_of_dawn": {
       "name": "Boss of Dawn Set"
+    },
+    "unchained_magician": {
+      "name": "Unchained Set (法師)"
     }
   },
   "hyperStat": {
@@ -710,7 +718,7 @@
     }
   },
   "equipment": {
-    "panel": { "title": "裝備欄" },
+    "panel": { "title": "裝備欄", "unequipAll": "全部脫下" },
     "bag": {
       "title": "背包",
       "filter": "分類",
@@ -725,7 +733,10 @@
       "confirmDelete": "刪除",
       "copy": "複製裝備",
       "confirmCopy": "確定要複製「{name}」嗎？",
-      "confirmCopyOk": "複製"
+      "confirmCopyOk": "複製",
+      "clearAll": "全部刪除",
+      "confirmClearAll": "確定要刪除背包中的 {n} 件裝備嗎？已裝備的不受影響。",
+      "confirmClearAllOk": "全部刪除"
     },
     "editor": {
       "title": "編輯裝備",

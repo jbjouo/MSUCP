@@ -132,6 +132,7 @@ export const REFERENCE_WEAPON_DATA = {
   bow: {
     98:  { atk: 90 },               // Lv98 檔基準弓 (使用者指定 90 ATK;White Nisrock Lv100 = 95 等比對應)
     100: { atk: 95 },               // White Nisrock (unmintable)
+    120: { atk: 105 },              // Necro Longbow
     150: { atk: 160 },              // Fafnir Wind Chaser
     200: { atk: 276 },              // Arcane Umbra Bow
   },
@@ -140,6 +141,9 @@ export const REFERENCE_WEAPON_DATA = {
   },
   claw: {
     200: { atk: 149 },              // Arcane Umbra Guards
+  },
+  shining_rod: {
+    120: { atk: 81, matk: 133 },    // Necro Shining Rod
   },
 }
 
@@ -155,7 +159,11 @@ export const JOB_CP_REFERENCE_WEAPON = {
   // Adventurer Thief
   nightlord:   { subType: 'claw', attKey: 'atk' },
   shadower:    { subType: 'dagger', attKey: 'atk' },
-  // TODO：其他職業(bowman → bow / warrior → sword 等)未設定 → delta = 0
+  // Bowman
+  bowmaster:   { subType: 'bow', attKey: 'atk' },
+  windarcher:  { subType: 'bow', attKey: 'atk' },
+  // Heroes (Magician)
+  luminous:    { subType: 'shining_rod', attKey: 'matk' },
 }
 
 // 取得某職業在指定等級下的基準武器資料(模板,與實際穿戴無關)

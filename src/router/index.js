@@ -10,7 +10,7 @@ import ItemBrowserPage from '../pages/ItemBrowserPage.vue'
 import { useCharacter } from '../composables/useCharacter.js'
 
 // 開放戰鬥模擬頁的職業 — 側欄入口 (Sidebar) 與路由守衛共用此清單
-export const BATTLE_JOBS = new Set(['archmageFP'])
+export const BATTLE_JOBS = new Set(['archmageFP', 'luminous'])
 
 export const routes = [
   {

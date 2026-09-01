@@ -65,6 +65,45 @@
 - `equipSkill`: 裝備自帶技能,key/value 納入 CP breakdown(如 `finalDmg: 10`)
 - `defaultPotentialTier` / `defaultBonusPotentialTier`: `addToInventory()` 時依 weight 加權隨機產生
 
+#### 技能戒指 (Skill Ring)
+
+```jsonc
+{
+  "skillRing": "active | passive",   // 主動或被動技能戒指
+  "skillMaxLevel": 6,                // 技能等級上限
+  "skillEffect": {                   // CP toggle 效果
+    "skillId": 80001455,
+    "name": "Ring of Restraint",
+    "base": { "atkPct": 0 },
+    "perLevel": { "atkPct": 17 },
+    "temporary": true                // 臨時 buff（CD > 持續時間）
+  }
+}
+```
+
+- `skillRing` slot 位於 Row 1 Col 2（ring1 和 hat 之間），`skillRingOnly: true`
+- 一個角色最多 1 active + 1 passive 技能戒指
+- `skillLevel` 存在 entry，編輯器有等級選擇 tab
+- CP 面板：常駐效果顯示在技能欄，臨時效果顯示在「臨時增益」欄
+- Weapon Jump 系列：`statKey` + `weaponJumpStat`，依武器 ATK/MATK（取較高）動態計算
+
+#### Unchained 裝備
+
+```jsonc
+{
+  "unchainedTiers": [
+    { "level": 30, "stats": { "matk": 93 } },
+    { "level": 100, "stats": { "int": 5, "matk": 157 } }
+  ],
+  "noBonusStats": true
+}
+```
+
+- `unchainedTiers` — stats 依角色等級切換（不累加，該階段就是完整數值）
+- Lv100+ 解鎖星力（maxStars: 15），星力有正常加成
+- `noBonusStats` — 不可星火
+- CP 武器差值：`unchainedTiers` 的武器免除差值計算，額外 +12 ATK/MATK
+
 #### 裝備欄位 (`equipmentSlots.js`)
 
 - 5 × 6 grid,`projectile` slot (`conditional: true`) 位於 Row 6 Col 2(腰帶下方)
@@ -219,7 +258,7 @@ CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 
 `requestAnimationFrame` 逐 frame 推進;引擎唯一入口 `advanceTo(elapsed)` 純虛擬時間驅動。
 
-- **職業白名單**:`BATTLE_JOBS`(`router/index.js` 匯出,Sidebar 共用)— 目前 archmageFP / bishop
+- **職業白名單**:`BATTLE_JOBS`(`router/index.js` 匯出,Sidebar 共用)— 目前 archmageFP / luminous
 - **加速**:`fastForward()` 以固定步長 (1000/60ms) 同步推進到結束(壓縮到 1 秒內);進行中可按「⏩ 加速完成」
 - **seed**:每次 start() 自動換新(否則同 seed 重播讓機率型觸發看似必中);`setSeed(n)` 手動設定後鎖定可重現
 - **因果順序**:先命中 → 上狀態 → 增傷。延遲火球型的 DoT 延後到「第一顆命中」才註冊(`pendingBurnStarts`,tick 順序 processOrbHits → pendingBurnStarts → burnTicks);同批第一顆不吃自身 DoT 觸發的 BM/Fervent
@@ -236,6 +275,15 @@ CP = floor(Zone1 × (Zone2 × Zone3 − 差值) × Zone4 × Zone5 × Zone6)
 - 屬性無視:`ELEM_IGNORE_BY_JOB.bishop = 10`(Righteously Indignant hyper 被動 Elemental Resistance −10%)
 - **待收錄**:Big Bang / Genesis(4轉 CD 技)、Bahamut(召喚)、Heaven's Door(hyper)、V 技能 2~4 技(Angel of Balance / Divine Punishment / Peacemaker)、Ethereal Form、Righteously Indignant 模式切換(Heal→Angelic Wrath 等 Vengeance 技能組)
 - 技能資料來源:`scripts/skill-db/bishop/`(角色 CHARd0iro1tv0s2s73a65kqg)已建全;圖示 74 張已下載至 `public/skills/bishop/`
+
+### 夜光 (luminous) 戰鬥模擬現況
+
+- **CP 技能已建立**:被動 9 項 + buff 2 項 + toggle 2 項(Dark/Light Affinity,cpExclude)+ 臨時 buff 1 項(Heroic Memories)
+- **光暗狀態鏡 UI**:BattlePage 右側，SVG 法陣外圈 + 月食侵蝕球體 + 平衡左暗右光分色
+  - 狀態:`mirrorState`(light/dark/equilibrium)、`mirrorEnergy`(0~10000)、`mirrorEqRemaining`
+  - 待技能新增時與引擎 tick 連動
+- **待收錄**:Reflection / Apocalypse / Ender(攻擊技能)、Dark Crescendo(疊層 buff)、Equilibrium Liberation
+- 技能資料來源:`scripts/skill-db/luminous/`(角色 CHARd2mtackns5us738m6f6g)
 
 ### 職業過濾與機制設定
 
@@ -331,8 +379,8 @@ skills/_shared/
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`
 - 被動技能只收錄影響 CP 的屬性(排除:熟練度、狀態抗性、屬性抗性、damage taken、攻速、HP/MP)
 - 技能提升其他技能傷害的被動(如 Raging Serpent Assault +100%)暫不收錄,待戰鬥模擬時加入
-- 已建立:archmage-fp / bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項)
-- 技能資料庫(scripts/skill-db):archmage-fp / bishop / shadower / buccaneer / night-walker / hoyoung
+- 已建立:archmage-fp / bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項) / dark-knight / wind-archer / luminous
+- 技能資料庫(scripts/skill-db):archmage-fp / bishop / shadower / buccaneer / night-walker / hoyoung / dark-knight / wind-archer / luminous
 
 ## MSU Open API 工具 (`scripts/`)
 

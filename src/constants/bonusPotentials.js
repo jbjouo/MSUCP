@@ -794,6 +794,34 @@ const TOP_120_LEGENDARY = [
 // 上衣 / 下身 / 帽子 Lv120 Rare line 2/3 額外降級池
 //   來源:MSU API CubeType_BONUS_POTENTIAL / GradeType_RARE / TOP / Lv120,line 2 與 line 3 共用
 //   與武器 LINE23_EXTRA 結構相同,但 ATT/Magic ATT 為 +3 (武器為 +6)
+const ACCESSORY_100_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +50',        weight: 10.893247, stats: { hp: 50 } },
+  { label: 'Max MP: +50',        weight: 10.893247, stats: { mp: 50 } },
+  { label: 'Movement Speed: +3', weight: 10.893247, stats: { moveSpeed: 3 } },
+  { label: 'Jump: +3',           weight: 10.893247, stats: { jump: 3 } },
+  { label: 'ATT: +2',            weight: 7.262164, stats: { atk: 2 } },
+  { label: 'Magic ATT: +2',      weight: 7.262164, stats: { matk: 2 } },
+  { label: 'DEF: +50',           weight: 10.893247, stats: { def: 50 } },
+]
+
+const ACCESSORY_110_RARE_LINE23_EXTRA = [
+  { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
+  { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
+  { label: 'INT : +6',           weight: 7.262164, stats: { int: 6 } },
+  { label: 'LUK : +6',           weight: 7.262164, stats: { luk: 6 } },
+  { label: 'Max HP: +55',        weight: 10.893247, stats: { hp: 55 } },
+  { label: 'Max MP: +55',        weight: 10.893247, stats: { mp: 55 } },
+  { label: 'Movement Speed: +3', weight: 10.893247, stats: { moveSpeed: 3 } },
+  { label: 'Jump: +3',           weight: 10.893247, stats: { jump: 3 } },
+  { label: 'ATT: +3',            weight: 7.262164, stats: { atk: 3 } },
+  { label: 'Magic ATT: +3',      weight: 7.262164, stats: { matk: 3 } },
+  { label: 'DEF: +55',           weight: 10.893247, stats: { def: 55 } },
+]
+
 const TOP_120_RARE_LINE23_EXTRA = [
   { label: 'STR : +6',           weight: 7.262164, stats: { str: 6 } },
   { label: 'DEX : +6',           weight: 7.262164, stats: { dex: 6 } },
@@ -942,18 +970,21 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      RING_100_EPIC,
       unique:    RING_100_UNIQUE,
       legendary: RING_100_LEGENDARY,
+      rareLine23Extra: ACCESSORY_100_RARE_LINE23_EXTRA,
     },
     110: {
       rare:      RING_110_RARE,
       epic:      RING_110_EPIC,
       unique:    RING_110_UNIQUE,
       legendary: RING_110_LEGENDARY,
+      rareLine23Extra: ACCESSORY_110_RARE_LINE23_EXTRA,
     },
     120: {
       rare:      RING_120_RARE,
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: RING_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   belt: {
@@ -962,6 +993,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      BELT_120_EPIC,
       unique:    BELT_120_UNIQUE,
       legendary: BELT_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   pendant: {
@@ -973,13 +1005,13 @@ export const BONUS_POTENTIAL_POOLS = {
       rareLine23Extra: PENDANT_120_RARE_LINE23_EXTRA,
     },
   },
-  // 臉部裝飾 Lv110+ 附加潛能與戒指 Lv110 完全相同 (MSU API 驗證)
   face: {
     110: {
       rare:      RING_110_RARE,
       epic:      RING_110_EPIC,
       unique:    RING_110_UNIQUE,
       legendary: RING_110_LEGENDARY,
+      rareLine23Extra: ACCESSORY_110_RARE_LINE23_EXTRA,
     },
   },
   // 鞋子 / 肩飾 / 披風 Lv120+ 附加潛能 — 全部 RARE/EPIC/UNIQUE 與戒指 Lv120 同池,LEGENDARY 與手套同池 (帶 Critical Damage)
@@ -989,6 +1021,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: GLOVE_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   shoulder: {
@@ -997,6 +1030,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: GLOVE_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   cape: {
@@ -1005,6 +1039,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: GLOVE_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   // 手套 Lv120+ 附加潛能 — RARE/EPIC/UNIQUE 與戒指 Lv120 同池,LEGENDARY 為手套專用 (帶 Critical Damage)
@@ -1014,6 +1049,7 @@ export const BONUS_POTENTIAL_POOLS = {
       epic:      RING_120_EPIC,
       unique:    RING_120_UNIQUE,
       legendary: GLOVE_120_LEGENDARY,
+      rareLine23Extra: TOP_120_RARE_LINE23_EXTRA,
     },
   },
   // 徽章 Lv100+ 附加潛能 — RARE/EPIC 與武器同池,UNIQUE/LEGENDARY 為徽章專用 (無 Boss Damage)

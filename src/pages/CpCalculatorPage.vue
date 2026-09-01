@@ -239,19 +239,27 @@ const equipSkillRingToggles = computed(() => {
   return result
 })
 
-// 臨時 buff（CD > 持續時間的技能戒指效果）
-const temporaryBuffs = computed(() => equipSkillRingToggles.value.filter((s) => s.temporary))
+// 臨時 buff（CD > 持續時間）：技能戒指效果 + 有 _temporary 標記的 buff
+const temporaryBuffs = computed(() => {
+  const jobKey = currentJob.value?.key || null
+  const tempRings = equipSkillRingToggles.value.filter((s) => s.temporary)
+  const tempJobBuffs = BUFFS.filter((b) => b._temporary && (!b.jobs || b.jobs.includes(jobKey)))
+  return [...tempRings, ...tempJobBuffs]
+})
 
 // 側欄技能：常駐技能戒指 + 共通 toggle 技能
-const toggleableSkills = computed(() => [
-  ...equipSkillRingToggles.value.filter((s) => !s.temporary),
-  ...SKILLS.filter((s) => s.cp?.role === 'toggle'),
-])
+const toggleableSkills = computed(() => {
+  const jobKey = currentJob.value?.key || null
+  return [
+    ...equipSkillRingToggles.value.filter((s) => !s.temporary),
+    ...SKILLS.filter((s) => s.cp?.role === 'toggle' && (!s.jobs || s.jobs.includes(jobKey))),
+  ]
+})
 
-// BUFF 側欄只顯示符合當前職業的 buff
+// BUFF 側欄只顯示符合當前職業的 buff（排除臨時 buff）
 const visibleBuffs = computed(() => {
   const jobKey = currentJob.value?.key || null
-  return BUFFS.filter((b) => !b.jobs || b.jobs.includes(jobKey))
+  return BUFFS.filter((b) => !b._temporary && (!b.jobs || b.jobs.includes(jobKey)))
 })
 
 // 需要以「相乘疊加」合併的 % 屬性 (1 - Π(1 - Xᵢ/100))
@@ -327,6 +335,7 @@ function computeWeaponContribsForCp(attKey) {
   const entry = resolveEntry(weaponUid)
   const item = entry?.item
   if (!item || item.type !== 'weapon') return null
+  if (item.unchainedTiers) return null
   const canonical = jobCpReferenceWeapon(charState.job, item.level)
   if (!canonical) return null
   const bow = universalBowReference(item.level)
@@ -394,7 +403,10 @@ const cpZones = computed(() => {
   const contribs = computeWeaponContribsForCp(attKey)
   const replacement = contribs ? (contribs.canonicalW - contribs.actualW) : 0
   const delta = contribs?.weaponDelta || 0
-  const flatAttForCp = flatAtt + replacement
+  const wpnUidForUnchained = equipState.equipped?.weapon
+  const wpnEntryForUnchained = wpnUidForUnchained ? resolveEntry(wpnUidForUnchained) : null
+  const unchainedBonus = wpnEntryForUnchained?.item?.unchainedTiers ? 12 : 0
+  const flatAttForCp = flatAtt + replacement + unchainedBonus
   const z2A = Math.round(flatAttForCp * attMul * 100) / 100
   const z2B = Math.floor((flatAttForCp - delta) * attMul)
   const z2Diff = z2A - z2B
@@ -603,19 +615,13 @@ const breakdowns = computed(() => {
   for (const set of ITEM_SETS) {
     const count = countActiveSet(set, equippedItems, activeLucky)
     if (!count) continue
-    // 累加該套裝所有已觸發 tier 的 stats
-    const setBag = {}
+    const label = t('cp.tip.setPrefix', { name: t(set.nameKey) })
     for (const tier of set.tiers) {
       if (count < tier.count) break
       for (const [k, v] of Object.entries(tier.stats || {})) {
-        setBag[k] = (setBag[k] || 0) + v
+        if (PCT_KEYS.has(k)) addPct(k, label, v)
+        else addFlat(k, label, v)
       }
-    }
-    if (!Object.keys(setBag).length) continue
-    const label = t('cp.tip.setPrefix', { name: t(set.nameKey) })
-    for (const [k, v] of Object.entries(setBag)) {
-      if (PCT_KEYS.has(k)) addPct(k, label, v)
-      else addFlat(k, label, v)
     }
   }
 
@@ -662,6 +668,7 @@ const breakdowns = computed(() => {
       continue // 沒 CP 角色
     }
     if (!bag) continue
+    if (skill.cpExclude) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(skill.id)
     const skillLabel = t('cp.tip.skillPrefix', { name: displayName(skill) })
     for (const [k, v] of Object.entries(bag)) {
@@ -1540,9 +1547,9 @@ function onPanelOut(e) {
             :key="tb.id"
             type="button"
             class="buff-cell"
-            :class="{ 'buff-cell--on': isSkillActive(tb.id) }"
+            :class="{ 'buff-cell--on': tb._temporary ? isBuffActive(tb.id) : isSkillActive(tb.id) }"
             :title="tooltipText(tb)"
-            @click="toggleSkill(tb.id)"
+            @click="tb._temporary ? toggleBuff(tb.id) : toggleSkill(tb.id)"
           >
             <img :src="tb.icon" :alt="tb.name" />
           </button>

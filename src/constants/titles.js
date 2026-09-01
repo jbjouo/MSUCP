@@ -107,6 +107,21 @@ export const TITLES = [
     },
   },
   {
+    id: 'mvp_black',
+    name: 'MVP Black',
+    nameKey: 'titles.mvp_black.name',
+    descriptionKey: 'titles.mvp_black.description',
+    icon: ASSET('skills/titles/3700845.png'),
+    stats: {
+      allStat: 10,
+      atk: 10,
+      matk: 10,
+      hp: 500,
+      mp: 500,
+      ignoreDef: 8,
+    },
+  },
+  {
     id: 'holy_pink_beanity',
     name: 'Holy Pink Beanity',
     nameKey: 'titles.holy_pink_beanity.name',

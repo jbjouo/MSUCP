@@ -108,7 +108,7 @@ const PCT_KEYS = new Set([
   'bossDmg', 'ignoreDef', 'allStatPct', 'dmgPct',
   'atkPct', 'matkPct', 'hpPct', 'mpPct',
   'strPct', 'dexPct', 'intPct', 'lukPct',
-  'critRate', 'critDmg',
+  'critRate', 'critDmg', 'normalMobDmg',
 ])
 const STAT_ORDER = [
   'bossDmg', 'ignoreDef', 'dmgPct', 'allStatPct',
@@ -288,6 +288,7 @@ const SET_STAT_DISPLAY = [
   { key: 'dmgPct',      label: 'Damage',              suffix: '%' },
   { key: 'critRate',    label: 'Critical Rate',       suffix: '%' },
   { key: 'critDmg',     label: 'Critical Damage',     suffix: '%' },
+  { key: 'normalMobDmg', label: 'Damage Against Normal Monsters', suffix: '%' },
 ]
 
 function formatTierStats(stats) {

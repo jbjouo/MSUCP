@@ -4627,6 +4627,467 @@
       },
       "imageUrl": "/msucp/images/items/1113313.png",
       "_pending": true
+    },
+    {
+      "id": "shoes_unchained_magician_boots",
+      "apiItemId": 1073920,
+      "name": "Unchained Magician Boots",
+      "nameEn": "Unchained Magician Boots",
+      "type": "shoes",
+      "level": 120,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "int": 3,
+        "luk": 3,
+        "def": 46
+      },
+      "imageUrl": "/msucp/images/items/1073920.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "int": 3,
+            "luk": 3,
+            "def": 46
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "int": 4,
+            "luk": 4,
+            "def": 64
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "int": 10,
+            "luk": 10,
+            "def": 80,
+            "matk": 1
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "int": 20,
+            "luk": 20,
+            "def": 115,
+            "matk": 2
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "glove_unchained_mage_hands",
+      "apiItemId": 1082806,
+      "name": "Unchained Mage Hands",
+      "nameEn": "Unchained Mage Hands",
+      "type": "glove",
+      "level": 120,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "int": 2,
+        "luk": 2,
+        "def": 32
+      },
+      "imageUrl": "/msucp/images/items/1082806.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "int": 2,
+            "luk": 2,
+            "def": 32
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "int": 5,
+            "luk": 5,
+            "def": 44
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "int": 11,
+            "luk": 11,
+            "def": 50,
+            "matk": 2
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "int": 21,
+            "luk": 21,
+            "def": 70,
+            "matk": 3
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "hat_unchained_magician_helm",
+      "apiItemId": 1006515,
+      "name": "Unchained Magician Helm",
+      "nameEn": "Unchained Magician Helm",
+      "type": "hat",
+      "level": 120,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "int": 3,
+        "luk": 3,
+        "def": 51
+      },
+      "imageUrl": "/msucp/images/items/1006515.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "int": 3,
+            "luk": 3,
+            "def": 51
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "int": 5,
+            "luk": 5,
+            "def": 69
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "int": 15,
+            "luk": 15,
+            "def": 165,
+            "hp": 150,
+            "mp": 150
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "int": 25,
+            "luk": 25,
+            "def": 195,
+            "hp": 200,
+            "mp": 200
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "overall_unchained_mage_suit",
+      "apiItemId": 1054172,
+      "name": "Unchained Mage Suit",
+      "nameEn": "Unchained Mage Suit",
+      "type": "overall",
+      "level": 120,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 15,
+      "stats": {
+        "int": 6,
+        "luk": 6,
+        "def": 85
+      },
+      "imageUrl": "/msucp/images/items/1054172.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "int": 6,
+            "luk": 6,
+            "def": 85
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "int": 7,
+            "luk": 7,
+            "def": 115
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "int": 20,
+            "luk": 20,
+            "def": 180,
+            "matk": 1
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "int": 25,
+            "luk": 25,
+            "def": 250,
+            "matk": 2
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "sec_evolving_karma_orb",
+      "apiItemId": 1352409,
+      "name": "Evolving Karma Orb",
+      "nameEn": "Evolving Karma Orb",
+      "type": "secondary",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 5,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352409.png"
+    },
+    {
+      "id": "emblem_gold_heroes_emblem",
+      "apiItemId": 1190572,
+      "name": "Gold Heroes Emblem",
+      "nameEn": "Gold Heroes Emblem",
+      "type": "emblem",
+      "level": 100,
+      "maxStars": 0,
+      "stats": {
+        "atk": 2,
+        "matk": 2,
+        "str": 10,
+        "dex": 10,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1190572.png"
+    },
+    {
+      "id": "wpn_unchained_shining_rod",
+      "apiItemId": 1212144,
+      "name": "Unchained Shining Rod",
+      "nameEn": "Unchained Shining Rod",
+      "type": "weapon",
+      "subType": "shining_rod",
+      "level": 120,
+      "maxStars": 15,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 57,
+        "matk": 93
+      },
+      "imageUrl": "/msucp/images/items/1212144.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "matk": 93,
+            "atk": 57
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "matk": 123,
+            "atk": 75
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "matk": 153,
+            "atk": 93
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "int": 5,
+            "luk": 5,
+            "matk": 157,
+            "atk": 94
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "wpn_arcane_umbra_shining_rod",
+      "apiItemId": 1212120,
+      "name": "Arcane Umbra Shining Rod",
+      "nameEn": "Arcane Umbra Shining Rod",
+      "type": "weapon",
+      "subType": "shining_rod",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 206,
+        "matk": 347,
+        "int": 100,
+        "luk": 100,
+        "bossDmg": 30,
+        "ignoreDef": 20
+      },
+      "imageUrl": "/msucp/images/items/1212120.png"
+    },
+    {
+      "id": "ring_abyss_sentinels_ring",
+      "apiItemId": 1114331,
+      "name": "Abyss Sentinels Ring",
+      "nameEn": "Abyss Sentinels Ring",
+      "type": "ring",
+      "level": 130,
+      "maxStars": 0,
+      "stats": {
+        "atk": 12,
+        "matk": 12,
+        "str": 12,
+        "dex": 12,
+        "int": 12,
+        "luk": 12,
+        "hp": 600,
+        "mp": 600,
+        "normalMobDmg": 12
+      },
+      "imageUrl": "/msucp/images/items/1114331.png",
+      "noEnhance": true,
+      "specialEffect": {
+        "normalMobDmg": 12
+      }
+    },
+    {
+      "id": "wpn_unchained_bow",
+      "apiItemId": 1452283,
+      "name": "Unchained Bow",
+      "nameEn": "Unchained Bow",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 120,
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 15,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 85,
+        "moveSpeed": 12
+      },
+      "imageUrl": "/msucp/images/items/1452283.png",
+      "unchainedTiers": [
+        {
+          "level": 30,
+          "stats": {
+            "atk": 85
+          }
+        },
+        {
+          "level": 50,
+          "stats": {
+            "atk": 100
+          }
+        },
+        {
+          "level": 70,
+          "stats": {
+            "atk": 115
+          }
+        },
+        {
+          "level": 100,
+          "stats": {
+            "str": 5,
+            "dex": 5,
+            "atk": 123
+          }
+        }
+      ],
+      "noBonusStats": true,
+      "fixedStars": 15,
+      "noStarStats": true
+    },
+    {
+      "id": "wpn_necro_shining_rod",
+      "apiItemId": 1212035,
+      "name": "Necro Shining Rod",
+      "nameEn": "Necro Shining Rod",
+      "type": "weapon",
+      "subType": "shining_rod",
+      "level": 120,
+      "req": {
+        "int": 355
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 15,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 81,
+        "matk": 133
+      },
+      "imageUrl": "/msucp/images/items/1212035.png"
+    },
+    {
+      "id": "wpn_necro_longbow",
+      "apiItemId": 1452163,
+      "name": "Necro Longbow",
+      "nameEn": "Necro Longbow",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 120,
+      "req": {
+        "dex": 305
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 15,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 105
+      },
+      "imageUrl": "/msucp/images/items/1452163.png"
     }
   ]
 }

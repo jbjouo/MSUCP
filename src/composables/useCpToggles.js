@@ -1,6 +1,20 @@
 import { ref, watch } from 'vue'
 import { SKILLS } from '../constants/skills.js'
 import { BUFFS } from '../constants/buffs.js'
+
+function applyDefaults(set) {
+  for (const s of SKILLS) {
+    if (s.cp?.defaultOn && !set.has(s.id)) {
+      const group = s.cp.group
+      if (group) {
+        const hasGroupMember = SKILLS.some((o) => o.cp?.group === group && set.has(o.id))
+        if (hasGroupMember) continue
+      }
+      set.add(s.id)
+    }
+  }
+  return set
+}
 import { charKey } from './useActiveCharacter.js'
 
 // CP 頁面 (以及戰鬥模擬器) 共用的「啟用中」狀態
@@ -22,7 +36,7 @@ function loadSetFromStorage(key) {
 }
 
 const activeBuffs = ref(loadSetFromStorage(BUFFS_KEY))
-const activeSkillIds = ref(loadSetFromStorage(SKILLS_KEY))
+const activeSkillIds = ref(applyDefaults(loadSetFromStorage(SKILLS_KEY)))
 const activeTitleIds = ref(loadSetFromStorage(TITLES_KEY))
 
 watch(activeBuffs, (v) => {
