@@ -144,6 +144,7 @@ export const REFERENCE_WEAPON_DATA = {
   },
   shining_rod: {
     120: { atk: 81, matk: 133 },    // Necro Shining Rod
+    200: { atk: 206, matk: 347 },   // Arcane Umbra Shining Rod
   },
 }
 
