@@ -8,6 +8,7 @@ import { LUMINOUS_4TH_SIM_SKILLS, LUMINOUS_4TH_PASSIVE_SKILLS, LUMINOUS_4TH_BUFF
 import { LUMINOUS_5TH_SIM_SKILLS, LUMINOUS_5TH_PASSIVE_SKILLS, LUMINOUS_5TH_BUFFS, LUMINOUS_5TH_BATTLE_BUFFS, LUMINOUS_5TH_VMATRIX_SKILLS } from './5th.js'
 import { LUMINOUS_6TH_SIM_SKILLS, LUMINOUS_6TH_PASSIVE_SKILLS, LUMINOUS_6TH_BUFFS, LUMINOUS_6TH_BATTLE_BUFFS, LUMINOUS_6TH_VMATRIX_SKILLS } from './6th.js'
 import { LUMINOUS_HYPER_SKILLS, LUMINOUS_HYPER_ACTIVE_SKILLS } from './hyper.js'
+export { LUMINOUS_MECHANICS } from './mechanics.js'
 
 export const LUMINOUS_SKILLS = [
   ...LUMINOUS_0TH_SIM_SKILLS, ...LUMINOUS_0TH_PASSIVE_SKILLS, ...LUMINOUS_0TH_LINK_SKILLS, ...LUMINOUS_0TH_TOGGLE_SKILLS,
@@ -29,6 +30,7 @@ export const LUMINOUS_SIM_SKILLS = [
   ...LUMINOUS_4TH_SIM_SKILLS,
   ...LUMINOUS_5TH_SIM_SKILLS,
   ...LUMINOUS_6TH_SIM_SKILLS,
+  ...LUMINOUS_HYPER_ACTIVE_SKILLS.filter((s) => s.sim),
 ]
 
 export const LUMINOUS_PASSIVE_SKILLS = [
@@ -59,6 +61,17 @@ export const LUMINOUS_BATTLE_BUFFS = [
   ...LUMINOUS_4TH_BATTLE_BUFFS,
   ...LUMINOUS_5TH_BATTLE_BUFFS,
   ...LUMINOUS_6TH_BATTLE_BUFFS,
+  ...LUMINOUS_HYPER_ACTIVE_SKILLS.filter((s) => s.battle).map((s) => ({
+    id: s.id,
+    nameKey: s.nameKey,
+    descriptionKey: s.descriptionKey,
+    imageUrl: s.imageUrl,
+    jobs: s.jobs,
+    advancement: s.advancement,
+    kind: s.kind,
+    baseLevel: s.baseLevel,
+    ...s.battle,
+  })),
 ]
 
 export const LUMINOUS_VMATRIX_SKILLS = [

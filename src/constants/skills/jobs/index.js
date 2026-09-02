@@ -76,6 +76,7 @@ import {
   LUMINOUS_HYPER_SKILLS_ALL,
   LUMINOUS_LINK_SKILLS,
   LUMINOUS_TOGGLE_SKILLS,
+  LUMINOUS_MECHANICS,
 } from './luminous/index.js'
 
 import {
@@ -177,6 +178,7 @@ export const JOB_SKILL_REGISTRY = [
     hyper: LUMINOUS_HYPER_SKILLS_ALL,
     link: LUMINOUS_LINK_SKILLS,
     toggle: LUMINOUS_TOGGLE_SKILLS,
+    mechanics: LUMINOUS_MECHANICS,
   },
   {
     jobKey: 'windarcher',

@@ -1,8 +1,8 @@
 // Luminous — 0 轉技能
 
-import { ASSET } from '../../_shared/helpers.js'
+import { LOCAL_ICON } from '../../_shared/helpers.js'
 
-const ICON = (skillId) => ASSET(`skills/luminous/Skill_${skillId}.png`)
+const ICON = (name) => LOCAL_ICON(name, 'luminous')
 
 const LUMINOUS_0TH_SKILLS = [
   {

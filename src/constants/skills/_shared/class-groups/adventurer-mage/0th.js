@@ -12,7 +12,7 @@ export const ADVENTURER_MAGE_0TH_SKILLS = [
     nameKey: 'linkSkill.skills.empirical_knowledge.name',
     descriptionKey: 'linkSkill.skills.empirical_knowledge.flavor',
     imageUrl: ASSET('skills/link/empirical_knowledge.png'),
-    jobs: ['archmageFP', 'archmageIL', 'bishop'],
+    // Link Skill — 全職業可連結,不限定 jobs
     advancement: 0,
     kind: 'link',
     // 戰鬥模擬角色(資料來自 link skill 系統 — useBattleBuffs 會依 source 再解析 level/stats)

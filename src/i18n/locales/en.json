@@ -108,6 +108,7 @@
       "mainHits": "Main Hits",
       "dotTicks": "DoT Ticks",
       "total": "Total damage for this cast",
+      "range": "Damage range",
       "vmLevel": "V Matrix Lv",
       "vmHint": "(configure in Character → V Matrix)",
       "buffReserved": "Reserved slot (not wired)"
@@ -319,6 +320,40 @@
         "description": "HEXA enhancement: increases DoT Punisher Final Damage progression."
       }
     },
+    "luminous": {
+      "reflection": {
+        "name": "Reflection",
+        "description": "[Light Magic] Emit a powerful arrow of light that splits on hit. 440%×4 hits (Lv30, +4%/lv), 8 enemies. Speed 8 = 630ms. Energy 390 (+5% w/ Darkness Mastery)."
+      },
+      "apocalypse": {
+        "name": "Apocalypse",
+        "description": "[Dark Magic] Opens an Abyssal Rift under enemies. 375%×7 hits (Lv30, +4%/lv), 8 enemies. Speed 8 = 720ms. Energy 410 (Hyper Recharge 450; +5% w/ Darkness Mastery)."
+      },
+      "ender": {
+        "name": "Ender",
+        "description": "[Equilibrium] Giant blade attack. 455%×7 hits (Lv30, +5%/lv), 2 enemies. 100% Crit Rate, IgnDef 40% (+1%/lv). CD 12s (-1s/lv). Speed 8 = 600ms. No energy gain. Hits collect Swords → reset Baptism CD."
+      },
+      "dark_crescendo": {
+        "name": "Dark Crescendo",
+        "description": "80% chance on hit to stack (Lv30, +1%/lv). Each stack: Damage +8%, max 5 stacks, 30s duration."
+      },
+      "heroic_memories": {
+        "name": "Heroic Memories",
+        "description": "[Hyper Active] Damage +10%, 60 sec. CD 120s."
+      },
+      "equalize": {
+        "name": "Equalize",
+        "description": "[Hyper Active] Immediately enter Equilibrium for fixed 17s (ignores buff duration / Darkness Mastery). CD 150s. Used when entering Light state from Equilibrium."
+      },
+      "aether_conduit": {
+        "name": "Aether Conduit",
+        "description": "[V Skill 2] Summon light/dark rune. State-dependent: Light 468%×4×24 / Dark 328%×5×28 / Equilibrium 442%×6×28 (Lv1). 0.96s startup, 5.04s attacks. CD 30s. Equilibrium only."
+      },
+      "baptism": {
+        "name": "Baptism of Light and Darkness",
+        "description": "[V Skill 3] 468%×7 hits ×13 consecutive (Lv1, +18%/lv), 2 enemies. 100% Crit Rate + 100% IgnDef. CD 45s. Equilibrium skill hits reduce CD by 3s. CD resets on entering Equilibrium."
+      }
+    },
     "common": {
       "will_of_the_alliance": {
         "name": "Will of the Alliance",
@@ -417,7 +452,10 @@
     "groups": {
       "poison_mist": "Poison Mist",
       "flame_sweep": "Flame Sweep",
-      "mist_eruption": "Mist Eruption"
+      "mist_eruption": "Mist Eruption",
+      "reflection": "Reflection",
+      "apocalypse": "Apocalypse",
+      "ender": "Ender"
     },
     "skills": {
       "poison_mist_reinforce": {
@@ -503,6 +541,42 @@
       "nw_shadow_illusion": {
         "name": "Shadow Illusion",
         "desc": "Summon 3 shadows for 30 sec. Each shadow deals 70%/50%/30% of final damage."
+      },
+      "reflection_reinforce": {
+        "name": "Reflection - Reinforce",
+        "desc": "Reflection Damage +20%"
+      },
+      "reflection_spread": {
+        "name": "Reflection - Spread",
+        "desc": "Reflection split damage reduction removed"
+      },
+      "reflection_range_up": {
+        "name": "Reflection - Range Up",
+        "desc": "Reflection range +50"
+      },
+      "apocalypse_reinforce": {
+        "name": "Apocalypse - Reinforce",
+        "desc": "Apocalypse Damage +20%"
+      },
+      "apocalypse_recharge": {
+        "name": "Apocalypse - Recharge",
+        "desc": "Apocalypse gauge fill amount increased"
+      },
+      "apocalypse_extra_target": {
+        "name": "Apocalypse - Extra Target",
+        "desc": "Apocalypse Max Enemies Hit +2"
+      },
+      "ender_reinforce": {
+        "name": "Ender - Reinforce",
+        "desc": "Ender Damage +20%"
+      },
+      "ender_extra_target": {
+        "name": "Ender - Extra Target",
+        "desc": "Ender Max Enemies Hit +1"
+      },
+      "ender_range_up": {
+        "name": "Ender - Range Up",
+        "desc": "Ender range +40"
       }
     }
   },
@@ -1127,6 +1201,14 @@
       },
       "ignite_core": {
         "description": "Skill-specific V Matrix — affects Ignite only: +4% final damage per level; at Lv40+, +20% ignore defense (separate row, not added with Hyper ignore)."
+      },
+      "aether_conduit": "Aether Conduit",
+      "aether_conduit_desc": {
+        "description": "V Skill Core — Aether Conduit: level determines skill damage% (Equilibrium Lv1=442%, +17%/lv)."
+      },
+      "baptism_of_light_and_darkness": "Baptism of Light and Darkness",
+      "baptism_of_light_and_darkness_desc": {
+        "description": "V Skill Core — Baptism of Light and Darkness: level determines skill damage% (Lv1=468%, +18%/lv)."
       }
     }
   },

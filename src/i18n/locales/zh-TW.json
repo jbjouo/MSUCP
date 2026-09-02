@@ -108,6 +108,7 @@
       "mainHits": "主擊",
       "dotTicks": "DoT tick",
       "total": "這次施放總傷害",
+      "range": "傷害區間",
       "vmLevel": "V 矩陣 Lv",
       "vmHint": "(請到角色頁 V 矩陣面板設定)",
       "buffReserved": "尚未接入(預留位)"
@@ -319,6 +320,40 @@
         "description": "HEXA 強化:提升 DoT Punisher 最終傷害成長。"
       }
     },
+    "luminous": {
+      "reflection": {
+        "name": "Reflection",
+        "description": "[光技能] 射出強力光箭,命中敵人時分裂擴散。440%×4 擊(Lv30,+4%/lv),8 怪。攻速 8 = 630ms。能量 390(受 Darkness Mastery +5%)。"
+      },
+      "apocalypse": {
+        "name": "Apocalypse",
+        "description": "[暗技能] 在敵人腳下開啟深淵裂隙。375%×7 擊(Lv30,+4%/lv),8 怪。攻速 8 = 720ms。能量 410(Hyper Recharge 450;受 Darkness Mastery +5%)。"
+      },
+      "ender": {
+        "name": "Ender",
+        "description": "[平衡技能] 巨刃斬擊。455%×7 擊(Lv30,+5%/lv),2 怪。100% 爆擊率、IgnDef 40%(+1%/lv)。CD 12s(-1s/lv)。攻速 8 = 600ms。不增加能量。命中集劍 → 重置 Baptism CD。"
+      },
+      "dark_crescendo": {
+        "name": "Dark Crescendo",
+        "description": "攻擊命中時 80% 機率疊層(Lv30,+1%/lv),每層 Damage +8%,最多 5 層,30 秒。"
+      },
+      "heroic_memories": {
+        "name": "英雄回憶",
+        "description": "[Hyper Active] Damage +10%,60 秒。CD 120s。"
+      },
+      "equalize": {
+        "name": "天秤",
+        "description": "[Hyper Active] 直接進入平衡狀態,固定 17s(不吃加持/Darkness Mastery)。CD 150s。從平衡進入光狀態時使用。"
+      },
+      "aether_conduit": {
+        "name": "混沌共鳴",
+        "description": "[V 2技] 召喚光暗符文。依狀態切換:光 468%×4×24 / 暗 328%×5×28 / 平衡 442%×6×28(Lv1)。施放後 0.96s 準備,攻擊 5.04s。CD 30s。只在平衡使用。"
+      },
+      "baptism": {
+        "name": "光與暗的洗禮",
+        "description": "[V 3技] 光暗洗禮。468%×7 擊×13 連擊(Lv1,+18%/lv),2 怪。100% 爆擊率 + 100% IgnDef。CD 45s。平衡技能命中時 CD -3s。進入平衡時 CD 重置。"
+      }
+    },
     "common": {
       "will_of_the_alliance": {
         "name": "Will of the Alliance",
@@ -417,7 +452,10 @@
     "groups": {
       "poison_mist": "Poison Mist",
       "flame_sweep": "Flame Sweep",
-      "mist_eruption": "Mist Eruption"
+      "mist_eruption": "Mist Eruption",
+      "reflection": "Reflection",
+      "apocalypse": "Apocalypse",
+      "ender": "Ender"
     },
     "skills": {
       "poison_mist_reinforce": {
@@ -503,6 +541,42 @@
       "nw_shadow_illusion": {
         "name": "Shadow Illusion",
         "desc": "召喚 3 道影子,30 秒。各影子額外打出 70% / 50% / 30% 終傷"
+      },
+      "reflection_reinforce": {
+        "name": "Reflection - Reinforce",
+        "desc": "Reflection 傷害 +20%"
+      },
+      "reflection_spread": {
+        "name": "Reflection - Spread",
+        "desc": "Reflection 分裂後不減傷"
+      },
+      "reflection_range_up": {
+        "name": "Reflection - Range Up",
+        "desc": "Reflection 射程 +50"
+      },
+      "apocalypse_reinforce": {
+        "name": "Apocalypse - Reinforce",
+        "desc": "Apocalypse 傷害 +20%"
+      },
+      "apocalypse_recharge": {
+        "name": "Apocalypse - Recharge",
+        "desc": "Apocalypse 能量充填加速"
+      },
+      "apocalypse_extra_target": {
+        "name": "Apocalypse - Extra Target",
+        "desc": "Apocalypse 最大敵人數 +2"
+      },
+      "ender_reinforce": {
+        "name": "Ender - Reinforce",
+        "desc": "Ender 傷害 +20%"
+      },
+      "ender_extra_target": {
+        "name": "Ender - Extra Target",
+        "desc": "Ender 最大敵人數 +1"
+      },
+      "ender_range_up": {
+        "name": "Ender - Range Up",
+        "desc": "Ender 射程 +40"
       }
     }
   },
@@ -1127,6 +1201,14 @@
       },
       "ignite_core": {
         "description": "技能專屬 V 矩陣 — 僅作用於 Ignite:每等級 +4% 終傷;Lv40+ 額外無視防禦 +20%(獨立一排,與 Hyper 無視不相加)。"
+      },
+      "aether_conduit": "混沌共鳴",
+      "aether_conduit_desc": {
+        "description": "V 技能核心 — 混沌共鳴:等級決定技能傷害%(平衡 Lv1=442%,每級+17%)。"
+      },
+      "baptism_of_light_and_darkness": "光與暗的洗禮",
+      "baptism_of_light_and_darkness_desc": {
+        "description": "V 技能核心 — 光與暗的洗禮:等級決定技能傷害%(Lv1=468%,每級+18%)。"
       }
     }
   },

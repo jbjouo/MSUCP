@@ -1,22 +1,176 @@
 // Luminous — 超技能
 
-import { ASSET } from '../../_shared/helpers.js'
+import { LOCAL_ICON } from '../../_shared/helpers.js'
 
-const ICON = (skillId) => ASSET(`skills/luminous/Skill_${skillId}.png`)
+const ICON = (name) => LOCAL_ICON(name, 'luminous')
 
-export const LUMINOUS_HYPER_SKILLS = []
+export const LUMINOUS_HYPER_SKILLS = [
+  // ── Reflection 強化 ───────────────────────────────────────────────────
+  {
+    id: 'reflection_reinforce',
+    nameKey: 'hyperSkill.skills.reflection_reinforce.name',
+    descKey: 'hyperSkill.skills.reflection_reinforce.desc',
+    group: 'reflection',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 140,
+    imageUrl: ICON(27120043),
+    effect: { targetSkill: 'reflection', damagePct: 20 },
+  },
+  {
+    id: 'reflection_spread',
+    nameKey: 'hyperSkill.skills.reflection_spread.name',
+    descKey: 'hyperSkill.skills.reflection_spread.desc',
+    group: 'reflection',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 150,
+    imageUrl: ICON(27120044),
+    effect: { targetSkill: 'reflection' },
+  },
+  {
+    id: 'reflection_range_up',
+    nameKey: 'hyperSkill.skills.reflection_range_up.name',
+    descKey: 'hyperSkill.skills.reflection_range_up.desc',
+    group: 'reflection',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 180,
+    imageUrl: ICON(27120045),
+    effect: { targetSkill: 'reflection' },
+  },
+  // ── Apocalypse 強化 ──────────────────────────────────────────────────
+  {
+    id: 'apocalypse_reinforce',
+    nameKey: 'hyperSkill.skills.apocalypse_reinforce.name',
+    descKey: 'hyperSkill.skills.apocalypse_reinforce.desc',
+    group: 'apocalypse',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 140,
+    imageUrl: ICON(27120046),
+    effect: { targetSkill: 'apocalypse', damagePct: 20 },
+  },
+  {
+    id: 'apocalypse_recharge',
+    nameKey: 'hyperSkill.skills.apocalypse_recharge.name',
+    descKey: 'hyperSkill.skills.apocalypse_recharge.desc',
+    group: 'apocalypse',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 150,
+    imageUrl: ICON(27120047),
+    effect: { targetSkill: 'apocalypse', gaugeRecharge: 1 },
+  },
+  {
+    id: 'apocalypse_extra_target',
+    nameKey: 'hyperSkill.skills.apocalypse_extra_target.name',
+    descKey: 'hyperSkill.skills.apocalypse_extra_target.desc',
+    group: 'apocalypse',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 180,
+    imageUrl: ICON(27120048),
+    effect: { targetSkill: 'apocalypse' },
+  },
+  // ── Ender 強化 ────────────────────────────────────────────────────────
+  {
+    id: 'ender_reinforce',
+    nameKey: 'hyperSkill.skills.ender_reinforce.name',
+    descKey: 'hyperSkill.skills.ender_reinforce.desc',
+    group: 'ender',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 150,
+    imageUrl: ICON(27120049),
+    effect: { targetSkill: 'ender', damagePct: 20 },
+  },
+  {
+    id: 'ender_extra_target',
+    nameKey: 'hyperSkill.skills.ender_extra_target.name',
+    descKey: 'hyperSkill.skills.ender_extra_target.desc',
+    group: 'ender',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 165,
+    imageUrl: ICON(27120050),
+    effect: { targetSkill: 'ender' },
+  },
+  {
+    id: 'ender_range_up',
+    nameKey: 'hyperSkill.skills.ender_range_up.name',
+    descKey: 'hyperSkill.skills.ender_range_up.desc',
+    group: 'ender',
+    jobs: ['luminous'],
+    advancement: 'hyper',
+    hyperKind: 'enhancement',
+    levelReq: 180,
+    imageUrl: ICON(27120051),
+    effect: { targetSkill: 'ender' },
+  },
+]
+
+// ─── Equalize ───────────────────────────────────────────────────────────────
+// Hyper Active:直接進入平衡 17s(不吃加持),CD 150s
+// 使用時機:CD 好 + 剛從平衡進入光狀態(能量 0)
+export const EQUALIZE = {
+  id: 'equalize',
+  name: 'Equalize',
+  nameKey: 'skills.luminous.equalize.name',
+  descriptionKey: 'skills.luminous.equalize.description',
+  imageUrl: ICON(27121054),
+  jobs: ['luminous'],
+  advancement: 'hyper',
+  hyperKind: 'active',
+  kind: 'active',
+  cooldown: 150,
+  mirrorForceEquilibrium: true,
+  mirrorEqFixedDuration: 17,
+  sim: {
+    role: 'attack',
+    castDelayBySpeed: { 8: 600 },
+    priority: 130,
+  },
+}
+
 export const LUMINOUS_HYPER_ACTIVE_SKILLS = [
   {
     id: 'lumi_heroic_memories',
     name: 'Heroic Memories',
+    nameKey: 'skills.luminous.heroic_memories.name',
+    descriptionKey: 'skills.luminous.heroic_memories.description',
     icon: ICON(27121053),
     imageUrl: ICON(27121053),
     jobs: ['luminous'],
     advancement: 'hyper',
     hyperKind: 'active',
     kind: 'buff',
+    baseLevel: 1,
     stats: { dmgPct: 10 },
     cp: { role: 'buff' },
     _temporary: true,
+    battle: {
+      source: 'activeToggle',
+      base: {
+        durationSec: 60,
+        baseDamagePct: 10,
+        baseFinalDmgPct: 0,
+        tickIntervalSec: 0,
+        tickIncreasePct: 0,
+      },
+      perLevelBonus: {},
+      cooldownSec: 120,
+      ignoresBuffDuration: true,
+      initialDelayBySpeed: { 7: 0, 8: 0 },
+    },
   },
+  EQUALIZE,
 ]

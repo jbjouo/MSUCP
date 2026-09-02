@@ -48,12 +48,10 @@ const { state: vmState } = useVMatrix()
 const { state: charStateBattle } = useCharacter()
 const { state: buffState, buffInfo, toggleBuff } = useBattleBuffs()
 
-// ── 夜光光暗狀態鏡 ──
-const mirrorState = ref('light')   // 'light' | 'dark' | 'equilibrium'
-const mirrorPrevState = ref('light') // state before equilibrium
-const mirrorEnergy = ref(10000)
-const mirrorEqRemaining = ref(0)
-let mirrorEqTimer = null
+// ── 夜光光暗狀態鏡(引擎驅動) ──
+const mirrorState = computed(() => state.mirror?.state ?? 'light')
+const mirrorEnergy = computed(() => state.mirror?.energy ?? 10000)
+const mirrorEqRemaining = computed(() => state.mirror?.eqRemaining ?? 0)
 
 const mirrorStateLabel = computed(() => {
   if (mirrorState.value === 'light') return 'Sunfire (Light)'
@@ -75,35 +73,6 @@ const mirrorEclipseClip = computed(() => {
   const cx = Math.round(100 - pct * 50)
   return `ellipse(${rx}% 50% at ${cx}% 50%)`
 })
-
-function mirrorAddEnergy(amount) {
-  if (mirrorState.value === 'equilibrium') return
-  mirrorEnergy.value = Math.min(10000, mirrorEnergy.value + amount)
-}
-
-function mirrorEnterEquilibrium() {
-  if (mirrorState.value === 'equilibrium') return
-  mirrorPrevState.value = mirrorState.value
-  mirrorState.value = 'equilibrium'
-  mirrorEnergy.value = 0
-  mirrorEqRemaining.value = 17
-  clearInterval(mirrorEqTimer)
-  mirrorEqTimer = setInterval(() => {
-    mirrorEqRemaining.value -= 0.1
-    if (mirrorEqRemaining.value <= 0) {
-      clearInterval(mirrorEqTimer)
-      mirrorEqRemaining.value = 0
-      mirrorState.value = mirrorPrevState.value === 'light' ? 'dark' : 'light'
-    }
-  }, 100)
-}
-
-function mirrorReset() {
-  clearInterval(mirrorEqTimer)
-  mirrorState.value = 'light'
-  mirrorEnergy.value = 10000
-  mirrorEqRemaining.value = 0
-}
 
 // 觸發新疊層時的短暫閃光(420ms)
 const flashingBuffs = ref({})
@@ -236,7 +205,7 @@ function isEntryDisabled(entry) {
 }
 
 // 單次施放測試 — 可選技能 (僅顯示當前職業的);DoT Punisher 跑的是「第 1 顆火球」(hitsPerCast 5 擊、FD ×1.0)
-const TEST_CAST_SKILL_IDS = ['flame_sweep', 'dot_punisher', 'angel_ray']
+const TEST_CAST_SKILL_IDS = ['flame_sweep', 'dot_punisher', 'angel_ray', 'reflection', 'apocalypse', 'ender', 'aether_conduit', 'baptism_of_light_and_darkness']
 const testCastSkills = computed(() =>
   TEST_CAST_SKILL_IDS.map((id) => jobSimSkills.value.find((s) => s.id === id)).filter(Boolean),
 )
@@ -846,7 +815,9 @@ const timelineRows = computed(() => {
             <div class="bp-test__section-title">③ Final Damage (獨立乘區)</div>
             <table class="bp-test__table">
               <tr><td>面板 Final Damage%</td><td>{{ singleCastResult.finalDmg.pct.toFixed(2) }}%</td></tr>
-              <tr class="bp-test__table-result"><td>fm</td><td>× {{ singleCastResult.finalDmg.mult.toFixed(4) }}</td></tr>
+              <tr><td>面板 fm</td><td>× {{ singleCastResult.finalDmg.baseMult.toFixed(4) }}</td></tr>
+              <tr v-if="singleCastResult.finalDmg.affinityMult !== 1"><td>Light/Dark Affinity</td><td>× {{ singleCastResult.finalDmg.affinityMult.toFixed(4) }}</td></tr>
+              <tr class="bp-test__table-result"><td>fm (含 Affinity)</td><td>× {{ singleCastResult.finalDmg.mult.toFixed(4) }}</td></tr>
             </table>
           </div>
 
@@ -998,7 +969,7 @@ const timelineRows = computed(() => {
                 <td>Damage% 桶 (含 Boss%)</td>
                 <td>+{{ singleCastResult.mainChain.mainDmgBucketPct.toFixed(1) }}% → × {{ (1 + singleCastResult.mainChain.mainDmgBucketPct / 100).toFixed(4) }}</td>
               </tr>
-              <tr><td>面板終傷 fm</td><td>× {{ singleCastResult.mainChain.fm.toFixed(4) }}</td></tr>
+              <tr><td>終傷 fm{{ singleCastResult.mainChain.affinityMult !== 1 ? ' (含 Affinity)' : '' }}</td><td>× {{ singleCastResult.mainChain.fm.toFixed(4) }}</td></tr>
               <tr class="bp-test__table-result">
                 <td>= bossRaw</td>
                 <td>{{ fmtNum(Math.round(singleCastResult.mainChain.bossRaw)) }}</td>
@@ -1063,10 +1034,14 @@ const timelineRows = computed(() => {
             </div>
           </div>
 
-          <!-- 總和 -->
+          <!-- 總和 + 上下區間 -->
           <div class="bp-test__total">
             <span>{{ t('battle.test.total') }}</span>
             <b>{{ fmtNum(singleCastResult.total) }}</b>
+          </div>
+          <div v-if="singleCastResult.minTotal != null" class="bp-test__range">
+            <span class="bp-test__range-label">{{ t('battle.test.range') }}</span>
+            <span class="bp-test__range-val">{{ fmtNum(singleCastResult.minTotal) }} ~ {{ fmtNum(singleCastResult.maxTotal) }}</span>
           </div>
         </div>
       </div>
@@ -1563,6 +1538,21 @@ const timelineRows = computed(() => {
   font-variant-numeric: tabular-nums;
   font-size: 1.3rem;
   font-weight: 800;
+}
+.bp-test__range {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+.bp-test__range-label {
+  color: #8ea6b8;
+}
+.bp-test__range-val {
+  color: #aac4d6;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 @media (max-width: 780px) {
   .bp-test__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

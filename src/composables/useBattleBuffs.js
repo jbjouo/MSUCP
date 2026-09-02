@@ -39,7 +39,7 @@ function applicableForJob(buff, jobKey) {
 // 依 buff 來源取得「當前等級的 stats 規則」
 //   linkSkill / linkCycle → 依連結結果動態查;passive → 直接從 buff 定義讀
 function currentLevelStats(buff, jobKey) {
-  if (buff.source === 'linkSkill' || buff.source === 'linkCycle') {
+  if (buff.source === 'linkSkill' || buff.source === 'linkCycle' || buff.source === 'linkTimer') {
     const skill = getLinkSkill(buff.id)
     if (!skill) return null
     const level = combinedLevelFor(buff.id, jobKey)
@@ -194,7 +194,8 @@ export function useBattleBuffs() {
       if (state.disabledBuffs.has(buff.id)) continue
       const isActiveToggle = buff.source === 'activeToggle'
       const isLinkCycle = buff.source === 'linkCycle'
-      if (!isActiveToggle && !isLinkCycle) continue
+      const isLinkTimer = buff.source === 'linkTimer'
+      if (!isActiveToggle && !isLinkCycle && !isLinkTimer) continue
       // triggerOn 指定為事件驅動(例:debuffApplied)→ 不在 autoTick 自動啟動,交由 rollTriggers 處理
       if (isLinkCycle && buff.triggerOn) continue
       if (!applicableForJob(buff, jobKey)) continue
@@ -230,6 +231,27 @@ export function useBattleBuffs() {
         if (nowMs < tgt.expireAt) continue
       }
 
+      // linkTimer(Solus/無我):每 combatDuration 秒自動疊 1 層,最多 maxStacks
+      if (buff.source === 'linkTimer') {
+        const info = currentLevelStats(buff, jobKey)
+        if (!info?.stats || info.level <= 0) continue
+        const { combatDuration = 5, maxStacks = 5, duration = 5, dmgPctPerStack = 0 } = info.stats
+        const intervalMs = combatDuration * 1000
+        const durationMs = duration * 1000
+        const timeSinceStart = nowMs
+        const expectedStacks = Math.min(maxStacks, Math.floor(timeSinceStart / intervalMs))
+        if (expectedStacks > 0 && s.count < expectedStacks) {
+          s.count = expectedStacks
+          s.expireAt = nowMs + durationMs
+          s.level = info.level
+          s.durationMs = durationMs
+        }
+        if (s.count > 0 && nowMs >= s.expireAt) {
+          s.count = 0
+          s.expireAt = 0
+        }
+        continue
+      }
       if (isLinkCycle) {
         // linkCycle:level + stats 從 LinkSkill 系統取得,未連結則跳過
         const info = currentLevelStats(buff, jobKey)
@@ -410,6 +432,15 @@ export function useBattleBuffs() {
         }
         continue
       }
+      // linkTimer(Solus):以疊層數 × dmgPctPerStack 併入 Damage%
+      if (buff.source === 'linkTimer') {
+        const s = state.stacks[buff.id]
+        if (!s || s.count <= 0 || nowMs >= s.expireAt) continue
+        const info = currentLevelStats(buff, jobKey)
+        const perStack = Number(info?.stats?.dmgPctPerStack) || 0
+        if (perStack > 0) total.dmgPct += s.count * perStack
+        continue
+      }
       // linkCycle:啟動中以 stats.damage 併入 Damage%(與 CP Damage 相加後進 basic/boss 桶)
       if (buff.source === 'linkCycle') {
         const s = state.stacks[buff.id]
@@ -552,6 +583,24 @@ export function useBattleBuffs() {
         currentFdPct,
         onCooldown,
         cooldownRemainingMs: onCooldown ? s.cooldownUntil - nowMs : 0,
+        durationMs: s.durationMs || 0,
+      }
+    }
+    if (buff.source === 'linkTimer') {
+      const s = state.stacks[buff.id] || {}
+      const info = currentLevelStats(buff, jobKey)
+      const isActive = s.count > 0 && nowMs < s.expireAt
+      const remainingMs = isActive ? Math.max(0, s.expireAt - nowMs) : 0
+      return {
+        level: info?.level || 0,
+        stats: info?.stats || null,
+        count: s.count || 0,
+        expireAt: s.expireAt || 0,
+        active: isActive,
+        source: 'linkTimer',
+        remainingMs,
+        onCooldown: false,
+        cooldownRemainingMs: 0,
         durationMs: s.durationMs || 0,
       }
     }

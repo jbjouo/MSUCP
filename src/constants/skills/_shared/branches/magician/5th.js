@@ -12,7 +12,7 @@ export const MAGICIAN_BRANCH_5TH_SKILLS = [
     nameKey: 'battleBuffs.mana_overload.name',
     descriptionKey: 'battleBuffs.mana_overload.description',
     imageUrl: YETIDB_ICON('Mana_Overload'),
-    jobs: ['archmageFP', 'archmageIL', 'bishop'],
+    jobs: ['archmageFP', 'archmageIL', 'bishop', 'luminous'],
     advancement: 5,
     kind: 'toggle',
     vmTag: 'magician',   // V 矩陣面板角標:法師共用核心

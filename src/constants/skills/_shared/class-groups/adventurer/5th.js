@@ -21,6 +21,8 @@ const ADVENTURER_JOBS = [
   'nightlord', 'shadower', 'dualblade',
   'buccaneer', 'corsair', 'cannoneer',
 ]
+const HEROES_JOBS = ['aran', 'evan', 'mercedes', 'phantom', 'luminous', 'shade']
+const MWGB_JOBS = [...ADVENTURER_JOBS, ...HEROES_JOBS]
 
 export const ADVENTURER_5TH_SKILLS = [
   {
@@ -29,7 +31,7 @@ export const ADVENTURER_5TH_SKILLS = [
     nameKey: 'vmatrix.skills.maple_world_goddess_blessing',
     descriptionKey: 'vmatrix.skills.maple_world_goddess_blessing_desc',
     imageUrl: ICON("Maple_World_Goddess's_Blessing"),
-    jobs: ADVENTURER_JOBS,
+    jobs: MWGB_JOBS,
     advancement: 5,
     kind: 'buff',
     vmTag: 'adventurer',   // V 矩陣面板「技能核心 (共通)」角標:冒險家

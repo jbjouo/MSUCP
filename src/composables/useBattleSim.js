@@ -163,6 +163,8 @@ const state = reactive({
   //   Mist Eruption 重置 Flame Haze CD 後,flame_haze 這裡會回到 tCast (remaining=0),
   //   即使 scheduler sim.nextCastAt 還被 Mist Eruption 的動畫鎖延後 720ms
   cooldownEndAt: {},
+  // 夜光光暗狀態鏡 — 由引擎驅動,BattlePage UI 讀取
+  mirror: null,
 })
 
 // 從 useVMatrix 讀取該技能在 V 矩陣面板 (角色頁) 設定的等級
@@ -310,7 +312,9 @@ let cpBaseStats = null   // useCpDamage().baseStats (lazy init) — AP 基礎主
 function elemMultFor(skill, enemy) {
   if (!skill.element) return 1
   const resist = ENEMY_ELEM_RESIST_PCT[enemy?.elementalDmg] ?? 50
-  const ignore = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
+  const jobIgnore = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
+  const cpIgnore = cpStatTotal ? (cpStatTotal('elementalResist') || 0) : 0
+  const ignore = Math.min(100, jobIgnore + cpIgnore)
   return Math.max(0, 1 - (resist * (1 - ignore / 100)) / 100)
 }
 
@@ -435,8 +439,9 @@ function mainHitDmg(skill, elemMult, enemy, att, pctOverride) {
   const pct = pctOverride != null ? pctOverride : skillPctOf(skill).hit
   const bmMult = dotPassiveFinalDmgMult()
   const ldMult = levelDiffMainMult()
+  const affinityMult = mirrorAffinityMult(skill)
   return mul(bossBase, pct / 100, elemMult, currentArcMult,
-             skillFinalMult, buffBonuses.finalDmgMult, defMult, explosionMult, bmMult, ldMult)
+             skillFinalMult, buffBonuses.finalDmgMult, defMult, explosionMult, bmMult, ldMult, affinityMult)
 }
 
 // 等差 (角色等級 − 怪物等級) 終傷乘區 — 僅主擊套用 (DoT 另有獨立減傷機制,不吃本表)
@@ -933,6 +938,13 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
       // mainHitDmg 已在 bossMin~bossMax 區間隨機取樣 (含爆擊 / 熟練度),不再疊加 variance
       emitHit(stats, mainHitDmg(skill, elemMult, enemy, att), { t: tCast, hit: h + 1 })
     }
+    // 光暗狀態鏡追擊:每擊追加一下獨立傷害(Sunfire/Eclipse 50% FD,Equilibrium 100% FD)
+    const echoFd = mirrorEchoFd(skill)
+    if (echoFd > 0) {
+      for (let h = 0; h < hits; h++) {
+        emitHit(stats, mainHitDmg(skill, elemMult, enemy, att) * echoFd)
+      }
+    }
   }
   // 週期爆炸 (sim.pulses;例:Poison Chain) — 中毒目標每 intervalMs 爆炸一次,共 count 次
   //   爆炸傷害% = detonation.damage + stackBonus × 疊層 (第 k 爆疊層 = min(maxStacks, k−1);首爆無加成)
@@ -1246,6 +1258,141 @@ function tick() {
   if (!finished && state.running) rafId = requestAnimationFrame(tick)
 }
 
+// ── 光暗狀態鏡 (Luminous) ──────────────────────────────────────────────────
+function mirrorAllowsSkill(skill, elapsed) {
+  const m = sim.mirror
+  if (!m) return true
+  const elem = skill.element
+  // 平衡期間先檢查是否已到期
+  if (m.state === 'equilibrium' && elapsed >= m.eqEndAt) {
+    m.state = m.prevState === 'light' ? 'dark' : 'light'
+    m.energy = 0
+    syncMirrorState(elapsed)
+  }
+  // mirror 排程標記
+  if (skill.mirrorForceEquilibrium) return m.state === 'light' && m.energy === 0
+  if (skill.mirrorEquilibriumOnly) return m.state === 'equilibrium'
+  if (skill.mirrorEnterEquilibrium) return m.state === 'equilibrium' || m.energy >= m.cfg.maxEnergy
+  // 無 element 的技能不受 mirror 限制
+  if (!elem) return true
+  // 4 轉以下用 element 限制
+  if (m.state === 'equilibrium') return elem === 'equilibrium'
+  if (m.state === 'light') return elem === 'light' || (elem === 'equilibrium' && m.energy >= m.cfg.maxEnergy)
+  if (m.state === 'dark') return elem === 'dark' || (elem === 'equilibrium' && m.energy >= m.cfg.maxEnergy)
+  return true
+}
+
+function mirrorOnCast(skill, tCast) {
+  const m = sim.mirror
+  if (!m) return
+  const elem = skill.element
+  const energyMult = 1 + (m.cfg.darknessMasteryEnergyBonus || 0)
+  // 光/暗技能增加能量
+  if (elem && ((m.state === 'light' && elem === 'light') || (m.state === 'dark' && elem === 'dark'))) {
+    const hs = hyperBagFor(skill.id)
+    const base = (hs.gaugeRecharge && skill.gaugeEnergyRecharge) ? skill.gaugeEnergyRecharge : (skill.gaugeEnergy || 0)
+    if (base > 0) {
+      m.energy = Math.min(m.cfg.maxEnergy, m.energy + Math.floor(base * energyMult))
+    }
+  }
+  // 強制進入平衡(Equalize):不需要能量滿,固定時長
+  if (skill.mirrorForceEquilibrium && m.state !== 'equilibrium') {
+    m.prevState = m.state
+    m.state = 'equilibrium'
+    m.energy = 0
+    const dur = skill.mirrorEqFixedDuration || 17
+    m.eqEndAt = tCast + dur * 1000
+    for (const s of sim.activeSkills) {
+      if (s.mirrorCdResetOnEnter) {
+        const anim = s.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 600
+        sim.cooldownEndAt[s.id] = tCast
+        sim.nextCastAt[s.id] = tCast + anim
+      }
+    }
+    syncMirrorState(tCast)
+    return
+  }
+  // 進入平衡:4 轉 equilibrium 技能或 5 轉 mirrorEnterEquilibrium 技能
+  const triggersEq = (elem === 'equilibrium' || skill.mirrorEnterEquilibrium)
+  if (triggersEq && m.state !== 'equilibrium' && m.energy >= m.cfg.maxEnergy) {
+    m.prevState = m.state
+    m.state = 'equilibrium'
+    m.energy = 0
+    const dur = m.cfg.equilibriumDurationSec + (m.cfg.darknessMasteryDurationBonus || 0)
+    m.eqEndAt = tCast + dur * 1000
+    for (const s of sim.activeSkills) {
+      if (s.mirrorCdResetOnEnter) {
+        const anim = s.sim?.castDelayBySpeed?.[state.attackSpeed] ?? 600
+        sim.cooldownEndAt[s.id] = tCast
+        sim.nextCastAt[s.id] = tCast + anim
+      }
+    }
+  }
+  // 4 轉平衡技能施放時減少 mirrorCdReduceOnEqHit 技能的 CD
+  if (elem === 'equilibrium' && m.state === 'equilibrium') {
+    for (const s of sim.activeSkills) {
+      if (!s.mirrorCdReduceOnEqHit) continue
+      if (s.id === skill.id) continue
+      const cdEnd = sim.cooldownEndAt[s.id]
+      if (cdEnd != null && cdEnd > tCast) {
+        const reducMs = s.mirrorCdReduceOnEqHit * 1000
+        sim.cooldownEndAt[s.id] = Math.max(tCast, cdEnd - reducMs)
+        if (sim.nextCastAt[s.id] > tCast) {
+          sim.nextCastAt[s.id] = Math.max(tCast, sim.nextCastAt[s.id] - reducMs)
+        }
+      }
+    }
+  }
+  syncMirrorState(tCast)
+}
+
+function mirrorEchoFd(skill) {
+  const hasMirror = sim.mirror || mechanicsForJob(currentJobKey)?.stateMirror
+  if (!hasMirror) return 0
+  const elem = skill.element
+  if (!elem) return 0
+  const ms = sim.mirror?.state
+  // 平衡狀態:平衡技能追擊 100% FD,光暗技能追擊 50% FD
+  if (ms === 'equilibrium') return elem === 'equilibrium' ? 1.0 : 0.5
+  // 光/暗狀態:對應元素技能追擊 50% FD
+  // 平衡技能同時屬於光與暗,在任何狀態下都有追擊
+  if (ms === 'light' && (elem === 'light' || elem === 'equilibrium')) return 0.5
+  if (ms === 'dark' && (elem === 'dark' || elem === 'equilibrium')) return 0.5
+  // 沒跑模擬時,依 initialState 推定
+  if (!ms) {
+    const cfg = mechanicsForJob(currentJobKey)?.stateMirror
+    const fallback = cfg?.initialState || 'light'
+    if (fallback === 'equilibrium') return elem === 'equilibrium' ? 1.0 : 0.5
+    if (fallback === 'light' && (elem === 'light' || elem === 'equilibrium')) return 0.5
+    if (fallback === 'dark' && (elem === 'dark' || elem === 'equilibrium')) return 0.5
+  }
+  return 0
+}
+
+function mirrorAffinityMult(skill) {
+  const hasMirror = sim.mirror || mechanicsForJob(currentJobKey)?.stateMirror
+  if (!hasMirror) return 1
+  const elem = skill.element
+  if (!elem) return 1
+  const toggles = useCpToggles()
+  const lightOn = toggles.isSkillActive('lumi_light_affinity')
+  const darkOn = toggles.isSkillActive('lumi_dark_affinity')
+  let fd = 0
+  if ((elem === 'light' || elem === 'equilibrium') && lightOn) fd = add(fd, 5)
+  if ((elem === 'dark' || elem === 'equilibrium') && darkOn) fd = add(fd, 5)
+  return fd > 0 ? clean(1 + fd / 100) : 1
+}
+
+function syncMirrorState(elapsed) {
+  if (!sim.mirror) return
+  const m = sim.mirror
+  state.mirror = {
+    state: m.state,
+    energy: m.energy,
+    eqRemaining: m.state === 'equilibrium' ? Math.max(0, (m.eqEndAt - elapsed) / 1000) : 0,
+  }
+}
+
 // 推進模擬到指定虛擬時間 — 引擎唯一入口,所有邏輯只依賴 elapsed (與真實時鐘無關)
 //   回傳 true = 已達總時長並完成自然結束處理
 function advanceTo(elapsed) {
@@ -1316,6 +1463,8 @@ function advanceTo(elapsed) {
       if (s.sim?.requiresSkillEnabled && state.disabledSkills.has(s.sim.requiresSkillEnabled)) continue
       // V 技能核心未配點 = 未習得
       if (!vSkillLearned(s)) continue
+      // 光暗狀態鏡:依當前狀態過濾可用技能
+      if (sim.mirror && !mirrorAllowsSkill(s, elapsed)) continue
       const t = sim.nextCastAt[s.id]
       if (t == null || t > elapsed) continue
       const pri = s.sim?.priority || 0
@@ -1433,7 +1582,9 @@ function advanceTo(elapsed) {
     const priorityRed = (priorityThreshold > 0 && activeDots >= priorityThreshold)
       ? (cdSim.priorityRedSec || 0)
       : (priorityThreshold === 0 ? (cdSim.priorityRedSec || 0) : 0)
-    const effCdMs = baseCd > 0
+    // 平衡狀態下平衡技能 CD 歸零
+    const mirrorZeroCd = sim.mirror?.state === 'equilibrium' && skill.element === 'equilibrium'
+    const effCdMs = (baseCd > 0 && !mirrorZeroCd)
       ? computeEffectiveCooldown(baseCd, {
           skillPriorityRedSec: priorityRed,
           skillOwnPctRed: (cdSim.ownPctRed || 0) + (hsCd.cooldownOwnPctRed || 0),
@@ -1485,6 +1636,8 @@ function advanceTo(elapsed) {
         }
       }
     }
+    // 光暗狀態鏡:CD 計算 + cast lock 完成後再觸發(確保 CD 重置能覆蓋)
+    if (sim.mirror) mirrorOnCast(skill, tCast)
   }
   if (processOrbHits(elapsed, enemy, att)) changed = true
   // 火球命中之後才上狀態 (因果:先命中 → 上狀態 → 增傷) — 順序不可對調
@@ -1499,6 +1652,15 @@ function advanceTo(elapsed) {
 
   // 每 tick 同步 sim.nextCastAt → state,供 CD 面板讀取最新冷卻狀態
   if (changed) syncNextCastAt()
+  // 光暗狀態鏡:每 tick 檢查平衡到期 + 同步 UI
+  if (sim.mirror) {
+    const m = sim.mirror
+    if (m.state === 'equilibrium' && elapsed >= m.eqEndAt) {
+      m.state = m.prevState === 'light' ? 'dark' : 'light'
+      m.energy = 0
+    }
+    syncMirrorState(elapsed)
+  }
 
   // 衍生統計節流:每秒才重算一次(或自然結束時最後一次)
   if (elapsed - sim.lastRefreshMs >= 1000 || elapsed >= totalMs) {
@@ -1562,6 +1724,25 @@ export function useBattleSim() {
     state.elapsedMs = 0
     useBattleBuffs().reset()
     useDotTracker().setActiveDotCount(0)
+    // 光暗狀態鏡初始化
+    const mirrorCfg = mechanicsForJob(useCharacter().state.job)?.stateMirror
+    if (mirrorCfg) {
+      sim.mirror = {
+        cfg: mirrorCfg,
+        state: mirrorCfg.initialState,
+        prevState: mirrorCfg.initialState,
+        energy: mirrorCfg.initialEnergy,
+        eqEndAt: 0,
+      }
+      state.mirror = {
+        state: sim.mirror.state,
+        energy: sim.mirror.energy,
+        eqRemaining: 0,
+      }
+    } else {
+      sim.mirror = null
+      state.mirror = null
+    }
     // 開場排程:
     //   derived 型(例 Poison Mist)→ 完全不排程,靠 onHitSpawn 觸發
     //   aura 型(開關持續技)→ 首次觸發在 firstHitWindowSec 內隨機,不進 priority cascade
@@ -1634,6 +1815,7 @@ export function useBattleSim() {
     state.elapsedMs = 0
     state.nextCastAt = {}
     state.cooldownEndAt = {}
+    state.mirror = null
   }
 
   // 測試用 — 以當前設定跑一次技能施放,回傳每擊傷害明細。
@@ -1705,12 +1887,21 @@ export function useBattleSim() {
     const basicRaw   = dotRebuilt.basicRaw
     const perCastHits = (skill.hitsPerCast || 0) * explosionsN
     const totalHits = Math.max(0, add(perCastHits, hs.hitsPerCastBonus || 0))
+    // 光暗狀態鏡追擊 — 合併入 mainHits（每擊後緊跟一下追擊）
+    const echoFd = mirrorEchoFd(skill)
+    const affinityMult = mirrorAffinityMult(skill)
     const mainHits = []
     for (let h = 0; h < totalHits; h++) {
       const bossBase = add(bossMinRaw, mul(localRng(), sub(bossMaxRaw, bossMinRaw)))
       const value = mul(bossBase, pcts.hit / 100, elemMult, arcMult,
-                        skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult)
+                        skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult)
       mainHits.push(Math.max(1, floor(value)))
+      if (echoFd > 0) {
+        const echoBase = add(bossMinRaw, mul(localRng(), sub(bossMaxRaw, bossMinRaw)))
+        const echoVal = mul(echoBase, pcts.hit / 100, elemMult, arcMult,
+                            skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult, echoFd)
+        mainHits.push(Math.max(1, floor(echoVal)))
+      }
     }
     const fixedDur = !!skill.burn?.fixedDuration
     const bmDurMult = fixedDur ? 1 : dotPassiveDotDurationMult()
@@ -1728,15 +1919,30 @@ export function useBattleSim() {
     }
     const mainSum = mainHits.reduce((s, x) => s + x, 0)
     const dotSum = dotTicks.reduce((s, x) => s + x.dmg, 0)
+    // 上下區間:全部最小 / 全部最大(含追擊 + affinity)
+    const minHitVal = Math.max(1, floor(mul(bossMinRaw, pcts.hit / 100, elemMult, arcMult,
+      skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult)))
+    const maxHitVal = Math.max(1, floor(mul(bossMaxRaw, pcts.hit / 100, elemMult, arcMult,
+      skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult)))
+    const echoMinVal = echoFd > 0 ? Math.max(1, floor(mul(bossMinRaw, pcts.hit / 100, elemMult, arcMult,
+      skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult, echoFd))) : 0
+    const echoMaxVal = echoFd > 0 ? Math.max(1, floor(mul(bossMaxRaw, pcts.hit / 100, elemMult, arcMult,
+      skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult, echoFd))) : 0
+    const minTotal = (minHitVal + echoMinVal) * totalHits + dotSum
+    const maxTotal = (maxHitVal + echoMaxVal) * totalHits + dotSum
 
     return {
       skill,
       level: lv,
       mainHits,
+      echoFd,
+      affinityMult,
       dotTicks,
       mainSum,
       dotSum,
       total: mainSum + dotSum,
+      minTotal,
+      maxTotal,
       // ── 基礎面板 (CP 頁來源) ──
       base: {
         weaponConst: att.weaponConst,
@@ -1763,7 +1969,9 @@ export function useBattleSim() {
       // ── Final Damage (面板終傷, 獨立乘��) ──
       finalDmg: {
         pct: att.finalDmg || 0,
-        mult: att.fm || 1,
+        mult: mul(att.fm || 1, affinityMult),
+        baseMult: att.fm || 1,
+        affinityMult,
       },
       // ── Crit (爆��區間) ──
       crit: {
@@ -1858,7 +2066,8 @@ export function useBattleSim() {
       mainChain: {
         baseRawAdjusted: adjustedBaseRaw(att),
         mainDmgBucketPct: add(att.dmgPct || 0, att.bossDmg || 0, att.abnormalMobDmg || 0, mainDmgPct),
-        fm: att.fm || 1,
+        fm: mul(att.fm || 1, affinityMult),
+        affinityMult,
         bossRaw: mainRebuilt.bossRaw,
         critDmg: att.critDmg || 0,
         mastery: att.mastery || 100,
@@ -1876,9 +2085,9 @@ export function useBattleSim() {
         bmMult,
         levelDiffMult,
         minHit: Math.max(1, floor(mul(bossMinRaw, pcts.hit / 100, elemMult, arcMult,
-          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult))),
+          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult))),
         maxHit: Math.max(1, floor(mul(bossMaxRaw, pcts.hit / 100, elemMult, arcMult,
-          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult))),
+          skillFinalMult, buffFinalDmgMult, defMult, explosionMult, bmMult, levelDiffMult, affinityMult))),
       },
       // ── DoT 專用 ──
       dot: {

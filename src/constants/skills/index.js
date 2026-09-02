@@ -100,6 +100,18 @@ const THIEFS_CUNNING_BATTLE_BUFF = LINK_SKILLS.thiefs_cunning
     }]
   : []
 
+const SOLUS_BATTLE_BUFF = LINK_SKILLS.solus
+  ? [{
+      id: 'solus',
+      source: 'linkTimer',
+      nameKey: 'linkSkill.skills.solus.name',
+      descriptionKey: 'linkSkill.skills.solus.flavor',
+      imageUrl: ASSET('skills/link/solus.png'),
+      advancement: 0,
+      kind: 'link',
+    }]
+  : []
+
 // 依 id 重排以對齊原陣列順序
 //   empirical_knowledge, fervent_drain, arcane_aim, infinity, thiefs_cunning
 const BATTLE_BUFFS_UNORDERED = [
@@ -109,6 +121,7 @@ const BATTLE_BUFFS_UNORDERED = [
   ...ADVENTURER_BATTLE_BUFFS,           // maple_world_goddess_blessing (排序在 infinity 之後)
   ...ALL_JOBS_JOB_BATTLE_BUFFS,         // fervent_drain + infinity
   ...THIEFS_CUNNING_BATTLE_BUFF,
+  ...SOLUS_BATTLE_BUFF,
 ]
 
 const BATTLE_BUFF_ORDER = ['empirical_knowledge', 'fervent_drain', 'arcane_aim', 'infinity', 'mana_overload', 'thiefs_cunning']

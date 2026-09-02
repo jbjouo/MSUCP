@@ -14,6 +14,7 @@ const {
   canPick,
   meetsLevel,
   toggle,
+  resetAll,
 } = useHyperSkills()
 const { state: charState } = useCharacter()
 
@@ -80,6 +81,12 @@ const hasOptions = computed(() => groups.value.some((g) => g.skills.length))
       <span class="hyskill-panel__remain">
         {{ t('hyperSkill.remaining', { n: remainingPoints }) }}
       </span>
+      <button
+        v-if="usedPoints > 0"
+        class="hyskill-panel__reset"
+        type="button"
+        @click="resetAll"
+      >{{ t('hyperSkill.reset') }}</button>
     </footer>
   </section>
 </template>
@@ -238,8 +245,7 @@ const hasOptions = computed(() => groups.value.some((g) => g.skills.length))
 }
 
 .hyskill-panel__foot {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
@@ -266,6 +272,20 @@ const hasOptions = computed(() => groups.value.some((g) => g.skills.length))
 .hyskill-panel__remain {
   color: #8ea6b8;
   font-size: 0.74rem;
-  text-align: right;
+  margin-left: auto;
+}
+.hyskill-panel__reset {
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ff7b6b;
+  background: rgba(255, 123, 107, 0.1);
+  border: 1px solid rgba(255, 123, 107, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.hyskill-panel__reset:hover {
+  background: rgba(255, 123, 107, 0.2);
 }
 </style>
