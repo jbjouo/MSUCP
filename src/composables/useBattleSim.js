@@ -312,7 +312,6 @@ let cpBaseStats = null   // useCpDamage().baseStats (lazy init) — AP 基礎主
 //   1 − 怪物屬性耐性% × (1 − 無視屬性耐性%/100) / 100
 // 若技能無屬性 (skill.element 為空),則一律回 1。
 function elemMultFor(skill, enemy) {
-  if (!skill.element) return 1
   const resist = ENEMY_ELEM_RESIST_PCT[enemy?.elementalDmg] ?? 50
   const jobIgnore = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
   const cpIgnore = cpStatTotal ? (cpStatTotal('elementalResist') || 0) : 0
