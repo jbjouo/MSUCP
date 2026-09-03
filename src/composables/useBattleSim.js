@@ -67,6 +67,8 @@ function createSimContext() {
     //   { cfg, psi, expireAt, lastVisibleAt, pools: [{ side, spawnAt, armedAt }] }
     //   null = 尚未施放;引爆 / 補毒邏輯見 poisonRegionOnDetonator
     poisonRegion: null,
+    // buffAttack 狀態 — 施放後由其他攻擊命中觸發(Liberation Orb Active)
+    buffAttacks: [],
     // aura 抑制截止時間 { [auraSkillId]: ms } — 變身/連擊技能期間指定 aura 停止攻擊
     //   (例:Elemental Fury 期間 Ifrit 不攻擊;由 sim.suppressAuraIds 寫入)
     auraSuppressedUntil: {},
@@ -946,6 +948,60 @@ function emitCast(skill, tCast, elemMult, enemy, att) {
       }
     }
   }
+  // buffAttack:施放後啟動 buff,由後續攻擊命中觸發(Liberation Orb Active)
+  const ba = skill.sim?.buffAttack
+  if (ba) {
+    const loCfg = skill.liberationOrb
+    const snapshotMp = (sim.mirror?.liberationMp)
+      ? sim.mirror.liberationMp.light + sim.mirror.liberationMp.dark
+      : (loCfg?.assumedMp || 8)
+    sim.buffAttacks.push({
+      skillId: skill.id,
+      startAt: tCast,
+      endAt: tCast + (ba.durationSec || 45) * 1000,
+      lastTriggerAt: -Infinity,
+      triggerCount: 0,
+      maxTriggers: ba.triggers || 20,
+      intervalMs: ba.intervalMs || 900,
+      hitsPerTrigger: ba.hitsPerTrigger || 10,
+      snapshotMp,
+    })
+    if (sim.mirror?.liberationMp) {
+      sim.mirror.liberationMp.light = 0
+      sim.mirror.liberationMp.dark = 0
+    }
+  }
+  // 命中觸發 buffAttack — 非自身施放的攻擊技能命中時檢查
+  if (!ba && hits > 0) {
+    for (const baBuff of sim.buffAttacks) {
+      if (tCast < baBuff.startAt || tCast >= baBuff.endAt) continue
+      if (baBuff.triggerCount >= baBuff.maxTriggers) continue
+      if (tCast - baBuff.lastTriggerAt < baBuff.intervalMs) continue
+      baBuff.lastTriggerAt = tCast
+      baBuff.triggerCount++
+      const baSkill = SKILL_BY_ID[baBuff.skillId]
+      if (!baSkill) continue
+      const baStats = state.result.perSkill[baBuff.skillId]
+      if (!baStats) continue
+      baStats.useCount++
+      // 依當前狀態鏡動態計算 damage%（liberationOrb 配置）
+      let baPctOverride = null
+      const loCfg = baSkill.liberationOrb
+      if (loCfg?.balanceDamage) {
+        const lv = effSkillLevel(baSkill)
+        const delta = Math.max(0, lv - (baSkill.baseLevel || 0))
+        const isBalance = sim.mirror?.state === 'equilibrium'
+        const dmgCfg = isBalance ? loCfg.balanceDamage : loCfg.imbalanceDamage
+        const baseDmg = (dmgCfg.base || 0) + delta * (dmgCfg.perLevel || 0)
+        const useMp = baBuff.snapshotMp ?? (loCfg.assumedMp || 8)
+        const mpBonus = ((loCfg.mpBonusDamage?.base || 0) + delta * (loCfg.mpBonusDamage?.perLevel || 0)) * Math.max(0, useMp - 1)
+        baPctOverride = baseDmg + mpBonus
+      }
+      for (let h = 0; h < baBuff.hitsPerTrigger; h++) {
+        emitHit(baStats, mainHitDmg(baSkill, elemMultFor(baSkill, enemy), enemy, att, baPctOverride))
+      }
+    }
+  }
   // 週期爆炸 (sim.pulses;例:Poison Chain) — 中毒目標每 intervalMs 爆炸一次,共 count 次
   //   爆炸傷害% = detonation.damage + stackBonus × 疊層 (第 k 爆疊層 = min(maxStacks, k−1);首爆無加成)
   //   兩者皆依 V 等級縮放 (delta 允許負值,與 skillDamagePct 一致)
@@ -1282,7 +1338,7 @@ function mirrorAllowsSkill(skill, elapsed) {
   return true
 }
 
-function mirrorOnCast(skill, tCast) {
+function mirrorOnCast(skill, tCast, enemy, att) {
   const m = sim.mirror
   if (!m) return
   const elem = skill.element
@@ -1343,6 +1399,28 @@ function mirrorOnCast(skill, tCast) {
       }
     }
   }
+  // Liberation Orb Passive:光/暗技能命中 → 觸發被動追擊 + 累積 MP(6s CD)
+  if (m.liberationMp && elem) {
+    const triggerElements = (elem === 'light' || elem === 'dark') ? [elem] : []
+    for (const mpKey of triggerElements) {
+      const cdMs = 6000
+      if (tCast - (m.lastMpGainAt[mpKey] || -Infinity) < cdMs) continue
+      m.lastMpGainAt[mpKey] = tCast
+      if (m.liberationMp[mpKey] < 4) m.liberationMp[mpKey]++
+      // 觸發被動追擊傷害
+      const passiveSkill = sim.activeSkills.find((s) => s.liberationOrb?.passiveCdSec)
+      if (passiveSkill) {
+        const ps = state.result.perSkill[passiveSkill.id]
+        if (ps) {
+          ps.useCount++
+          const passiveHits = passiveSkill.hitsPerCast || 4
+          for (let h = 0; h < passiveHits; h++) {
+            emitHit(ps, mainHitDmg(passiveSkill, elemMultFor(passiveSkill, enemy), enemy, att))
+          }
+        }
+      }
+    }
+  }
   syncMirrorState(tCast)
 }
 
@@ -1390,6 +1468,7 @@ function syncMirrorState(elapsed) {
     state: m.state,
     energy: m.energy,
     eqRemaining: m.state === 'equilibrium' ? Math.max(0, (m.eqEndAt - elapsed) / 1000) : 0,
+    liberationMp: m.liberationMp ? { ...m.liberationMp } : null,
   }
 }
 
@@ -1637,7 +1716,7 @@ function advanceTo(elapsed) {
       }
     }
     // 光暗狀態鏡:CD 計算 + cast lock 完成後再觸發(確保 CD 重置能覆蓋)
-    if (sim.mirror) mirrorOnCast(skill, tCast)
+    if (sim.mirror) mirrorOnCast(skill, tCast, enemy, att)
   }
   if (processOrbHits(elapsed, enemy, att)) changed = true
   // 火球命中之後才上狀態 (因果:先命中 → 上狀態 → 增傷) — 順序不可對調
@@ -1733,11 +1812,14 @@ export function useBattleSim() {
         prevState: mirrorCfg.initialState,
         energy: mirrorCfg.initialEnergy,
         eqEndAt: 0,
+        liberationMp: { light: 4, dark: 4 },
+        lastMpGainAt: { light: -Infinity, dark: -Infinity },
       }
       state.mirror = {
         state: sim.mirror.state,
         energy: sim.mirror.energy,
         eqRemaining: 0,
+        liberationMp: { light: 4, dark: 4 },
       }
     } else {
       sim.mirror = null

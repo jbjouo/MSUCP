@@ -349,6 +349,14 @@
         "name": "Aether Conduit",
         "description": "[V Skill 2] Summon light/dark rune. State-dependent: Light 468%×4×24 / Dark 328%×5×28 / Equilibrium 442%×6×28 (Lv1). 0.96s startup, 5.04s attacks. CD 30s. Equilibrium only."
       },
+      "liberation_orb_passive": {
+        "name": "Liberation Orb (Passive)",
+        "description": "Light/Dark skill hit triggers follow-up. 390%×4 hits (Lv1, +15%/lv). Accumulates Magic Power (4 per element, 8 max). Passive CD 6s. Both trigger in Equilibrium."
+      },
+      "liberation_orb_active": {
+        "name": "Liberation Orb",
+        "description": "[V Skill 4] Active Effect. Requires ≥1 MP. 45s buff, attacks generate 10 orbs ×20 triggers (0.9s interval). Balance 676% (+26%/lv) + MP bonus 78% (+3%/lv) × (MP-1). 100% CritRate. No mirror effects. CD 180s."
+      },
       "baptism": {
         "name": "Baptism of Light and Darkness",
         "description": "[V Skill 3] 468%×7 hits ×13 consecutive (Lv1, +18%/lv), 2 enemies. 100% Crit Rate + 100% IgnDef. CD 45s. Equilibrium skill hits reduce CD by 3s. CD resets on entering Equilibrium."
@@ -1205,6 +1213,10 @@
       "aether_conduit": "Aether Conduit",
       "aether_conduit_desc": {
         "description": "V Skill Core — Aether Conduit: level determines skill damage% (Equilibrium Lv1=442%, +17%/lv)."
+      },
+      "liberation_orb": "Liberation Orb",
+      "liberation_orb_desc": {
+        "description": "V Skill Core — Liberation Orb: Active Effect 45s buff, attacks generate 10 orbs, 20 triggers."
       },
       "baptism_of_light_and_darkness": "Baptism of Light and Darkness",
       "baptism_of_light_and_darkness_desc": {

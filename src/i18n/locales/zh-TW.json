@@ -349,6 +349,14 @@
         "name": "混沌共鳴",
         "description": "[V 2技] 召喚光暗符文。依狀態切換:光 468%×4×24 / 暗 328%×5×28 / 平衡 442%×6×28(Lv1)。施放後 0.96s 準備,攻擊 5.04s。CD 30s。只在平衡使用。"
       },
+      "liberation_orb_passive": {
+        "name": "解放寶珠 (被動)",
+        "description": "光/暗技能命中時觸發追擊。390%×4 擊(Lv1,+15%/lv)。累積 Magic Power(光暗各 4,最多 8)。被動 CD 6s。平衡時光暗同時觸發。"
+      },
+      "liberation_orb_active": {
+        "name": "解放寶珠",
+        "description": "[V 4技] 主動效果。需 ≥1 MP。45s buff,攻擊命中生成 10 球×20 次(0.9s 間隔)。Balance 676%(+26%/lv) + MP 加成 78%(+3%/lv)×(MP-1)。100% CritRate。不吃狀態鏡。CD 180s。"
+      },
       "baptism": {
         "name": "光與暗的洗禮",
         "description": "[V 3技] 光暗洗禮。468%×7 擊×13 連擊(Lv1,+18%/lv),2 怪。100% 爆擊率 + 100% IgnDef。CD 45s。平衡技能命中時 CD -3s。進入平衡時 CD 重置。"
@@ -1205,6 +1213,10 @@
       "aether_conduit": "混沌共鳴",
       "aether_conduit_desc": {
         "description": "V 技能核心 — 混沌共鳴:等級決定技能傷害%(平衡 Lv1=442%,每級+17%)。"
+      },
+      "liberation_orb": "解放寶珠",
+      "liberation_orb_desc": {
+        "description": "V 技能核心 — 解放寶珠:主動效果 45s buff,攻擊命中生成 10 球,20 次觸發。"
       },
       "baptism_of_light_and_darkness": "光與暗的洗禮",
       "baptism_of_light_and_darkness_desc": {

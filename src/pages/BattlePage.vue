@@ -205,7 +205,7 @@ function isEntryDisabled(entry) {
 }
 
 // 單次施放測試 — 可選技能 (僅顯示當前職業的);DoT Punisher 跑的是「第 1 顆火球」(hitsPerCast 5 擊、FD ×1.0)
-const TEST_CAST_SKILL_IDS = ['flame_sweep', 'dot_punisher', 'angel_ray', 'reflection', 'apocalypse', 'ender', 'aether_conduit', 'baptism_of_light_and_darkness']
+const TEST_CAST_SKILL_IDS = ['flame_sweep', 'dot_punisher', 'angel_ray', 'reflection', 'apocalypse', 'ender', 'aether_conduit', 'baptism_of_light_and_darkness', 'liberation_orb_active']
 const testCastSkills = computed(() =>
   TEST_CAST_SKILL_IDS.map((id) => jobSimSkills.value.find((s) => s.id === id)).filter(Boolean),
 )
@@ -372,6 +372,7 @@ const activeSkillCds = computed(() => {
       cooldownSec: sk.cooldown,
       remainingMs,
       ready: remainingMs === 0,
+      liberationOrb: !!sk.liberationOrb,
     })
   }
   return arr
@@ -592,6 +593,10 @@ const timelineRows = computed(() => {
         >
           <img class="bp-cds__icon" :src="sk.imageUrl" :alt="sk.name" loading="lazy" />
           <span v-if="!sk.ready" class="bp-cds__cd">{{ fmtTimeRemaining(sk.remainingMs) }}</span>
+          <template v-if="sk.liberationOrb">
+            <span class="bp-cds__mp bp-cds__mp--light">{{ state.mirror?.liberationMp?.light ?? 4 }}</span>
+            <span class="bp-cds__mp bp-cds__mp--dark">{{ state.mirror?.liberationMp?.dark ?? 4 }}</span>
+          </template>
         </div>
       </div>
 
@@ -1802,6 +1807,24 @@ const timelineRows = computed(() => {
     -1px  1px 0 #000, 0  1px 0 #000, 1px  1px 0 #000,
     -2px  0   0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000;
 }
+.bp-cds__mp {
+  position: absolute;
+  left: 2px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  -webkit-text-stroke: 2px #1a1a2e;
+  paint-order: stroke fill;
+}
+.bp-cds__mp--light {
+  top: 1px;
+  color: #ffd740;
+}
+.bp-cds__mp--dark {
+  bottom: 1px;
+  color: #ce93d8;
+}
 
 /* 中央主面板 */
 .bp-main {
@@ -2286,6 +2309,7 @@ input.bp-enemy__field { text-align: right; }
   gap: 4px;
 }
 .bp-skill-toggle__item {
+  position: relative;
   width: 36px;
   height: 36px;
   border-radius: 5px;
