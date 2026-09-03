@@ -1920,7 +1920,7 @@ export function useBattleSim() {
     const levelDiffMult = clean(1 + levelDiffPct / 100)
     const elemMult = elemMultFor(skill, enemy)
     const elemResistPct = ENEMY_ELEM_RESIST_PCT[enemy?.elementalDmg] ?? 50
-    const elemIgnorePct = ELEM_IGNORE_BY_JOB[currentJobKey] || 0
+    const elemIgnorePct = (ELEM_IGNORE_BY_JOB[currentJobKey] || 0) + (cpStatTotal ? (cpStatTotal('elementalResist') || 0) : 0)
     const cpIgnoreDefPct = att.ignoreDef || 0
     const vm = skillVmatrixBonus(skill, vmatrixLevelOf(skill.id))
     // 因果順序:第一下命中前自身 DoT 尚未上狀態 → 不 +1 自身
