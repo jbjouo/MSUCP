@@ -5088,6 +5088,24 @@
         "atk": 105
       },
       "imageUrl": "/msucp/images/items/1452163.png"
+    },
+    {
+      "id": "sec_karma_orb",
+      "apiItemId": 1352403,
+      "name": "Karma Orb",
+      "nameEn": "Karma Orb",
+      "type": "secondary",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 3,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352403.png"
     }
   ]
 }
