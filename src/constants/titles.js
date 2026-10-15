@@ -134,6 +134,45 @@ export const TITLES = [
       bossDmg: 10,
     },
   },
+  {
+    id: 'mu_lung_dojo_top3',
+    name: 'Mu Lung Dojo Top 3',
+    nameKey: 'titles.mu_lung_dojo_top3.name',
+    descriptionKey: 'titles.mu_lung_dojo_top3.description',
+    icon: ASSET('skills/titles/3700906.png'),
+    stats: {
+      allStat: 30,
+      atk: 20,
+      matk: 20,
+      bossDmg: 10,
+    },
+  },
+  {
+    id: 'mu_lung_dojo_top7',
+    name: 'Mu Lung Dojo Top 7',
+    nameKey: 'titles.mu_lung_dojo_top7.name',
+    descriptionKey: 'titles.mu_lung_dojo_top7.description',
+    icon: ASSET('skills/titles/3700907.png'),
+    stats: {
+      allStat: 20,
+      atk: 15,
+      matk: 15,
+      bossDmg: 10,
+    },
+  },
+  {
+    id: 'mu_lung_dojo_top10',
+    name: 'Mu Lung Dojo Top 10',
+    nameKey: 'titles.mu_lung_dojo_top10.name',
+    descriptionKey: 'titles.mu_lung_dojo_top10.description',
+    icon: ASSET('skills/titles/3700908.png'),
+    stats: {
+      allStat: 10,
+      atk: 10,
+      matk: 10,
+      bossDmg: 10,
+    },
+  },
 ]
 
 export const TITLES_BY_ID = Object.fromEntries(TITLES.map((t) => [t.id, t]))

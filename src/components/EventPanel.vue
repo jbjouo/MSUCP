@@ -13,7 +13,7 @@ const {
   resetAll,
 } = useEvent()
 
-const PCT_KEYS_EVENT = new Set(['bossDmg', 'ignoreDef', 'buffDuration'])
+const PCT_KEYS_EVENT = new Set(['normalMobDmg', 'ignoreDef', 'bonusExp'])
 
 function currentValueText(skill) {
   const lv = state[skill.id] || 0

@@ -1,6 +1,6 @@
 // 活動 EVENT 加成
 //
-// 5 個獨立技能,各 0-5 等。每等的數值由 valueAt(lv) 直接回傳
+// 5 個獨立技能,各 0-10 等。每等的數值由 valueAt(lv) 直接回傳
 // 最終 stat bag。CP 計算與戰鬥模擬都會吃這些值。
 //
 // 設計慣例:
@@ -11,46 +11,46 @@
 //
 // id          — 唯一 id
 // labelKey    — i18n 鍵
-// maxLevel    — 5
+// maxLevel    — 10
 // valueAt(lv) — { statKey: value, ... }
 
-export const EVENT_MAX_LEVEL = 5
+export const EVENT_MAX_LEVEL = 10
 
 export const EVENT_SKILLS = [
   {
-    id: 'att',
-    labelKey: 'event.skills.att',
+    id: 'normalMobDmg',
+    labelKey: 'event.skills.normalMobDmg',
     maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ atk: lv * 5, matk: lv * 5 }),
-  },
-  {
-    id: 'bossDmg',
-    labelKey: 'event.skills.bossDmg',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ bossDmg: lv * 5 }),
+    valueAt: (lv) => ({ normalMobDmg: lv }),
   },
   {
     id: 'ignoreDef',
     labelKey: 'event.skills.ignoreDef',
     maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ ignoreDef: lv * 5 }),
+    valueAt: (lv) => ({ ignoreDef: lv }),
+  },
+  {
+    id: 'att',
+    labelKey: 'event.skills.att',
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ atk: lv, matk: lv }),
   },
   {
     id: 'allStat',
     labelKey: 'event.skills.allStat',
     maxLevel: EVENT_MAX_LEVEL,
     valueAt: (lv) => ({
-      str: lv * 10,
-      dex: lv * 10,
-      int: lv * 10,
-      luk: lv * 10,
+      str: lv * 2,
+      dex: lv * 2,
+      int: lv * 2,
+      luk: lv * 2,
     }),
   },
   {
-    id: 'buffDuration',
-    labelKey: 'event.skills.buffDuration',
+    id: 'bonusExp',
+    labelKey: 'event.skills.bonusExp',
     maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ buffDuration: lv * 5 }),
+    valueAt: (lv) => ({ bonusExp: lv }),
   },
 ]
 

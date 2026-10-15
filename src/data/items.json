@@ -4500,6 +4500,138 @@
       }
     },
     {
+      "id": "ring_level_jump_s_ring",
+      "apiItemId": 1113109,
+      "name": "Level Jump S Ring",
+      "nameEn": "Level Jump S Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113109.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001466,
+        "name": "Level Jump S Ring",
+        "base": {
+          "levelJumpStat": 0
+        },
+        "perLevel": {
+          "levelJumpStat": 50
+        },
+        "statKey": "str",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_level_jump_d_ring",
+      "apiItemId": 1113110,
+      "name": "Level Jump D Ring",
+      "nameEn": "Level Jump D Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113110.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001467,
+        "name": "Level Jump D Ring",
+        "base": {
+          "levelJumpStat": 0
+        },
+        "perLevel": {
+          "levelJumpStat": 50
+        },
+        "statKey": "dex",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_level_jump_i_ring",
+      "apiItemId": 1113111,
+      "name": "Level Jump I Ring",
+      "nameEn": "Level Jump I Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113111.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001468,
+        "name": "Level Jump I Ring",
+        "base": {
+          "levelJumpStat": 0
+        },
+        "perLevel": {
+          "levelJumpStat": 50
+        },
+        "statKey": "int",
+        "temporary": true
+      }
+    },
+    {
+      "id": "ring_level_jump_l_ring",
+      "apiItemId": 1113112,
+      "name": "Level Jump L Ring",
+      "nameEn": "Level Jump L Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113112.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001469,
+        "name": "Level Jump L Ring",
+        "base": {
+          "levelJumpStat": 0
+        },
+        "perLevel": {
+          "levelJumpStat": 50
+        },
+        "statKey": "luk",
+        "temporary": true
+      }
+    },
+    {
       "id": "pendant_source_of_suffering",
       "apiItemId": 1122430,
       "name": "Source of Suffering",
@@ -5106,6 +5238,19 @@
         "luk": 10
       },
       "imageUrl": "/msucp/images/items/1352403.png"
+    },
+    {
+      "id": "arrow_titanium_arrows_for_bow",
+      "apiItemId": 3150005,
+      "name": "Titanium Arrows for Bow",
+      "nameEn": "Titanium Arrows for Bow",
+      "type": "arrow",
+      "level": 130,
+      "maxStars": 0,
+      "stats": {
+        "atk": 9
+      },
+      "imageUrl": "/msucp/images/items/3150005.png"
     }
   ]
 }

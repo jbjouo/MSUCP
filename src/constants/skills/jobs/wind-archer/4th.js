@@ -12,7 +12,11 @@ export const WIND_ARCHER_4TH_SKILLS = [
     jobs: ['windarcher'],
     advancement: 4,
     kind: 'passive',
-    stats: { atk: 30, dmgPct: 25, ignoreDef: 15, critRate: 15 },
+    baseLevel: 30,
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { atk: 30 + co, dmgPct: 25, ignoreDef: 15, critRate: 15 }
+    },
     cp: { role: 'passive' },
   },
   {
@@ -22,7 +26,11 @@ export const WIND_ARCHER_4TH_SKILLS = [
     jobs: ['windarcher'],
     advancement: 4,
     kind: 'passive',
-    stats: { atkPct: 10, dexPct: 15 },
+    baseLevel: 30,
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { atkPct: 10 + co, dexPct: 15 + co }
+    },
     cp: { role: 'passive' },
   },
   {
@@ -32,7 +40,11 @@ export const WIND_ARCHER_4TH_SKILLS = [
     jobs: ['windarcher'],
     advancement: 4,
     kind: 'passive',
-    stats: { atk: 30, finalDmg: 35, critDmg: 20, bossDmg: 40 },
+    baseLevel: 30,
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { atk: 30 + co, finalDmg: 35 + co, critDmg: 20, bossDmg: 40 + co }
+    },
     cp: { role: 'passive' },
   },
   {
@@ -43,7 +55,16 @@ export const WIND_ARCHER_4TH_SKILLS = [
     jobs: ['windarcher'],
     advancement: 4,
     kind: 'buff',
+    baseLevel: 30,
     stats: { critRate: 20, critDmg: 15 },
+    contribute(ctx) {
+      const co = ctx.effectiveLevel - (this.baseLevel || 30)
+      if (!co) return []
+      return [
+        { key: 'critRate', value: co, isPct: true },
+        { key: 'critDmg', value: co, isPct: true },
+      ]
+    },
     cp: { role: 'buff', group: 'sharp_eyes' },
   },
 ]

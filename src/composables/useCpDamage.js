@@ -12,6 +12,7 @@ import { usePuzzle } from './usePuzzle.js'
 import { useHyperStat } from './useHyperStat.js'
 import { useArcane } from './useArcane.js'
 import { usePet } from './usePet.js'
+import { useCosmetic } from './useCosmetic.js'
 import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
 import { useBlessingSkills } from './useBlessingSkills.js'
@@ -176,6 +177,7 @@ export function useCpDamage() {
     equippedCount: petEquipCount,
     equipmentBonus: petEquipBonus,
   } = usePet()
+  const { statContributions: cosmeticAttrContribs } = useCosmetic()
   const { activeBuffs, activeSkillIds, activeTitleIds } = useCpToggles()
 
   function baseStatFor(key) {
@@ -432,6 +434,10 @@ export function useCpDamage() {
         const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
         const val = Math.floor(wpnAtt * pct / 100)
         if (val) addFlat(fx.statKey, label, val, false, true)
+      } else if (fx.statKey && fx.base.levelJumpStat !== undefined) {
+        const pct = (fx.base.levelJumpStat || 0) + (fx.perLevel.levelJumpStat || 0) * lv
+        const val = Math.floor(charState.level * pct / 100)
+        if (val) addFlat(fx.statKey, label, val, false, true)
       } else {
         for (const [k, base] of Object.entries(fx.base)) {
           const val = base + (fx.perLevel[k] || 0) * lv
@@ -496,6 +502,20 @@ export function useCpDamage() {
       const label = t('cp.tip.petEquipPrefix', { n: petEquipCount.value })
       addFlat('atk', label, petEquipBonus.value)
       addFlat('matk', label, petEquipBonus.value)
+    }
+
+    // 時裝期限屬性
+    for (const ca of cosmeticAttrContribs.value) {
+      const label = t('cp.tip.cosmeticAttrPrefix', { slot: t(`equipment.slots.${ca.slot}`) })
+      for (const [k, v] of Object.entries(ca.stats)) {
+        if (k === 'allStat') {
+          for (const sk of ['str', 'dex', 'int', 'luk']) addFlat(sk, label, v)
+        } else if (PCT_KEYS.has(k)) {
+          addPct(k, label, v)
+        } else {
+          addFlat(k, label, v)
+        }
+      }
     }
 
     // ARC

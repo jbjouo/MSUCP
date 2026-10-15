@@ -17,6 +17,7 @@ import { usePuzzle } from '../composables/usePuzzle.js'
 import { useHyperStat } from '../composables/useHyperStat.js'
 import { useArcane } from '../composables/useArcane.js'
 import { usePet } from '../composables/usePet.js'
+import { useCosmetic } from '../composables/useCosmetic.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useBlessingSkills } from '../composables/useBlessingSkills.js'
@@ -126,6 +127,7 @@ const { statContributions: abilityContribs } = useInnerPotential()
 const { statContributions: vmatrixContribs } = useVMatrix()
 const { blessingAtk } = useBlessingSkills()
 const { statContributions: eventContribs } = useEvent()
+const { statContributions: cosmeticAttrContribs } = useCosmetic()
 const {
   state: petState,
   countBonus: petCountBonus,
@@ -220,6 +222,10 @@ const equipSkillRingToggles = computed(() => {
     if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
       const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
       const val = Math.floor(equippedWeaponAtt.value * pct / 100)
+      if (val) bag[fx.statKey] = val
+    } else if (fx.statKey && fx.base.levelJumpStat !== undefined) {
+      const pct = (fx.base.levelJumpStat || 0) + (fx.perLevel.levelJumpStat || 0) * lv
+      const val = Math.floor(charState.level * pct / 100)
       if (val) bag[fx.statKey] = val
     } else {
       for (const [k, base] of Object.entries(fx.base)) {
@@ -732,6 +738,20 @@ const breakdowns = computed(() => {
     const label = t('cp.tip.petEquipPrefix', { n: petEquipCount.value })
     addFlat('atk', label, petEquipBonus.value)
     addFlat('matk', label, petEquipBonus.value)
+  }
+
+  // 3e-cosmetic) 時裝期限屬性 — 一般 flat (吃 % 加成);allStat 展開四圍
+  for (const ca of cosmeticAttrContribs.value) {
+    const label = t('cp.tip.cosmeticAttrPrefix', { slot: t(`equipment.slots.${ca.slot}`) })
+    for (const [k, v] of Object.entries(ca.stats)) {
+      if (k === 'allStat') {
+        for (const sk of ['str', 'dex', 'int', 'luk']) addFlat(sk, label, v)
+      } else if (PCT_KEYS.has(k)) {
+        addPct(k, label, v)
+      } else {
+        addFlat(k, label, v)
+      }
+    }
   }
 
   // 3e-arc) 秘法符文 — 主屬性為 fixed flat (不吃 % 加成),每個符文單獨列出一條來源

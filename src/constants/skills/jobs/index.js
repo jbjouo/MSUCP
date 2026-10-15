@@ -8,6 +8,7 @@ export * from './dark-knight/index.js'
 export * from './luminous/index.js'
 export * from './night-walker/index.js'
 export * from './shadower/index.js'
+export * from './bowmaster/index.js'
 export * from './wind-archer/index.js'
 
 import {
@@ -78,6 +79,17 @@ import {
   LUMINOUS_TOGGLE_SKILLS,
   LUMINOUS_MECHANICS,
 } from './luminous/index.js'
+
+import {
+  BOWMASTER_SKILLS,
+  BOWMASTER_SIM_SKILLS,
+  BOWMASTER_PASSIVE_SKILLS,
+  BOWMASTER_BUFFS,
+  BOWMASTER_BATTLE_BUFFS,
+  BOWMASTER_VMATRIX_SKILLS,
+  BOWMASTER_HYPER_SKILLS_ALL,
+  BOWMASTER_LINK_SKILLS,
+} from './bowmaster/index.js'
 
 import {
   WIND_ARCHER_SKILLS,
@@ -179,6 +191,18 @@ export const JOB_SKILL_REGISTRY = [
     link: LUMINOUS_LINK_SKILLS,
     toggle: LUMINOUS_TOGGLE_SKILLS,
     mechanics: LUMINOUS_MECHANICS,
+  },
+  {
+    jobKey: 'bowmaster',
+    branchKey: 'bowman',
+    all: BOWMASTER_SKILLS,
+    sim: BOWMASTER_SIM_SKILLS,
+    passive: BOWMASTER_PASSIVE_SKILLS,
+    buffs: BOWMASTER_BUFFS,
+    battleBuffs: BOWMASTER_BATTLE_BUFFS,
+    vmatrix: BOWMASTER_VMATRIX_SKILLS,
+    hyper: BOWMASTER_HYPER_SKILLS_ALL,
+    link: BOWMASTER_LINK_SKILLS,
   },
   {
     jobKey: 'windarcher',

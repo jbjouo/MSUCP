@@ -409,6 +409,18 @@
       }
     }
   },
+  "cosmetic": {
+    "attr": {
+      "title": "Timed Attributes",
+      "none": "None",
+      "allStat": "All Stats",
+      "ignoreDef": "Ignored DEF",
+      "atk": "ATT / M.ATT",
+      "bossDmg": "Boss Damage",
+      "critRate": "Critical Rate",
+      "normalMobDmg": "Normal Enemy Damage"
+    }
+  },
   "titles": {
     "blessed_maple_goddesses": {
       "name": "Blessed of the Maple Goddesses",
@@ -449,6 +461,18 @@
     "holy_pink_beanity": {
       "name": "Holy Pink Beanity",
       "description": "All Stats +10, Attack Power / Magic ATT +5, Boss Damage +10%."
+    },
+    "mu_lung_dojo_top3": {
+      "name": "Mu Lung Dojo Top 3",
+      "description": "Mu Lung Dojo cross-world job ranking 1st–3rd (Master Badge holders, valid until next weekly ranking). All Stats +30, Attack Power / Magic ATT +20, Boss Damage +10%."
+    },
+    "mu_lung_dojo_top7": {
+      "name": "Mu Lung Dojo Top 7",
+      "description": "Mu Lung Dojo cross-world job ranking 4th–7th (Master Badge holders, valid until next weekly ranking). All Stats +20, Attack Power / Magic ATT +15, Boss Damage +10%."
+    },
+    "mu_lung_dojo_top10": {
+      "name": "Mu Lung Dojo Top 10",
+      "description": "Mu Lung Dojo cross-world job ranking 8th–10th (Master Badge holders, valid until next weekly ranking). All Stats +10, Attack Power / Magic ATT +10, Boss Damage +10%."
     }
   },
   "hyperSkill": {
@@ -756,11 +780,11 @@
     "title": "EVENT",
     "reset": "Reset",
     "skills": {
-      "att": "ATT / MATT",
-      "bossDmg": "Boss Damage",
+      "normalMobDmg": "Normal Enemy Damage",
       "ignoreDef": "Ignore Defense",
+      "att": "ATT / MATT",
       "allStat": "All Stats",
-      "buffDuration": "Buff Duration"
+      "bonusExp": "Bonus EXP"
     }
   },
   "puzzle": {
@@ -801,6 +825,7 @@
   },
   "equipment": {
     "panel": { "title": "Equipment", "unequipAll": "Unequip All" },
+    "tabs": { "equip": "Equipment", "cosmetic": "Cosmetic Attributes" },
     "bag": {
       "title": "Inventory",
       "filter": "Filter",
@@ -1508,6 +1533,7 @@
       "equipSkillPrefix": "Equip Skill: {name}",
       "arcanePrefix": "Arcane: {name} Lv.{lv}",
       "petCountPrefix": "Pet: {n}",
+      "cosmeticAttrPrefix": "Cosmetic Attribute: {slot}",
       "petEquipPrefix": "Pet Equipment: {n}",
       "abilityPrefix": "Ability Line {n}: {name}",
       "vmatrixPrefix": "V Matrix: {name} Lv.{lv}",

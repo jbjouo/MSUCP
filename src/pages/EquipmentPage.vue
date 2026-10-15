@@ -6,11 +6,27 @@ import InventoryGrid from '../components/InventoryGrid.vue'
 import ItemTooltip from '../components/ItemTooltip.vue'
 import CatalogPicker from '../components/CatalogPicker.vue'
 import EntryEditor from '../components/EntryEditor.vue'
+import CosmeticAttrPanel from '../components/CosmeticAttrPanel.vue'
 import { useEquipment, requestPersistentStorage } from '../composables/useEquipment.js'
 import { readFileAsJSON, downloadJSON } from '../composables/useDataIO.js'
 
 const { t } = useI18n()
 const { state, equipEntry, unequipSlot, importEntries } = useEquipment()
+
+// 左欄分頁:'equip' 裝備欄 / 'cosmetic' 時裝期限屬性面板 (背包不變)
+const TAB_KEY = 'msucp.equipPage.tab'
+const tab = ref(readTab())
+function readTab() {
+  try { return localStorage.getItem(TAB_KEY) === 'cosmetic' ? 'cosmetic' : 'equip' } catch { return 'equip' }
+}
+function setTab(next) {
+  if (tab.value === next) return
+  tab.value = next
+  selectedSlot.value = null
+  hoveredEntry.value = null
+  try { localStorage.setItem(TAB_KEY, next) } catch { /* ignore */ }
+}
+const isCosmetic = computed(() => tab.value === 'cosmetic')
 const importFileInput = ref(null)
 
 const selectedSlot = ref(null)
@@ -154,7 +170,20 @@ onUnmounted(() => {
 
     <div class="equip-page__body">
       <aside class="equip-page__left">
+        <nav class="equip-tabs" role="tablist">
+          <button
+            v-for="k in ['equip', 'cosmetic']"
+            :key="k"
+            class="equip-tabs__btn"
+            :class="{ 'equip-tabs__btn--active': tab === k }"
+            role="tab"
+            :aria-selected="tab === k"
+            @click="setTab(k)"
+          >{{ t(`equipment.tabs.${k}`) }}</button>
+        </nav>
+        <CosmeticAttrPanel v-if="isCosmetic" />
         <EquipmentSlots
+          v-else
           :selected-slot-key="selectedSlot?.key || null"
           @slot-click="onSlotClick"
           @slot-hover="setHoverEntry"
@@ -245,6 +274,35 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.equip-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: -0.75rem;
+  padding-left: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+.equip-tabs__btn {
+  padding: 0.38rem 1.1rem;
+  background: #0f1324;
+  color: #8089a3;
+  border: 1px solid #2a3152;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+.equip-tabs__btn:hover { color: #e9edf5; }
+.equip-tabs__btn--active {
+  background: #141a2e;
+  color: #ffcc33;
+  border-color: #ffcc33;
 }
 
 .selected-hint {

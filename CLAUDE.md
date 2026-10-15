@@ -121,6 +121,13 @@ state.equipped  = { [slotKey]: uid | null }
 - `importEntries(entries, inventory)`:將裝備加到當前角色背包(不建新角色)
 - 儲存 key:`msucp.char.<charId>.equipment.v3`
 
+### 時裝期限屬性 (`useCosmetic.js`)
+
+- 裝備頁左欄 tab「裝備 / 時裝期限屬性」:後者以 `CosmeticAttrPanel` 取代裝備欄,背包不變;**不收錄時裝道具本身**
+- 時裝 API 分類:`Item > Decoration > Outfits > <部位>`(stats 全 0,無數值)— 不進 items.json
+- `COSMETIC_ATTRS`(`constants/cosmetic.js`):依部位固定一種屬性,`state.attrs[slot]` 存已抽選數值(下拉選單),
+  帽子=全屬性 / 套服=無視防禦 / 武器=ATT+MATK / 披風=Boss / 臉飾=爆擊率 / 眼飾=一般怪傷;納入 CP breakdown
+
 ## 職業系統 (`src/constants/jobs.js`)
 
 三層架構:
@@ -207,6 +214,7 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 | 寵物 | `pets.js` | `usePet.js` | `msucp.pet.v1` |
 | 內潛 | `innerPotential.js` | `useInnerPotential.js` | `msucp.innerPotential.v1` |
 | V 矩陣 | `vmatrix.js` | `useVMatrix.js` | `msucp.vmatrix.v1` |
+| 時裝期限屬性 | `cosmetic.js` | `useCosmetic.js` | `msucp.char.<id>.cosmetic.v1` |
 | 戰鬥記錄 | — | `useBattleRecord.js` | `msucp.char.<id>.battleRecord.v1` |
 
 ## CP 計算 (`CpCalculatorPage.vue`)
@@ -437,6 +445,7 @@ per-character key 格式:`msucp.char.<charId>.<suffix>`
 | `pet.v1` | 寵物 |
 | `innerPotential.v1` | 內潛 3 排 |
 | `vmatrix.v1` | V 矩陣等級 |
+| `cosmetic.v1` | 時裝期限屬性 attrs |
 | `linkSkills.applied.v3` | 已連結 link skill |
 | `cpBuffs.v1` / `cpSkills.v1` / `cpTitles.v1` | CP 開關 |
 | `cpCompare.v1` | CP 比較快照 |
