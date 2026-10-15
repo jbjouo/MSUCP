@@ -413,6 +413,9 @@
     "attr": {
       "title": "Timed Attributes",
       "none": "None",
+      "cpGain": "Combat Power",
+      "cpShort": "CP",
+      "notInCp": "(not part of the CP formula)",
       "allStat": "All Stats",
       "ignoreDef": "Ignored DEF",
       "atk": "ATT / M.ATT",

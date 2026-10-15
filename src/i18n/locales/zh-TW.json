@@ -413,6 +413,9 @@
     "attr": {
       "title": "期限屬性",
       "none": "無",
+      "cpGain": "戰鬥力",
+      "cpShort": "CP",
+      "notInCp": "(不計入戰鬥力公式)",
       "allStat": "全屬性",
       "ignoreDef": "無視防禦率",
       "atk": "攻擊力 / 魔法攻擊力",

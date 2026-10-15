@@ -12,7 +12,7 @@ import { usePuzzle } from './usePuzzle.js'
 import { useHyperStat } from './useHyperStat.js'
 import { useArcane } from './useArcane.js'
 import { usePet } from './usePet.js'
-import { useCosmetic } from './useCosmetic.js'
+import { useCosmetic, cosmeticAttrContributions } from './useCosmetic.js'
 import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
 import { useBlessingSkills } from './useBlessingSkills.js'
@@ -235,7 +235,8 @@ export function useCpDamage() {
   // 每個 statKey → { flat: [{label,value,fixed,cpExclude}], pct: [{label,value,cpExclude}] }
   // 純函式:傳入已解析的 equipped entries 陣列。其餘來源仍從外層 reactive composables 讀取。
   // 讓 hover 時可用假設 loadout 試算 CP 差值。
-  function breakdownsForEntries(equippedEntries) {
+  // opts.cosmeticAttrs — 假設的時裝期限屬性 { [slot]: value|null };未給則用目前設定
+  function breakdownsForEntries(equippedEntries, opts = {}) {
     const out = {}
     const ensure = (k) => (out[k] ||= { flat: [], pct: [] })
     const addFlat = (k, label, v, fixed = false, cpExclude = false) => {
@@ -508,7 +509,10 @@ export function useCpDamage() {
     }
 
     // 時裝期限屬性
-    for (const ca of cosmeticAttrContribs.value) {
+    const cosmeticList = opts.cosmeticAttrs
+      ? cosmeticAttrContributions(opts.cosmeticAttrs)
+      : cosmeticAttrContribs.value
+    for (const ca of cosmeticList) {
       const label = t('cp.tip.cosmeticAttrPrefix', { slot: t(`equipment.slots.${ca.slot}`) })
       for (const [k, v] of Object.entries(ca.stats)) {
         if (k === 'allStat') {
@@ -885,6 +889,13 @@ export function useCpDamage() {
     return floor(zones.total)
   }
 
+  // 時裝期限屬性試算:目前裝備 + 假設的 attrs → CP 整數值
+  function combatPowerForCosmeticAttrs(attrs) {
+    const entries = currentEquippedEntries()
+    const bd = breakdownsForEntries(entries, { cosmeticAttrs: attrs })
+    return floor(cpZonesForEntries(entries, bd).total)
+  }
+
   // 暴露每個 stat 的原始分量 { normalFlat, fixedFlat, pct }
   // 用途:求解器/模擬器可直接讀取 base 分量,加上 delta 後重算 statTotal
   //   非 % stat: final = floor(normalFlat × (1 + pct/100)) + fixedFlat
@@ -924,5 +935,6 @@ export function useCpDamage() {
     cpZones,
     combatPower,
     combatPowerForEntries,
+    combatPowerForCosmeticAttrs,
   }
 }

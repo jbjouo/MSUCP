@@ -49,11 +49,12 @@ function setAttr(slot, value) {
   persist()
 }
 
-// → [{ slot, labelKey, value, stats: { [statKey]: value } }]
-const statContributions = computed(() => {
+// 純函式:任意 attrs (可為假設值) → [{ slot, labelKey, value, stats: { [statKey]: value } }]
+//   供 useCpDamage 試算「選某數值時的 CP」
+export function cosmeticAttrContributions(attrs) {
   const out = []
   for (const def of COSMETIC_ATTRS) {
-    const value = state.attrs[def.slot]
+    const value = attrs?.[def.slot]
     if (!value) continue
     out.push({
       slot: def.slot,
@@ -63,7 +64,9 @@ const statContributions = computed(() => {
     })
   }
   return out
-})
+}
+
+const statContributions = computed(() => cosmeticAttrContributions(state.attrs))
 
 export function useCosmetic() {
   return { state, setAttr, statContributions }
