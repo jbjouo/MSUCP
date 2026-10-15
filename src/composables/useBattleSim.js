@@ -8,6 +8,7 @@ import {
   skillExplosionCount,
   skillFinalAttackPcts,
   skillIgnitePcts,
+  combatOrdersLevelBonus,
 } from '../constants/skills/_shared/helpers.js'
 import {
   ENEMY_ELEM_RESIST_PCT,
@@ -337,19 +338,17 @@ function dotEnemyMult(enemy) {
 
 // 計算技能當前的實際等級
 //   5 轉 V 技能(vmatrix.kind === 'skill')→ 直接使用角色頁 V 矩陣面板的等級
-//     Combat Orders 只作用於特定 4 轉技能,不覆蓋 5 轉 V 技能
-//   其他技能 → state.skillLevels[id](或 baseLevel);若 combatOrdersEligible 且啟用則 +1
-//   Combat Orders 套用範圍:部分 4 轉技能(目前:Flame Sweep / Flame Haze / Mist Eruption / Meteor Shower / Ifrit)
+//   其他技能 → state.skillLevels[id](或 baseLevel);Combat Orders 啟用時 4 轉技能 +1
+//   (規則見 helpers.js combatOrdersLevelBonus:只看 advancement === 4)
 function effSkillLevel(skill) {
   if (skill?.vmatrix?.kind === 'skill') {
     // V 矩陣 skill core — 等級完全由角色頁設定(0..maxLevel)
     return vmatrixLevelOf(skill.id)
   }
   const base = state.skillLevels[skill.id] || skill.baseLevel
-  if (!skill?.combatOrdersEligible) return base
   let active = false
   try { active = useCpToggles().isBuffActive('combat_orders') } catch {}
-  return active ? base + 1 : base
+  return base + combatOrdersLevelBonus(skill, active)
 }
 
 // 取得技能當前等級的原始倍率 (不含超技能 — 超技能的 damagePct / burnDamagePct

@@ -18,7 +18,6 @@ export const REFLECTION = {
   kind: 'attack',
   element: 'light',
   baseLevel: 30,
-  combatOrdersEligible: true,
   mpCost: 81,
   hitsPerCast: 4,
   maxEnemies: 8,
@@ -51,7 +50,6 @@ export const APOCALYPSE = {
   kind: 'attack',
   element: 'dark',
   baseLevel: 30,
-  combatOrdersEligible: true,
   mpCost: 100,
   hitsPerCast: 7,
   maxEnemies: 8,
@@ -85,7 +83,6 @@ export const ENDER = {
   kind: 'attack',
   element: 'equilibrium',
   baseLevel: 30,
-  combatOrdersEligible: true,
   mpCost: 49,
   hitsPerCast: 7,
   maxEnemies: 2,
@@ -109,6 +106,7 @@ export const ENDER = {
 
 // ─── Dark Crescendo ─────────────────────────────────────────────────────────
 // 攻擊命中 80% 機率疊層,每層 +8% Damage,最多 5 層,30s
+// Combat Orders Lv31 實測:數值不變
 const DARK_CRESCENDO = {
   id: 'dark_crescendo',
   name: 'Dark Crescendo',
@@ -141,7 +139,12 @@ export const LUMINOUS_4TH_SKILLS = [
     jobs: ['luminous'],
     advancement: 4,
     kind: 'passive',
-    stats: { matk: 30, critRate: 15, critDmg: 18 },
+    baseLevel: 30,
+    // Combat Orders Lv31 實測:熟練度 71%(不收錄)、魔攻 +31;爆擊率 / 爆擊傷害不變
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { matk: 30 + co, critRate: 15, critDmg: 18 }
+    },
     cp: { role: 'passive' },
   },
   {
@@ -151,7 +154,12 @@ export const LUMINOUS_4TH_SKILLS = [
     jobs: ['luminous'],
     advancement: 4,
     kind: 'passive',
-    stats: { finalDmg: 40, ignoreDef: 40 },
+    baseLevel: 30,
+    // Combat Orders Lv31 實測:終傷 +41%、無視防禦 41%(皆每級 +1)
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { finalDmg: 40 + co, ignoreDef: 40 + co }
+    },
     cp: { role: 'passive' },
   },
   {
@@ -172,7 +180,12 @@ export const LUMINOUS_4TH_SKILLS = [
     jobs: ['luminous'],
     advancement: 4,
     kind: 'passive',
-    stats: { finalDmg: 40, bossDmg: 15 },
+    baseLevel: 30,
+    // Combat Orders Lv31 實測:終傷 +41%(每級 +1);Boss 傷害不變
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { finalDmg: 40 + co, bossDmg: 15 }
+    },
     cp: { role: 'passive' },
   },
 ]

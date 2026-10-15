@@ -39,7 +39,6 @@ export const MAGICIAN_BRANCH_5TH_SKILLS = [
       },
       // Lv25 → 7%、Lv30 → 8%(+1% / 5 levels = 0.2/lv)
       perLevelBonus: { baseFinalDmgPct: 0.2 },
-      noCombatOrders: true,        // V 技能等級不吃 Combat Orders +1
       ignoresBuffDuration: true,
       cooldownSec: 0,
       initialDelayBySpeed: { 7: 0, 8: 0 },

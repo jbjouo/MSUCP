@@ -41,7 +41,7 @@ export const DOT_PUNISHER = {
   damage: { base: 850, perLevel: 15 },  // Lv30 = 850%;+15%/Lv (Lv1=415 / Lv25=775)
   burn: { base: 290, perLevel: 3, durationSec: 8, tickIntervalSec: 1 },
   cooldown: 25,
-  // Combat Orders 只作用於特定 4 轉技能,DoT Punisher 不在其中 → 不加 combatOrdersEligible
+  // Combat Orders 只影響 4 轉 → V 技能不吃
   vmatrix: { kind: 'skill', maxLevel: 30 },
   sim: {
     role: 'attack',
@@ -85,7 +85,7 @@ export const POISON_NOVA = {
   damage: { base: 550, perLevel: 10 },   // Lv25=500 · Lv30=550
   burn: { base: 660, perLevel: 12, durationSec: 10, tickIntervalSec: 1 },
   cooldown: 25,
-  // Combat Orders 只作用於特定 4 轉技能,Poison Nova 不在其中 → 不加 combatOrdersEligible
+  // Combat Orders 只影響 4 轉 → V 技能不吃
   vmatrix: { kind: 'skill', maxLevel: 30 },
   // 引爆傷害參數(Mist Eruption 觸發時使用 Poison Nova 本體的所有屬性)
   //   damage% 依 Poison Nova 自身等級計算(Lv25 450% / Lv30 495%,+9/lv)
@@ -186,7 +186,7 @@ export const POISON_CHAIN = {
   maxEnemies: 2,
   hitsPerCast: 4,
   damage: { base: 550, perLevel: 10 },   // Lv25=500 (API) · Lv30=550 (實測)
-  // Combat Orders 只作用於特定 4 轉技能 → 不加 combatOrdersEligible
+  // Combat Orders 只影響 4 轉 → V 技能不吃
   vmatrix: { kind: 'skill', maxLevel: 30 },
   // 週期爆炸傷害 (sim.pulses 讀此表;依 V 等級縮放,delta 允許負值)
   detonation: {

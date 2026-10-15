@@ -4,6 +4,7 @@ import { combinedLevelFor, bestLevelDataFor } from './useLinkSkills.js'
 import { getLinkSkill } from '../data/linkSkills.js'
 import { useDotTracker } from './useDotTracker.js'
 import { computeEffectiveCooldown } from './useCpDamage.js'
+import { combatOrdersLevelBonus } from '../constants/skills/_shared/helpers.js'
 
 function defaultStacks() {
   const out = {}
@@ -276,8 +277,8 @@ export function useBattleBuffs() {
       //   buff.useVmatrixLevel:改從角色頁 V 矩陣面板讀等級(例:Mana Overload)→
       //     effective = max(baseLevel, vmLevel),確保「預設常駐」;VM 升級後可突破 baseLevel
       let cfg, cfgLevel
-      // noCombatOrders — V 技能等級不吃 Combat Orders +1 (例:Maple World Goddess's Blessing)
-      const coBonus = combatOrdersActive && !buff.noCombatOrders ? 1 : 0
+      // Combat Orders 只影響 4 轉 (advancement === 4);mirror 依自身 advancement 判定
+      const coBonus = combatOrdersLevelBonus(buff, combatOrdersActive)
       if (buff.mirror) {
         const mirrorBuff = BATTLE_BUFFS.find((b) => b.id === buff.mirror)
         if (!mirrorBuff) continue

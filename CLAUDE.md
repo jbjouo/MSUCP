@@ -374,7 +374,7 @@ skills/_shared/
 ### Battle buff 旗標
 
 - `ignoresBuffDuration` — 不吃加持 (Buff Duration%);**5 轉 (V) 技能一律預設加此旗標**(5 轉只吃 CD 減免,不吃加持,除非該技能有特別說明)
-- `noCombatOrders` — V 技能等級不吃 Combat Orders +1
+- **Combat Orders(戰鬥命令)規則寫死:只影響 4 轉技能**(`advancement === 4`,等級 +1)— `helpers.js` 的 `combatOrdersLevelBonus()`;sim 攻擊技能 / 戰鬥 activeToggle buff / CP buff `effectiveLevel` / CP 被動 `ctx.skillLevelBonus` 四處共用。0~3 轉、5 轉 V、6 轉、hyper 一律不吃,不再逐技能標旗標
 - `useVmatrixLevel` / `requiresVmatrixLevel` — 等級連動 V 矩陣面板;後者面板 0 = 不自動施放(Mana Overload 無此旗標,維持預設常駐)
 - `battle.statBoost: { type: 'mapleWarriorEnhance', basePct, perLevelPct }` — MWGB 型主屬加成:
   提升% = `floor(楓葉祝福% × 增幅%/100)`(楓勇 15+CO)、主屬 flat = `floor(AP × 提升%)`;

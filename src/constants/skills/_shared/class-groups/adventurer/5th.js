@@ -45,7 +45,7 @@ export const ADVENTURER_5TH_SKILLS = [
     //        主屬 flat = floor(AP × 提升%/100) — 與楓葉祝福同規則
     //        需楓葉祝福 (CP buff) 開啟;增幅 Lv25 = 350%,+10%/lv (Lv29 = 390% 已實測驗證)
     //   2. Damage +17% (Lv25,+0.5/lv) — 一般 Damage%,與 Damage / Boss Damage 相加
-    //   可儲 2 次的堆疊機制暫不實裝 (單純 180s CD 循環);等級不吃戰鬥命令 (noCombatOrders)
+    //   可儲 2 次的堆疊機制暫不實裝 (單純 180s CD 循環);等級不吃戰鬥命令 (5 轉)
     battle: {
       source: 'activeToggle',
       base: {
@@ -56,7 +56,6 @@ export const ADVENTURER_5TH_SKILLS = [
       statBoost: { type: 'mapleWarriorEnhance', basePct: 350, perLevelPct: 10 },
       cooldownSec: 180,
       ignoresBuffDuration: true,   // 不受加持 (Buff Duration%) 影響 — 固定 60 秒
-      noCombatOrders: true,        // V 技能等級不吃 Combat Orders +1
       useVmatrixLevel: true,       // 等級 = V 矩陣面板等級
       requiresVmatrixLevel: true,  // 面板 0 = 未習得 — 不自動施放
       initialDelayBySpeed: { 7: 500, 8: 450 },

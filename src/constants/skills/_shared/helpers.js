@@ -17,6 +17,13 @@ export function skillDamagePct(skill, level) {
   }
 }
 
+// Combat Orders (戰鬥命令) 規則 — 寫死:只影響 4 轉技能 (advancement === 4),等級 +1
+//   0~3 轉 / 5 轉 (V) / 6 轉 / hyper 一律不吃,不再逐技能標旗標
+export const COMBAT_ORDERS_ADVANCEMENT = 4
+export function combatOrdersLevelBonus(skill, active, bonus = 1) {
+  return active && skill?.advancement === COMBAT_ORDERS_ADVANCEMENT ? bonus : 0
+}
+
 // 技能自帶的無視防禦 (例:Mist Eruption Lv30 +40%) — 僅主擊
 export function skillIgnoreDefPct(skill, level) {
   const ig = skill?.ignoreDef

@@ -19,7 +19,6 @@ export const AETHER_CONDUIT = {
   advancement: 5,
   kind: 'attack',
   baseLevel: 1,
-  combatOrdersEligible: false,
   mpCost: 1000,
   maxEnemies: 10,
   additionalCritRate: 15,
@@ -42,7 +41,6 @@ export const AETHER_CONDUIT = {
     descriptionKey: 'vmatrix.skills.aether_conduit_desc',
   },
   vSlot: 2,
-  noCombatOrders: true,
   sim: {
     role: 'attack',
     castDelayBySpeed: { 8: 600 },
@@ -64,7 +62,6 @@ export const BAPTISM = {
   advancement: 5,
   kind: 'attack',
   baseLevel: 1,
-  combatOrdersEligible: false,
   mirrorEnterEquilibrium: true,
   mpCost: 2000,
   hitsPerCast: 7,
@@ -83,7 +80,6 @@ export const BAPTISM = {
     descriptionKey: 'vmatrix.skills.baptism_of_light_and_darkness_desc',
   },
   vSlot: 3,
-  noCombatOrders: true,
   sim: {
     role: 'attack',
     castDelayBySpeed: { 8: 600 },
@@ -139,7 +135,6 @@ export const LIBERATION_ORB_ACTIVE = {
   advancement: 5,
   kind: 'attack',
   baseLevel: 1,
-  combatOrdersEligible: false,
   mpCost: 1200,
   hitsPerCast: 0,
   maxEnemies: 1,
@@ -160,7 +155,6 @@ export const LIBERATION_ORB_ACTIVE = {
     descriptionKey: 'vmatrix.skills.liberation_orb_desc',
   },
   vSlot: 4,
-  noCombatOrders: true,
   sim: {
     role: 'attack',
     castDelayBySpeed: { 8: 510 },

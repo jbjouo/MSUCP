@@ -21,6 +21,7 @@ import { activeSkillContributions } from './useLinkSkills.js'
 import { useCpToggles } from './useCpToggles.js'
 import { BUFFS } from '../constants/buffs.js'
 import { SKILLS } from '../constants/skills.js'
+import { combatOrdersLevelBonus } from '../constants/skills/_shared/helpers.js'
 import { TITLES } from '../constants/titles.js'
 import { ITEM_SETS, countActiveSet, determineActiveLuckyItem } from '../constants/itemSets.js'
 import { findPotentialOptionForLine } from '../constants/potentials.js'
@@ -337,7 +338,8 @@ export function useCpDamage() {
         else addFlat(k, buffLabel, v, false, cpExc)
       }
       if (typeof buff.contribute === 'function') {
-        ctx.effectiveLevel = (buff.baseLevel || 0) + skillLevelBonus
+        // Combat Orders 只影響 4 轉 buff (例:Maple Warrior)
+        ctx.effectiveLevel = (buff.baseLevel || 0) + combatOrdersLevelBonus(buff, true, skillLevelBonus)
         const contribs = buff.contribute(ctx) || []
         for (const c of contribs) {
           if (c.isPct) addPct(c.key, c.label, c.value, cpExc)
@@ -390,8 +392,9 @@ export function useCpDamage() {
       let bag = null
       if (role === 'passive') {
         if (skill.jobs && !skill.jobs.includes(myJobKey)) continue
+        // Combat Orders 只影響 4 轉被動
         bag = typeof skill.contribute === 'function'
-          ? skill.contribute(skillCtx)
+          ? skill.contribute({ ...skillCtx, skillLevelBonus: combatOrdersLevelBonus(skill, true, skillLevelBonus) })
           : skill.stats
       } else if (role === 'toggle') {
         if (!activeSkillIds.value.has(skill.id)) continue

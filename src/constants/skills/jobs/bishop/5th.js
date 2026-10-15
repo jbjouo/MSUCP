@@ -41,7 +41,6 @@ export const BENEDICTION = {
     ignoresBuffDuration: true,           // 5 轉技能不吃加持 (Buff Duration%),只吃 CD 減免
     useVmatrixLevel: true,               // 等級 = V 矩陣面板等級
     requiresVmatrixLevel: true,          // 面板 0 = 未習得 — 不自動施放
-    noCombatOrders: true,                // V 技能等級不吃 Combat Orders +1
     initialDelayBySpeed: { 7: 1400, 8: 1300 },  // 開場靠後 — Infinity (450ms) 之後啟動 (待實測)
   },
 }
