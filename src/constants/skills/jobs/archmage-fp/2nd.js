@@ -86,7 +86,7 @@ export const ARCHMAGE_FP_2ND_SKILLS = [
     descriptionKey: 'skills.archmageFP.meditation.description',
     icon: ASSET('skills/meditation.png'),
     imageUrl: ICON('Meditation'),
-    jobs: ['archmageFP'],
+    jobs: ['archmageFP', 'archmageIL'],  // 冰雷共用同一 buff
     advancement: 2,
     kind: 'buff',
     stats: { matk: 30 },

@@ -388,8 +388,8 @@ skills/_shared/
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`
 - 被動技能只收錄影響 CP 的屬性(排除:熟練度、狀態抗性、屬性抗性、damage taken、攻速、HP/MP)
 - 技能提升其他技能傷害的被動(如 Raging Serpent Assault +100%)暫不收錄,待戰鬥模擬時加入
-- 已建立:archmage-fp / bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項) / dark-knight / wind-archer / luminous
-- 技能資料庫(scripts/skill-db):archmage-fp / bishop / shadower / buccaneer / night-walker / hoyoung / dark-knight / wind-archer / luminous
+- 已建立:archmage-fp / archmage-il(僅 CP 被動 / buff,未列入戰鬥模擬)/ bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項) / dark-knight / wind-archer / luminous
+- 技能資料庫(scripts/skill-db):archmage-fp / arch-mage-i-l(冰雷,角色 CHARd0iv7o4aep1s73dr1hfg,圖示 72 張於 `public/skills/archmage-il/`)/ bishop / shadower / buccaneer / night-walker / hoyoung / dark-knight / wind-archer / luminous
 
 ## MSU Open API 工具 (`scripts/`)
 

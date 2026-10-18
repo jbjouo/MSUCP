@@ -2,6 +2,7 @@
 // 新增職業時在此 import + push,上層 skills/index.js 會自動彙整。
 
 export * from './archmage-fp/index.js'
+export * from './archmage-il/index.js'
 export * from './bishop/index.js'
 export * from './buccaneer/index.js'
 export * from './dark-knight/index.js'
@@ -103,6 +104,17 @@ import {
 } from './wind-archer/index.js'
 
 import {
+  ARCHMAGE_IL_SKILLS,
+  ARCHMAGE_IL_SIM_SKILLS,
+  ARCHMAGE_IL_PASSIVE_SKILLS,
+  ARCHMAGE_IL_BUFFS,
+  ARCHMAGE_IL_BATTLE_BUFFS,
+  ARCHMAGE_IL_VMATRIX_SKILLS,
+  ARCHMAGE_IL_HYPER_SKILLS_ALL,
+  ARCHMAGE_IL_LINK_SKILLS,
+} from './archmage-il/index.js'
+
+import {
   SHADOWER_SKILLS,
   SHADOWER_SIM_SKILLS,
   SHADOWER_PASSIVE_SKILLS,
@@ -129,6 +141,18 @@ export const JOB_SKILL_REGISTRY = [
     link: ARCHMAGE_FP_LINK_SKILLS,
     // 戰鬥模擬機制設定 (可選) — 無此欄位的職業,引擎跳過所有機制管線
     mechanics: ARCHMAGE_FP_MECHANICS,
+  },
+  {
+    jobKey: 'archmageIL',
+    branchKey: 'magician',
+    all: ARCHMAGE_IL_SKILLS,
+    sim: ARCHMAGE_IL_SIM_SKILLS,
+    passive: ARCHMAGE_IL_PASSIVE_SKILLS,
+    buffs: ARCHMAGE_IL_BUFFS,
+    battleBuffs: ARCHMAGE_IL_BATTLE_BUFFS,
+    vmatrix: ARCHMAGE_IL_VMATRIX_SKILLS,
+    hyper: ARCHMAGE_IL_HYPER_SKILLS_ALL,
+    link: ARCHMAGE_IL_LINK_SKILLS,
   },
   {
     jobKey: 'bishop',

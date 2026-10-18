@@ -56,7 +56,12 @@ export const BISHOP_4TH_SKILLS = [
     jobs: ['bishop'],
     advancement: 4,
     kind: 'passive',
-    stats: { buffDuration: 50 },
+    baseLevel: 10,
+    // Lv10:魔攻 +30、加持 +50%;Combat Orders 每級 +3 / +5%(同火毒)
+    contribute(ctx) {
+      const co = ctx.skillLevelBonus || 0
+      return { matk: 30 + co * 3, buffDuration: 50 + co * 5 }
+    },
     cp: { role: 'passive' },
   },
 ]
