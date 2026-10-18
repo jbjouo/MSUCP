@@ -61,6 +61,7 @@ const {
   isBuffActive,
   isSkillActive,
   isTitleActive,
+  activationIndexOf,
 } = useCpToggles()
 const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
@@ -126,7 +127,7 @@ const { statContributions: puzzleContribs } = usePuzzle()
 const { statContributions: hyperStatContribs } = useHyperStat()
 const { contributions: arcaneContribs } = useArcane()
 const { statContributions: abilityContribs } = useInnerPotential()
-const { statContributions: vmatrixContribs } = useVMatrix()
+const { statContributions: vmatrixContribs, state: vmatrixState } = useVMatrix()
 const { blessingAtk } = useBlessingSkills()
 const { statContributions: eventContribs } = useEvent()
 const { statContributions: cosmeticAttrContribs } = useCosmetic()
@@ -258,6 +259,14 @@ const temporaryBuffs = computed(() => {
   const tempRings = equipSkillRingToggles.value.filter((s) => s.temporary)
   const tempJobBuffs = BUFFS.filter((b) => b._temporary && (!b.jobs || b.jobs.includes(jobKey)))
   return [...tempRings, ...tempJobBuffs]
+})
+
+// 臨時增益欄的開啟順序編號(1 起算,只在已開啟者之間排序)— 快照型效果(Totalling Ring)依此取捨
+function isTempBuffOn(tb) { return tb._temporary ? isBuffActive(tb.id) : isSkillActive(tb.id) }
+const tempBuffOrderNo = computed(() => {
+  const on = temporaryBuffs.value.filter(isTempBuffOn)
+    .sort((a, b) => activationIndexOf(a.id) - activationIndexOf(b.id))
+  return Object.fromEntries(on.map((tb, i) => [tb.id, i + 1]))
 })
 
 // 側欄技能：常駐技能戒指 + 共通 toggle 技能
@@ -479,11 +488,13 @@ function fmtPct(n) {
 const breakdowns = computed(() => {
   const out = {}
   const ensure = (k) => (out[k] ||= { flat: [], pct: [] })
+  // tempId:來源為臨時增益開關時記下其 id(Totalling Ring 依開啟順序取捨用)
+  let currentTempId = null
   const addFlat = (k, label, v, fixed = false, cpExclude = false) => {
-    if (v) ensure(k).flat.push({ label, value: v, fixed, cpExclude })
+    if (v) ensure(k).flat.push({ label, value: v, fixed, cpExclude, tempId: currentTempId })
   }
   const addPct = (k, label, v, cpExclude = false) => {
-    if (v) ensure(k).pct.push({ label, value: v, cpExclude })
+    if (v) ensure(k).pct.push({ label, value: v, cpExclude, tempId: currentTempId })
   }
 
   // 1) 角色 base
@@ -591,12 +602,16 @@ const breakdowns = computed(() => {
     primary,
     effectiveLevel: 0,
     t,
+    // MWGB 等臨時增益用:V 矩陣等級 / 其他 buff 開關
+    vmatrixLevel: (id) => vmatrixState.levels[id] || 0,
+    isBuffActive: (id) => activeBuffs.value.has(id),
   }
   for (const buff of BUFFS) {
     if (!activeBuffs.value.has(buff.id)) continue
     if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
     const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
+    currentTempId = buff._temporary ? buff.id : null
     // 靜態 stats
     for (const [k, v] of Object.entries(buff.stats || {})) {
       if (PCT_KEYS.has(k)) addPct(k, buffLabel, v, cpExc)
@@ -609,10 +624,11 @@ const breakdowns = computed(() => {
       const contribs = buff.contribute(ctx) || []
       for (const c of contribs) {
         if (c.isPct) addPct(c.key, c.label, c.value, cpExc)
-        else addFlat(c.key, c.label, c.value, false, cpExc)
+        else addFlat(c.key, c.label, c.value, !!c.fixed, cpExc)
       }
     }
   }
+  currentTempId = null
 
   // 3-set) 裝備套裝 — 同一套裝所有已觸發階層的屬性合計為「一條來源」,避免多階重複列
   // 幸運道具:全身僅一件生效,優先級 hat > weapon
@@ -694,13 +710,15 @@ const breakdowns = computed(() => {
     if (!activeSkillIds.value.has(srt.id)) continue
     const label = t('cp.tip.skillPrefix', { name: srt.name })
     if (srt.totalStatPct !== null) {
-      pendingTotalStatRings.push({ label, pct: srt.totalStatPct })
+      pendingTotalStatRings.push({ id: srt.id, label, pct: srt.totalStatPct })
       continue
     }
+    currentTempId = srt.temporary ? srt.id : null
     for (const [k, v] of Object.entries(srt.stats)) {
       if (PCT_KEYS.has(k)) addPct(k, label, v, true)
       else addFlat(k, label, v, false, true)
     }
+    currentTempId = null
   }
 
   // 3c) NFT 圖鑑
@@ -852,10 +870,19 @@ const breakdowns = computed(() => {
   }
 
   // Totalling Ring:主屬 +floor((STR+DEX+INT+LUK 最終值) × 倍率%),加值仍吃主屬 %(實測)
+  //   施放當下快照:只納入比戒指「早開啟」的臨時增益(如 MWGB 先開才吃得到),常駐來源一律納入
   if (pendingTotalStatRings.length) {
-    const sum = ['str', 'dex', 'int', 'luk'].reduce((acc, k) => acc + breakdownFromBd(out, k).final, 0)
     for (const r of pendingTotalStatRings) {
+      const ringIdx = activationIndexOf(r.id)
+      const keep = (e) => !e.tempId || activationIndexOf(e.tempId) < ringIdx
+      const snapshot = {}
+      for (const [k, b] of Object.entries(out)) {
+        snapshot[k] = { flat: b.flat.filter(keep), pct: b.pct.filter(keep) }
+      }
+      const sum = ['str', 'dex', 'int', 'luk'].reduce((acc, k) => acc + breakdownFromBd(snapshot, k).final, 0)
+      currentTempId = r.id
       addFlat(primaryStat.value, r.label, totalStatRingValue(sum, r.pct), false, true)
+      currentTempId = null
     }
   }
   return out
@@ -1587,11 +1614,12 @@ function onPanelOut(e) {
             :key="tb.id"
             type="button"
             class="buff-cell"
-            :class="{ 'buff-cell--on': tb._temporary ? isBuffActive(tb.id) : isSkillActive(tb.id) }"
+            :class="{ 'buff-cell--on': isTempBuffOn(tb) }"
             :title="tooltipText(tb)"
             @click="tb._temporary ? toggleBuff(tb.id) : toggleSkill(tb.id)"
           >
             <img :src="tb.icon" :alt="tb.name" />
+            <span v-if="tempBuffOrderNo[tb.id]" class="buff-cell__order">{{ tempBuffOrderNo[tb.id] }}</span>
           </button>
         </div>
       </section>
@@ -2243,6 +2271,7 @@ function onPanelOut(e) {
   min-height: 56px;
 }
 .buff-cell {
+  position: relative;
   width: 40px;
   height: 40px;
   padding: 2px;
@@ -2263,6 +2292,22 @@ function onPanelOut(e) {
   pointer-events: none;
 }
 .buff-cell:hover { transform: scale(1.07); }
+.buff-cell__order {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: #ffc857;
+  color: #141a2e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}
 .buff-cell--on {
   filter: none;
   border-color: #ffc857;

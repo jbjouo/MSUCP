@@ -6,8 +6,7 @@
 //   各級原始資料:scripts/skill-db/arch-mage-f-p/maple-world-goddess-blessing-levels.json
 //   (Lv26~30 為線性外插,待實測)
 //
-// 戰鬥模擬 / CP 接入待後續 — 需先確認「buff 增幅」作用對象 (Maple Warrior 數值) 與
-// Damage% 的疊加方式;目前僅作為 V 矩陣技能核心 (共通) 收錄。
+// CP 面板:臨時增益開關(_temporary),與戰鬥模擬同一公式(見 contribute / battle 註解)
 
 import { LOCAL_ICON } from '../../helpers.js'
 
@@ -30,6 +29,7 @@ export const ADVENTURER_5TH_SKILLS = [
     name: "Maple World Goddess's Blessing",
     nameKey: 'vmatrix.skills.maple_world_goddess_blessing',
     descriptionKey: 'vmatrix.skills.maple_world_goddess_blessing_desc',
+    icon: ICON("Maple_World_Goddess's_Blessing"),
     imageUrl: ICON("Maple_World_Goddess's_Blessing"),
     jobs: MWGB_JOBS,
     advancement: 5,
@@ -37,6 +37,32 @@ export const ADVENTURER_5TH_SKILLS = [
     vmTag: 'adventurer',   // V 矩陣面板「技能核心 (共通)」角標:冒險家
     baseLevel: 25,         // master 25;等級由 V 矩陣面板 (0~30) 調整
     vmatrix: { kind: 'skill', maxLevel: 30 },
+    // CP 臨時增益 — 數值公式同戰鬥模擬 (useBattleSim computeBuffStatFlat),但主屬加值會吃主屬 %:
+    //   提升% = floor(楓葉祝福% × 增幅%/100),楓葉祝福% = 15 (+1 戰鬥命令)
+    //   主屬 = floor(AP × 提升%/100) — 一般 flat,會再吃主屬 %(同楓葉祝福);需楓葉祝福開啟
+    //   Damage = 17 + 0.5 × (Lv − 25);等級 = V 矩陣面板,0 = 未習得 → 無效果
+    //   臨時增益開關只影響 CP 頁,不進 useCpDamage(戰鬥模擬讀的那份)— 戰鬥模擬照舊由 battle 設定自動施放
+    //   不在 CP_SKILL_ALLOWLIST → 不計入戰鬥力數字(同其他技能來源)
+    cp: { role: 'buff' },
+    _temporary: true,
+    contribute(ctx) {
+      const lv = ctx.vmatrixLevel?.(this.id) || 0
+      if (lv <= 0) return []
+      const out = []
+      const label = ctx.t
+        ? ctx.t('cp.tip.buffPrefix', { name: `${ctx.t(this.nameKey)} Lv.${lv}` })
+        : `Buff: ${this.name} Lv.${lv}`
+      if (ctx.isBuffActive?.('maple_warrior')) {
+        const mwPct = 15 + (ctx.isBuffActive('combat_orders') ? 1 : 0)
+        const boostPct = Math.floor((mwPct * (350 + 10 * (lv - 25))) / 100)
+        const ap = ctx.baseStats[ctx.primary] || 0
+        const flat = Math.floor((ap * boostPct) / 100)
+        if (flat) out.push({ key: ctx.primary, label, value: flat })
+      }
+      const dmg = 17 + 0.5 * (lv - 25)
+      if (dmg > 0) out.push({ key: 'dmgPct', label, value: dmg, isPct: true })
+      return out
+    },
     // 戰鬥模擬 — 無延遲施放 buff:開場緊接 Infinity (450ms) 之後自動啟動
     //   (排序由 BATTLE_BUFFS 順序保證:未列入 BATTLE_BUFF_ORDER → 排在 infinity 之後)
     //   效果 (已實測驗證公式):
@@ -64,6 +90,7 @@ export const ADVENTURER_5TH_SKILLS = [
 ]
 
 // 子分類 (由主列表 filter)
+export const ADVENTURER_BUFFS = ADVENTURER_5TH_SKILLS.filter((s) => s.cp?.role === 'buff')
 export const ADVENTURER_VMATRIX_SKILLS = ADVENTURER_5TH_SKILLS.filter((s) => s.vmatrix)
 
 // Battle Buff — 從 skill.battle derive (與其他 class-group 相同模式)

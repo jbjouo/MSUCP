@@ -85,6 +85,9 @@
 - 一個角色最多 1 active + 1 passive 技能戒指
 - `skillLevel` 存在 entry，編輯器有等級選擇 tab
 - CP 面板：常駐效果顯示在技能欄，臨時效果顯示在「臨時增益」欄
+- **臨時增益開關(`_temporary` buff / `skillEffect.temporary` 戒指)只影響 CP 頁**:`useCpDamage`(戰鬥模擬讀的那份)一律略過,兩者獨立
+- Totalling Ring 為施放當下快照:只納入**比戒指早開啟**的臨時增益(`useCpToggles.activationOrder`),常駐來源一律納入;臨時增益欄以角標數字顯示開啟順序
+- MWGB 臨時增益:主屬 = floor(AP × floor(楓葉% × 增幅%/100)/100),**一般 flat、會吃主屬 %**(同楓葉祝福),需楓葉祝福開啟;Damage 17+0.5/lv;等級讀 V 矩陣
 - Weapon Jump 系列：`statKey` + `weaponJumpStat`，依武器 ATK/MATK（取較高）動態計算
 - Totalling Ring：`totalStatPct`（每級 0.3%），主屬 +floor((STR+DEX+INT+LUK **最終值**總和) × 倍率%),加值**會被主屬 % 放大**(實測,非 fixed);於 breakdown 結尾(所有來源加總後)計算,`useCpDamage` 與 `CpCalculatorPage` 兩處皆有
 
@@ -450,6 +453,7 @@ per-character key 格式:`msucp.char.<charId>.<suffix>`
 | `linkSkills.applied.v3` | 已連結 link skill |
 | `cpBuffs.v1` / `cpSkills.v1` / `cpTitles.v1` | CP 開關 |
 | `cpCompare.v1` | CP 比較快照 |
+| `cpToggleOrder.v1` | buff / skill 開關的開啟順序(快照型效果用) |
 | `hyperSkills.v1` | 超技能配點 |
 | `battleRecord.v1` | 戰鬥模擬記錄 |
 

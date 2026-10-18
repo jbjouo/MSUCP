@@ -342,6 +342,9 @@ export function useCpDamage() {
     for (const buff of BUFFS) {
       if (!activeBuffs.value.has(buff.id)) continue
       if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
+      // 臨時增益開關只作用於 CP 頁(CpCalculatorPage 自有 breakdown)— 戰鬥模擬自有 buff 邏輯,
+      //   本 composable 供戰鬥模擬讀取,一律不納入以免重複 / 互相影響
+      if (buff._temporary) continue
       const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
       const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
       for (const [k, v] of Object.entries(buff.stats || {})) {
@@ -354,7 +357,7 @@ export function useCpDamage() {
         const contribs = buff.contribute(ctx) || []
         for (const c of contribs) {
           if (c.isPct) addPct(c.key, c.label, c.value, cpExc)
-          else addFlat(c.key, c.label, c.value, false, cpExc)
+          else addFlat(c.key, c.label, c.value, !!c.fixed, cpExc)
         }
       }
     }
@@ -443,6 +446,7 @@ export function useCpDamage() {
       const toggleId = `skillring_${ee.item.id}`
       if (!activeSkillIds.value.has(toggleId)) continue
       const fx = ee.item.skillEffect
+      if (fx.temporary) continue  // 臨時型技能戒指 = 臨時增益開關,不影響戰鬥模擬(同上)
       const lv = ee.skillLevel || 1
       const label = t('cp.tip.skillPrefix', { name: `${fx.name} Lv.${lv}` })
       if (fx.base.totalStatPct !== undefined) {

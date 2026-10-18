@@ -42,6 +42,7 @@ import {
 } from './_shared/class-groups/adventurer-thief/index.js'
 
 import {
+  ADVENTURER_BUFFS,
   ADVENTURER_VMATRIX_SKILLS,
   ADVENTURER_BATTLE_BUFFS,
 } from './_shared/class-groups/adventurer/index.js'
@@ -78,6 +79,7 @@ export const COMBINED_BUFFS = [
   ...ALL_JOBS_JOB_BUFFS,
   ...MAGICIAN_BRANCH_BUFFS,
   ...ADVENTURER_THIEF_BUFFS,
+  ...ADVENTURER_BUFFS,
   ...ALL_JOBS_BUFFS,
 ]
 
