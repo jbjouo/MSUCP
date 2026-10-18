@@ -105,6 +105,7 @@ export const CP_SKILL_ALLOWLIST = new Set([
   'blessing_of_the_fairy',
   'empress_blessing',
   'gold_richie_resort_vip',
+  'golden_radiance',          // 與 VIP 同數值、同群組(互斥),一樣計入 CP
 ])
 
 export const JOB_ATT_META = {

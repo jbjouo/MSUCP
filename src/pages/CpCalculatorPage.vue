@@ -66,7 +66,7 @@ const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
 import { useBattleRecord } from '../composables/useBattleRecord.js'
 import { combineIgnorePct } from '../utils/numerics.js'
-import { totalStatRingPct, totalStatRingValue } from '../composables/useCpDamage.js'
+import { totalStatRingPct, totalStatRingValue, CP_SKILL_ALLOWLIST } from '../composables/useCpDamage.js'
 const { hasRecord, recordAvg } = useBattleRecord()
 const showSimDps = ref(false)
 
@@ -474,11 +474,7 @@ function fmtPct(n) {
 // ────────────────────────────────────────────────────────────────
 // Combat Power 不計入「skill 來源」: SKILL / BUFF / V Matrix / Link Skill。
 // 但下列 toggle 仍視為基礎 buff,計入 CP:
-const CP_SKILL_ALLOWLIST = new Set([
-  'blessing_of_the_fairy',
-  'empress_blessing',
-  'gold_richie_resort_vip',
-])
+// 白名單與 useCpDamage 共用同一份(CP_SKILL_ALLOWLIST)
 
 const breakdowns = computed(() => {
   const out = {}
