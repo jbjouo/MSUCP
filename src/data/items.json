@@ -5536,6 +5536,18 @@
         },
         "temporary": true
       }
+    },
+    {
+      "id": "pendant_pendant_of_the_spirit",
+      "apiItemId": 1122215,
+      "name": "Pendant of the Spirit",
+      "nameEn": "Pendant of the Spirit",
+      "type": "pendant",
+      "level": 0,
+      "maxStars": 0,
+      "stats": {},
+      "imageUrl": "/msucp/images/items/1122215.png",
+      "noEnhance": true
     }
   ]
 }
