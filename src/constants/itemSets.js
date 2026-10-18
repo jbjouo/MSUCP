@@ -21,7 +21,7 @@ const ITEMS_MAP = Object.fromEntries(
 //   (Dragon Tail / Raven Horn;未來新增的 140 等 set 也歸此組)
 export const SET_FILTER_GROUPS = [
   { key: 'root_abyss',     setIds: ['root_abyss_magician', 'root_abyss_thief', 'root_abyss_warrior', 'root_abyss_bowman'] },
-  { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief', 'absolab_warrior'] },
+  { key: 'absolab',        setIds: ['absolab_magician', 'absolab_thief', 'absolab_warrior', 'absolab_bowman'] },
   { key: 'arcane_umbra',   setIds: ['arcane_umbra_magician', 'arcane_umbra_thief', 'arcane_umbra_warrior', 'arcane_umbra_bowman', 'arcane_umbra_pirate'] },
   { key: 'pitched_boss',   setIds: ['pitched_boss'] },
   { key: 'boss_of_dawn',   setIds: ['boss_of_dawn'] },
@@ -148,12 +148,14 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.absolab_magician.name',
     members: [
       { id: 'hat_absolab_mage_crown', name: 'AbsoLab Mage Crown', type: 'hat' },
-      { id: 'top_absolab_mage_suit', name: 'AbsoLab Mage Suit', type: 'top' },
+      { id: 'overall_absolab_mage_suit', name: 'AbsoLab Mage Suit', type: 'overall' },
       { id: 'shoes_absolab_mage_shoes', name: 'AbsoLab Mage Shoes', type: 'shoes' },
       { id: 'glove_absolab_mage_gloves', name: 'AbsoLab Mage Gloves', type: 'glove' },
       { id: 'cape_absolab_mage_cape', name: 'AbsoLab Mage Cape', type: 'cape' },
       { id: 'shoulder_absolab_mage_shoulder', name: 'AbsoLab Mage Shoulder', type: 'shoulder' },
-      { id: 'wpn_absolab_mage_staff', name: 'AbsoLab Mage Staff', type: 'weapon' },
+      { id: 'wpn_absolab_spellsong_staff', name: 'AbsoLab Spellsong Staff', type: 'weapon' },
+      { id: 'wpn_absolab_spellsong_wand', name: 'AbsoLab Spellsong Wand', type: 'weapon' },
+      { id: 'wpn_absolab_shining_rod', name: 'AbsoLab Shining Rod', type: 'weapon' },
     ],
     tiers: [
       { count: 2, stats: { hp: 1500, mp: 1500, atk: 20, matk: 20, bossDmg: 10 } },
@@ -197,6 +199,27 @@ export const ITEM_SETS = [
       { id: 'shoulder_absolab_knight_shoulder', name: 'AbsoLab Knight Shoulder', type: 'shoulder' },
       { id: 'wpn_absolab_piercing_spear', name: 'AbsoLab Piercing Spear', type: 'weapon' },
       { id: 'wpn_absolab_hellslayer', name: 'AbsoLab Hellslayer', type: 'weapon' },
+    ],
+    tiers: [
+      { count: 2, stats: { hp: 1500, mp: 1500, atk: 20, matk: 20, bossDmg: 10 } },
+      { count: 3, stats: { allStat: 30, atk: 20, matk: 20, bossDmg: 10 } },
+      { count: 4, stats: { atk: 25, matk: 25, def: 200, ignoreDef: 10 } },
+      { count: 5, stats: { atk: 30, matk: 30, bossDmg: 10 } },
+      { count: 6, stats: { hpPct: 20, mpPct: 20, atk: 20, matk: 20 } },
+      { count: 7, stats: { atk: 20, matk: 20, ignoreDef: 10 } },
+    ],
+  },
+  {
+    id: 'absolab_bowman',
+    nameKey: 'itemSet.absolab_bowman.name',
+    members: [
+      { id: 'hat_absolab_archer_hood', name: 'AbsoLab Archer Hood', type: 'hat' },
+      { id: 'overall_absolab_archer_suit', name: 'AbsoLab Archer Suit', type: 'overall' },
+      { id: 'shoes_absolab_archer_shoes', name: 'AbsoLab Archer Shoes', type: 'shoes' },
+      { id: 'glove_absolab_archer_gloves', name: 'AbsoLab Archer Gloves', type: 'glove' },
+      { id: 'cape_absolab_archer_cape', name: 'AbsoLab Archer Cape', type: 'cape' },
+      { id: 'shoulder_absolab_archer_shoulder', name: 'AbsoLab Archer Shoulder', type: 'shoulder' },
+      { id: 'wpn_absolab_sureshot_bow', name: 'AbsoLab Sureshot Bow', type: 'weapon' },
     ],
     tiers: [
       { count: 2, stats: { hp: 1500, mp: 1500, atk: 20, matk: 20, bossDmg: 10 } },

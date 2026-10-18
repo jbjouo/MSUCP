@@ -5251,6 +5251,291 @@
         "atk": 9
       },
       "imageUrl": "/msucp/images/items/3150005.png"
+    },
+    {
+      "id": "overall_arcane_umbra_mage_suit",
+      "apiItemId": 1053064,
+      "name": "Arcane Umbra Mage Suit",
+      "nameEn": "Arcane Umbra Mage Suit",
+      "type": "overall",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 9,
+        "int": 85,
+        "luk": 85,
+        "def": 500,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1053064.png"
+    },
+    {
+      "id": "overall_arcane_umbra_archer_suit",
+      "apiItemId": 1053065,
+      "name": "Arcane Umbra Archer Suit",
+      "nameEn": "Arcane Umbra Archer Suit",
+      "type": "overall",
+      "level": 200,
+      "req": {
+        "dex": 600
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 85,
+        "dex": 85,
+        "def": 500,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1053065.png"
+    },
+    {
+      "id": "overall_arcane_umbra_thief_suit",
+      "apiItemId": 1053066,
+      "name": "Arcane Umbra Thief Suit",
+      "nameEn": "Arcane Umbra Thief Suit",
+      "type": "overall",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "dex": 85,
+        "luk": 85,
+        "def": 500,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1053066.png"
+    },
+    {
+      "id": "overall_arcane_umbra_pirate_suit",
+      "apiItemId": 1053067,
+      "name": "Arcane Umbra Pirate Suit",
+      "nameEn": "Arcane Umbra Pirate Suit",
+      "type": "overall",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 9,
+        "str": 85,
+        "dex": 85,
+        "def": 500,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1053067.png"
+    },
+    {
+      "id": "overall_absolab_mage_suit",
+      "apiItemId": 1052887,
+      "name": "AbsoLab Mage Suit",
+      "nameEn": "AbsoLab Mage Suit",
+      "type": "overall",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 5,
+        "int": 65,
+        "luk": 65,
+        "def": 300
+      },
+      "imageUrl": "/msucp/images/items/1052887.png"
+    },
+    {
+      "id": "wpn_absolab_spellsong_staff",
+      "apiItemId": 1382259,
+      "name": "AbsoLab Spellsong Staff",
+      "nameEn": "AbsoLab Spellsong Staff",
+      "type": "weapon",
+      "subType": "staff",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 8,
+      "stats": {
+        "atk": 151,
+        "matk": 245,
+        "int": 60,
+        "luk": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1382259.png"
+    },
+    {
+      "id": "wpn_absolab_spellsong_wand",
+      "apiItemId": 1372222,
+      "name": "AbsoLab Spellsong Wand",
+      "nameEn": "AbsoLab Spellsong Wand",
+      "type": "weapon",
+      "subType": "wand",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 143,
+        "matk": 241,
+        "int": 60,
+        "luk": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1372222.png"
+    },
+    {
+      "id": "wpn_absolab_shining_rod",
+      "apiItemId": 1212115,
+      "name": "AbsoLab Shining Rod",
+      "nameEn": "AbsoLab Shining Rod",
+      "type": "weapon",
+      "subType": "shining_rod",
+      "level": 160,
+      "req": {
+        "int": 480
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 143,
+        "matk": 241,
+        "int": 60,
+        "luk": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10
+      },
+      "imageUrl": "/msucp/images/items/1212115.png"
+    },
+    {
+      "id": "sec_evolving_metallic_blue_book_epode",
+      "apiItemId": 1352243,
+      "name": "Evolving Metallic Blue Book <Epode>",
+      "nameEn": "Evolving Metallic Blue Book <Epode>",
+      "type": "secondary",
+      "subType": "magic_book",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 5,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352243.png"
+    },
+    {
+      "id": "sec_metallic_blue_book_epode",
+      "apiItemId": 1352242,
+      "name": "Metallic Blue Book <Epode>",
+      "nameEn": "Metallic Blue Book <Epode>",
+      "type": "secondary",
+      "subType": "magic_book",
+      "level": 100,
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 0,
+      "stats": {
+        "matk": 3,
+        "int": 10,
+        "luk": 10
+      },
+      "imageUrl": "/msucp/images/items/1352242.png"
+    },
+    {
+      "id": "wpn_absolab_sureshot_bow",
+      "apiItemId": 1452252,
+      "name": "AbsoLab Sureshot Bow",
+      "nameEn": "AbsoLab Sureshot Bow",
+      "type": "weapon",
+      "subType": "bow",
+      "level": 160,
+      "req": {
+        "dex": 480
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "attackSpeed": 6,
+      "stats": {
+        "atk": 192,
+        "str": 60,
+        "dex": 60,
+        "bossDmg": 30,
+        "ignoreDef": 10,
+        "moveSpeed": 12
+      },
+      "imageUrl": "/msucp/images/items/1452252.png"
+    },
+    {
+      "id": "ring_totalling_ring",
+      "apiItemId": 1113108,
+      "name": "Totalling Ring",
+      "nameEn": "Totalling Ring",
+      "type": "ring",
+      "level": 110,
+      "maxStars": 0,
+      "stats": {
+        "atk": 4,
+        "matk": 4,
+        "str": 4,
+        "dex": 4,
+        "int": 4,
+        "luk": 4
+      },
+      "imageUrl": "/msucp/images/items/1113108.png",
+      "noEnhance": true,
+      "skillRing": "active",
+      "skillMaxLevel": 4,
+      "skillEffect": {
+        "skillId": 80001465,
+        "name": "Totalling Ring",
+        "base": {
+          "totalStatPct": 0
+        },
+        "perLevel": {
+          "totalStatPct": 0.3
+        },
+        "temporary": true
+      }
     }
   ]
 }

@@ -86,6 +86,7 @@
 - `skillLevel` 存在 entry，編輯器有等級選擇 tab
 - CP 面板：常駐效果顯示在技能欄，臨時效果顯示在「臨時增益」欄
 - Weapon Jump 系列：`statKey` + `weaponJumpStat`，依武器 ATK/MATK（取較高）動態計算
+- Totalling Ring：`totalStatPct`（每級 0.3%），主屬 +floor((STR+DEX+INT+LUK **最終值**總和) × 倍率%),加值**會被主屬 % 放大**(實測,非 fixed);於 breakdown 結尾(所有來源加總後)計算,`useCpDamage` 與 `CpCalculatorPage` 兩處皆有
 
 #### Unchained 裝備
 
@@ -166,12 +167,12 @@ state.equipped  = { [slotKey]: uid | null }
 ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 ```
 
-- 已建表:Lv140 / Lv150 / Lv200(Arcane Umbra) / Lv200 Genesis
+- 已建表:Lv140 / Lv150 / Lv160(AbsoLab,公式 5/10/15/22/30.25/39.93/51.2435%) / Lv200(Arcane Umbra) / Lv200 Genesis
 - 具名表:`NAMED_BONUS_TIERS` — item 設 `bonusTiersTable: "genesis"` 則優先使用對應表
 - 表中找不到的 base 值 → `computeFlameByFormula()` 自動計算
 - `weaponBonusTiersFor(item, statKey)`:具名表 → 等級表 → 公式 → null(自由輸入)
 - CP 基準武器(`JOB_CP_REFERENCE_WEAPON`):法師=wand / nightwalker,nightlord=claw / shadower=dagger
-- `REFERENCE_WEAPON_DATA` 等級檔:150 / 200 / **98(unmintable 商店檔:wand=Dimon Wand 69/113;bow 基準=90 ATK,同 key 98 與 100 各一筆,100=White Nisrock 95)** — Lv98 wand 穿戴者經 key 98 對到同檔 1.3 基準弓
+- `REFERENCE_WEAPON_DATA` 等級檔:150 / 160(AbsoLab;bow=192)/ 200 / **98(unmintable 商店檔:wand=Dimon Wand 69/113;bow 基準=90 ATK,同 key 98 與 100 各一筆,100=White Nisrock 95)** — Lv98 wand 穿戴者經 key 98 對到同檔 1.3 基準弓
 
 ## 套裝 (`itemSets.js`)
 

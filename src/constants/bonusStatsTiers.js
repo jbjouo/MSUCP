@@ -2,6 +2,7 @@
 // 資料來源:
 //   Lv150 深淵武器 https://truth.bahamut.com.tw/s01/202202/56710077da50bab46e8027b3176433ac.PNG
 //   Lv200 神秘武器(Arcane Umbra)— 玩家提供
+//   Lv160~170 武器百分比 — 玩家提供星火表(航海師武器列)
 //
 // Key 規則
 //   物理武器 → 查 item.stats.atk(武器基礎攻擊力)
@@ -12,13 +13,16 @@
 // Normal Weapons: T1~T7 百分比
 const FLAME_FORMULA = {
   '120-159': [4, 8, 12, 17.6, 24.2, 31.944, 40.9948],
+  '160-170': [5, 10, 15, 22, 30.25, 39.93, 51.2435],
 }
 
 function computeFlameByFormula(base, level) {
   let pcts = null
   if (level >= 120 && level <= 159) pcts = FLAME_FORMULA['120-159']
+  if (level >= 160 && level <= 170) pcts = FLAME_FORMULA['160-170']
   if (!pcts || base <= 0) return null
-  return pcts.map(p => Math.ceil(base * p / 100))
+  // toFixed 去除浮點誤差(如 200 × 15% = 30.000000000000004 → ceil 誤進位成 31)
+  return pcts.map(p => Math.ceil(Number((base * p / 100).toFixed(6))))
 }
 
 // Lv140 武器 — base ATT/MATK → [等級1..等級7] (由公式產生)
@@ -38,6 +42,20 @@ export const LV150_WEAPON_BONUS_TIERS = {
   175: [7, 14, 21, 31, 43, 56, 72],  // 種類8
   201: [9, 17, 25, 36, 49, 65, 83],  // 種類9
   204: [9, 17, 25, 36, 50, 66, 84],  // 種類10
+}
+
+// Lv160 武器 (AbsoLab) — base ATT/MATK → [等級1..等級7](玩家提供,與 160-170 公式一致)
+export const LV160_WEAPON_BONUS_TIERS = {
+  103: [6,  11, 16, 23, 32, 42, 53],   // 種類1
+  150: [8,  15, 23, 33, 46, 60, 77],   // 種類2
+  154: [8,  16, 24, 34, 47, 62, 79],   // 種類3
+  184: [10, 19, 28, 41, 56, 74, 95],   // 種類4
+  192: [10, 20, 29, 43, 59, 77, 99],   // 種類5 — AbsoLab Sureshot Bow
+  197: [10, 20, 30, 44, 60, 79, 101],  // 種類6
+  205: [11, 21, 31, 46, 63, 82, 106],  // 種類7
+  210: [11, 21, 32, 47, 64, 84, 108],  // 種類8
+  241: [13, 25, 37, 54, 73, 97, 124],  // 種類9 — AbsoLab Spellsong Wand / Shining Rod (MATK)
+  245: [13, 25, 37, 54, 75, 98, 126],  // 種類10 — AbsoLab Spellsong Staff (MATK)
 }
 
 // Lv200 神秘武器 (Arcane Umbra) — base ATT/MATK → [等級1..等級7]
@@ -72,6 +90,7 @@ export const LV200_GENESIS_WEAPON_BONUS_TIERS = {
 export const WEAPON_BONUS_TIERS_BY_LEVEL = {
   140: LV140_WEAPON_BONUS_TIERS,
   150: LV150_WEAPON_BONUS_TIERS,
+  160: LV160_WEAPON_BONUS_TIERS,
   200: LV200_WEAPON_BONUS_TIERS,
 }
 
@@ -82,7 +101,7 @@ const NAMED_BONUS_TIERS = {
 
 // 回傳此武器在指定 bonus stat key (atk / matk) 下可選的等級值
 //   - 非武器、或 statKey 不是 atk/matk → null
-//   - 等級不在表中(例如 Lv160/250 尚未加入)→ null
+//   - 等級不在表中、公式也未涵蓋(例如 Lv250)→ null
 //   - base 值不在對應 Lv 的表中 → null
 //   回 null 時 UI 應 fallback 為自由輸入
 export function weaponBonusTiersFor(item, statKey) {
@@ -123,10 +142,12 @@ export const REFERENCE_WEAPON_DATA = {
   wand:  {
     98:  { atk: 69, matk: 113 },   // Dimon Wand (unmintable)
     150: { atk: 119, matk: 201 },  // Fafnir Mana Taker
+    160: { atk: 143, matk: 241 },  // AbsoLab Spellsong Wand
     200: { atk: 206, matk: 347 },  // Arcane Umbra Wand
   },
   staff: {
     150: { atk: 128, matk: 204 },
+    160: { atk: 151, matk: 245 },  // AbsoLab Spellsong Staff
     200: { atk: 218, matk: 353 },  // Arcane Umbra Staff
   },
   bow: {
@@ -134,6 +155,7 @@ export const REFERENCE_WEAPON_DATA = {
     100: { atk: 95 },               // White Nisrock (unmintable)
     120: { atk: 105 },              // Necro Longbow
     150: { atk: 160 },              // Fafnir Wind Chaser
+    160: { atk: 192 },              // AbsoLab Sureshot Bow
     200: { atk: 276 },              // Arcane Umbra Bow
   },
   dagger: {
@@ -144,6 +166,7 @@ export const REFERENCE_WEAPON_DATA = {
   },
   shining_rod: {
     120: { atk: 81, matk: 133 },    // Necro Shining Rod
+    160: { atk: 143, matk: 241 },   // AbsoLab Shining Rod
     200: { atk: 206, matk: 347 },   // Arcane Umbra Shining Rod
   },
 }

@@ -34,7 +34,7 @@ import {
   referenceBonusAttAtTier,
 } from '../constants/bonusStatsTiers.js'
 import { computeStarStats } from '../constants/starForce.js'
-import { clean, add, sub, mul, applyPct, combineIgnorePct, floor, sumBy } from '../utils/numerics.js'
+import { clean, add, sub, mul, div, applyPct, combineIgnorePct, floor, sumBy } from '../utils/numerics.js'
 
 // ─── 冷卻公式 ─────────────────────────────────────────────────────────────
 // 套用順序嚴格:
@@ -148,6 +148,15 @@ const PER_LV10_MAP = {
 }
 
 // ─── composable ────────────────────────────────────────────────────────────
+
+// Totalling Ring(skillEffect.base.totalStatPct)— 倍率 % = base + perLevel × Lv
+export function totalStatRingPct(fx, lv) {
+  return add(fx.base.totalStatPct || 0, mul(fx.perLevel.totalStatPct || 0, lv))
+}
+// 主屬加值 = floor(四屬最終值總和 × 倍率%)
+export function totalStatRingValue(statSum, pct) {
+  return floor(div(mul(statSum, pct), 100))
+}
 
 export function useCpDamage() {
   const { t, te } = useI18n()
@@ -427,6 +436,7 @@ export function useCpDamage() {
       const x = wpnEntry.bonusStats || {}
       return Math.max((b.atk||0)+(s.atk||0)+(x.atk||0), (b.matk||0)+(s.matk||0)+(x.matk||0))
     })()
+    const pendingTotalStatRings = []
     for (const ee of equippedEntries) {
       if (!ee?.item?.skillEffect) continue
       const toggleId = `skillring_${ee.item.id}`
@@ -434,7 +444,10 @@ export function useCpDamage() {
       const fx = ee.item.skillEffect
       const lv = ee.skillLevel || 1
       const label = t('cp.tip.skillPrefix', { name: `${fx.name} Lv.${lv}` })
-      if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
+      if (fx.base.totalStatPct !== undefined) {
+        // Totalling Ring — 依「最終」四屬總和計算,需等所有來源加總完才能算(見函式結尾)
+        pendingTotalStatRings.push({ label, pct: totalStatRingPct(fx, lv) })
+      } else if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
         const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
         const val = Math.floor(wpnAtt * pct / 100)
         if (val) addFlat(fx.statKey, label, val, false, true)
@@ -595,28 +608,37 @@ export function useCpDamage() {
         else addFlat(k, label, v, false, true)
       }
     }
+
+    // Totalling Ring:主屬 +floor((STR+DEX+INT+LUK 最終值) × 倍率%),加值仍吃主屬 %(實測)
+    //   多個戒指皆以「未含本效果」的總和為基準
+    if (pendingTotalStatRings.length) {
+      const sum = add(...['str', 'dex', 'int', 'luk'].map((k) => breakdownFromBd(out, k).final))
+      for (const r of pendingTotalStatRings) {
+        addFlat(pKey, r.label, totalStatRingValue(sum, r.pct), false, true)
+      }
+    }
     return out
   }
 
   const breakdowns = computed(() => breakdownsForEntries(currentEquippedEntries()))
 
-  function breakdownFor(key) {
-    const b = breakdowns.value[key] || { flat: [], pct: [] }
+  function breakdownFromBd(bd, key) {
+    const b = bd[key] || { flat: [], pct: [] }
     const flat = [...b.flat]
     const pct = [...b.pct]
     if (['str', 'dex', 'int', 'luk'].includes(key)) {
-      const extras = breakdowns.value[`${key}Pct`]?.pct || []
-      const all = breakdowns.value.allStatPct?.pct || []
+      const extras = bd[`${key}Pct`]?.pct || []
+      const all = bd.allStatPct?.pct || []
       const byLabel = new Map()
       for (const s of [...extras, ...all]) {
         byLabel.set(s.label, (byLabel.get(s.label) || 0) + s.value)
       }
       for (const [label, value] of byLabel) pct.push({ label, value })
-      const allFlat = breakdowns.value.allStat?.flat || []
+      const allFlat = bd.allStat?.flat || []
       flat.push(...allFlat)
     }
-    if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []))
-    if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []))
+    if (key === 'atk') pct.push(...(bd.atkPct?.pct || []))
+    if (key === 'matk') pct.push(...(bd.matkPct?.pct || []))
 
     const flatTotal = sumBy(flat, (x) => x.value)
     const pctTotal = sumBy(pct, (x) => x.value)
@@ -658,6 +680,8 @@ export function useCpDamage() {
       isMultiplicative,
     }
   }
+
+  function breakdownFor(key) { return breakdownFromBd(breakdowns.value, key) }
 
   function statTotal(key) { return breakdownFor(key).final }
 

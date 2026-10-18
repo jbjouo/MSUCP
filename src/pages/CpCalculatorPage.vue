@@ -66,6 +66,7 @@ const { state: equipState, totalStats, resolveEntry } = useEquipment()
 const { state: charState, primaryStat, currentJob } = useCharacter()
 import { useBattleRecord } from '../composables/useBattleRecord.js'
 import { combineIgnorePct } from '../utils/numerics.js'
+import { totalStatRingPct, totalStatRingValue } from '../composables/useCpDamage.js'
 const { hasRecord, recordAvg } = useBattleRecord()
 const showSimDps = ref(false)
 
@@ -220,7 +221,11 @@ const equipSkillRingToggles = computed(() => {
     const fx = entry.item.skillEffect
     const lv = entry.skillLevel || 1
     const bag = {}
-    if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
+    // Totalling Ring:數值依最終四屬總和,於 breakdowns 結尾才計算
+    const totalStatPct = fx.base.totalStatPct !== undefined ? totalStatRingPct(fx, lv) : null
+    if (totalStatPct !== null) {
+      // bag 留空
+    } else if (fx.statKey && fx.base.weaponJumpStat !== undefined) {
       const pct = (fx.base.weaponJumpStat || 0) + (fx.perLevel.weaponJumpStat || 0) * lv
       const val = Math.floor(equippedWeaponAtt.value * pct / 100)
       if (val) bag[fx.statKey] = val
@@ -239,6 +244,7 @@ const equipSkillRingToggles = computed(() => {
       name: `${fx.name} Lv.${lv}`,
       icon: entry.item.imageUrl,
       stats: bag,
+      totalStatPct,
       cp: { role: 'toggle' },
       temporary: !!fx.temporary,
     })
@@ -687,9 +693,14 @@ const breakdowns = computed(() => {
   }
 
   // 技能戒指效果（toggle 開關控制，不影響 CP）
+  const pendingTotalStatRings = []
   for (const srt of equipSkillRingToggles.value) {
     if (!activeSkillIds.value.has(srt.id)) continue
     const label = t('cp.tip.skillPrefix', { name: srt.name })
+    if (srt.totalStatPct !== null) {
+      pendingTotalStatRings.push({ label, pct: srt.totalStatPct })
+      continue
+    }
     for (const [k, v] of Object.entries(srt.stats)) {
       if (PCT_KEYS.has(k)) addPct(k, label, v, true)
       else addFlat(k, label, v, false, true)
@@ -843,31 +854,39 @@ const breakdowns = computed(() => {
       else addFlat(k, label, v, false, true)
     }
   }
+
+  // Totalling Ring:主屬 +floor((STR+DEX+INT+LUK 最終值) × 倍率%),加值仍吃主屬 %(實測)
+  if (pendingTotalStatRings.length) {
+    const sum = ['str', 'dex', 'int', 'luk'].reduce((acc, k) => acc + breakdownFromBd(out, k).final, 0)
+    for (const r of pendingTotalStatRings) {
+      addFlat(primaryStat.value, r.label, totalStatRingValue(sum, r.pct), false, true)
+    }
+  }
   return out
 })
 
 // 取得某 stat 的展示資料 (含 final 計算)
 // 主屬性會把 allStatPct 與 xxxPct 一起納入百分比列表
-function breakdownFor(key) {
-  const b = breakdowns.value[key] || { flat: [], pct: [] }
+function breakdownFromBd(bd, key) {
+  const b = bd[key] || { flat: [], pct: [] }
   const flat = [...b.flat]
   const pct = [...b.pct]
 
   // 主屬性額外納入 (str|dex|int|luk)Pct 與 allStatPct 兩池
   //   來自同一件裝備 (label 相同) 的 % 會合併為一條,避免像 "INT +6%" + "全屬 +3%" 分開顯示
   if (['str', 'dex', 'int', 'luk'].includes(key)) {
-    const extras = breakdowns.value[`${key}Pct`]?.pct || []
-    const all = breakdowns.value.allStatPct?.pct || []
+    const extras = bd[`${key}Pct`]?.pct || []
+    const all = bd.allStatPct?.pct || []
     const byLabel = new Map()
     for (const s of [...extras, ...all]) {
       byLabel.set(s.label, (byLabel.get(s.label) || 0) + s.value)
     }
     for (const [label, value] of byLabel) pct.push({ label, value })
-    const allFlat = breakdowns.value.allStat?.flat || []
+    const allFlat = bd.allStat?.flat || []
     flat.push(...allFlat)
   }
-  if (key === 'atk') pct.push(...(breakdowns.value.atkPct?.pct || []))
-  if (key === 'matk') pct.push(...(breakdowns.value.matkPct?.pct || []))
+  if (key === 'atk') pct.push(...(bd.atkPct?.pct || []))
+  if (key === 'matk') pct.push(...(bd.matkPct?.pct || []))
 
   const flatTotal = flat.reduce((s, x) => s + x.value, 0)
   const pctTotal = pct.reduce((s, x) => s + x.value, 0)
@@ -992,6 +1011,8 @@ const hoveredBreakdown = computed(() =>
 )
 
 // 顯示用 final 值 (套用 % 後的總和)
+function breakdownFor(key) { return breakdownFromBd(breakdowns.value, key) }
+
 function statTotal(key) { return breakdownFor(key).final }
 
 // CP 專用:flat 合計 (排除 cpExclude)
