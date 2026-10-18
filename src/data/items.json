@@ -5548,6 +5548,95 @@
       "stats": {},
       "imageUrl": "/msucp/images/items/1122215.png",
       "noEnhance": true
+    },
+    {
+      "id": "hat_arcane_umbra_mage_hat",
+      "apiItemId": 1004809,
+      "name": "Arcane Umbra Mage Hat",
+      "nameEn": "Arcane Umbra Mage Hat",
+      "type": "hat",
+      "level": 200,
+      "req": {
+        "int": 600
+      },
+      "classes": [
+        "magician"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "matk": 7,
+        "int": 65,
+        "luk": 65,
+        "def": 600,
+        "ignoreDef": 15
+      },
+      "imageUrl": "/msucp/images/items/1004809.png"
+    },
+    {
+      "id": "hat_arcane_umbra_archer_hat",
+      "apiItemId": 1004810,
+      "name": "Arcane Umbra Archer Hat",
+      "nameEn": "Arcane Umbra Archer Hat",
+      "type": "hat",
+      "level": 200,
+      "req": {
+        "dex": 600
+      },
+      "classes": [
+        "bowman"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "str": 65,
+        "dex": 65,
+        "def": 600,
+        "ignoreDef": 15
+      },
+      "imageUrl": "/msucp/images/items/1004810.png"
+    },
+    {
+      "id": "hat_arcane_umbra_thief_hat",
+      "apiItemId": 1004811,
+      "name": "Arcane Umbra Thief Hat",
+      "nameEn": "Arcane Umbra Thief Hat",
+      "type": "hat",
+      "level": 200,
+      "req": {
+        "luk": 600
+      },
+      "classes": [
+        "thief"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "dex": 65,
+        "luk": 65,
+        "def": 600,
+        "ignoreDef": 15
+      },
+      "imageUrl": "/msucp/images/items/1004811.png"
+    },
+    {
+      "id": "hat_arcane_umbra_pirate_hat",
+      "apiItemId": 1004812,
+      "name": "Arcane Umbra Pirate Hat",
+      "nameEn": "Arcane Umbra Pirate Hat",
+      "type": "hat",
+      "level": 200,
+      "classes": [
+        "pirate"
+      ],
+      "maxStars": 25,
+      "stats": {
+        "atk": 7,
+        "str": 65,
+        "dex": 65,
+        "def": 600,
+        "ignoreDef": 15
+      },
+      "imageUrl": "/msucp/images/items/1004812.png"
     }
   ]
 }
