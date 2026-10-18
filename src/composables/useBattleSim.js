@@ -243,6 +243,8 @@ let currentBuffStatFlat = 0
 // statBoost 'mapleWarriorEnhance' 型 (例:Maple World Goddess's Blessing):
 //   提升% = floor(楓葉祝福% × 增幅%/100)   — 例 16% × 390% = 62.4 → 62%
 //   主屬 flat = floor(AP × 提升%/100)      — 與楓葉祝福同規則 (AP = CP baseStats 基礎主屬)
+//   加值為一般 flat,會再吃主屬 %(同 CP 頁):併入一般 flat 後重算 floor((flat+加值) × (1+%)) + 固定值,
+//   回傳「最終主屬增加量」
 //   楓葉祝福 (CP buff maple_warrior) 未開啟時無可增幅對象 → 0
 function computeBuffStatFlat(att) {
   let boosts
@@ -266,7 +268,12 @@ function computeBuffStatFlat(att) {
     const ap = primaryKey && cpBaseStats ? Number(cpBaseStats.value?.[primaryKey]) || 0 : 0
     flat += Math.floor((ap * boostPct) / 100)
   }
-  return flat
+  if (!flat) return 0
+  const primaryKey = att?.primaryStat
+  const bd = primaryKey && cpBreakdownFor ? cpBreakdownFor(primaryKey) : null
+  if (!bd) return flat
+  const boosted = add(floor(applyPct(add(bd.flatTotal, flat), bd.pctTotal)), bd.fixedFlatTotal)  // 同 useCpDamage final 公式
+  return sub(boosted, bd.final)
 }
 
 // buff 主屬 flat 反映到 baseRaw:baseRaw × (4×(主屬+flat)+副屬) / (4×主屬+副屬)
@@ -308,6 +315,7 @@ let currentEnemyLevel = 0 // 怪物等級 (等差終傷查表用)
 let cpAttStats = null    // useCpDamage().attStatsInfo (lazy init)
 let cpStatTotal = null   // useCpDamage().statTotal (lazy init) — 讀 buffDuration%
 let cpBaseStats = null   // useCpDamage().baseStats (lazy init) — AP 基礎主屬 (statBoost 型 buff 用)
+let cpBreakdownFor = null // useCpDamage().breakdownFor (lazy init) — 主屬 flat / % 拆分 (statBoost 吃主屬 % 用)
 
 // 針對單一技能計算屬性減傷係數:
 //   1 − 怪物屬性耐性% × (1 − 無視屬性耐性%/100) / 100
@@ -1763,6 +1771,7 @@ export function useBattleSim() {
     cpAttStats = cp.attStatsInfo
     cpStatTotal = cp.statTotal
     cpBaseStats = cp.baseStats
+    cpBreakdownFor = cp.breakdownFor
   }
 
   function setDuration(n) {
