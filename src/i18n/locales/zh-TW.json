@@ -1200,6 +1200,31 @@
   "blessingSkills": {
     "title": "祝福技能"
   },
+  "guildSkills": {
+    "title": "公會技能",
+    "tier": "Lv. {lv}",
+    "groups": { "normal": "普通技能", "noble": "貴族技能" },
+    "skills": {
+      "guild_lv1_1": { "name": "普通技能 Lv1-1" },
+      "guild_lv1_2": { "name": "普通技能 Lv1-2" },
+      "guild_lv1_3": { "name": "普通技能 Lv1-3" },
+      "guild_lv5_1": { "name": "普通技能 Lv5-1" },
+      "guild_lv5_2": { "name": "普通技能 Lv5-2" },
+      "guild_lv5_3": { "name": "普通技能 Lv5-3" },
+      "guild_lv10_1": { "name": "普通技能 Lv10-1" },
+      "guild_lv10_2": { "name": "普通技能 Lv10-2" },
+      "guild_lv15_1": { "name": "普通技能 Lv15-1" },
+      "guild_lv15_2": { "name": "普通技能 Lv15-2" },
+      "guild_lv20_1": { "name": "普通技能 Lv20-1" },
+      "guild_lv20_2": { "name": "普通技能 Lv20-2" },
+      "guild_lv25_1": { "name": "普通技能 Lv25-1" },
+      "guild_lv25_2": { "name": "普通技能 Lv25-2" },
+      "guild_boss_slayers": { "name": "Boss Slayers", "description": "暫時提升首領傷害:每級 +2%(Lv15 +30%)。持續 2 分/級,冷卻 116 − 4×(等級−1) 分。不計入戰鬥力。" },
+      "guild_undeterred": { "name": "Undeterred", "description": "暫時提升無視防禦:每級 +2%(Lv15 +30%)。持續 2 分/級,冷卻 116 − 4×(等級−1) 分。不計入戰鬥力。" },
+      "guild_for_the_guild": { "name": "For the Guild!", "description": "暫時提升傷害:每級 +2%(Lv15 +30%)。持續 2 分/級,冷卻 116 − 4×(等級−1) 分。不計入戰鬥力。" },
+      "guild_hard_hitter": { "name": "Hard Hitter", "description": "暫時提升爆擊傷害:每級 +2%(Lv15 +30%)。持續 2 分/級,冷卻 116 − 4×(等級−1) 分。不計入戰鬥力。" }
+    }
+  },
   "vmatrix": {
     "title": "V 矩陣",
     "groupActiveV": "技能核心(1~4技)",

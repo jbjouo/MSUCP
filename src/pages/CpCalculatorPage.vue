@@ -22,6 +22,7 @@ import { useCosmetic } from '../composables/useCosmetic.js'
 import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useBlessingSkills } from '../composables/useBlessingSkills.js'
+import { useGuildSkills } from '../composables/useGuildSkills.js'
 import { useEvent } from '../composables/useEvent.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
 import { charKey } from '../composables/useActiveCharacter.js'
@@ -129,6 +130,7 @@ const { contributions: arcaneContribs } = useArcane()
 const { statContributions: abilityContribs } = useInnerPotential()
 const { statContributions: vmatrixContribs, state: vmatrixState } = useVMatrix()
 const { blessingAtk } = useBlessingSkills()
+const { guildLevel, guildPassiveBags } = useGuildSkills()
 const { statContributions: eventContribs } = useEvent()
 const { statContributions: cosmeticAttrContribs } = useCosmetic()
 const {
@@ -281,7 +283,12 @@ const toggleableSkills = computed(() => {
 // BUFF 側欄只顯示符合當前職業的 buff（排除臨時 buff）
 const visibleBuffs = computed(() => {
   const jobKey = currentJob.value?.key || null
-  return BUFFS.filter((b) => !b._temporary && (!b.jobs || b.jobs.includes(jobKey)))
+  const list = BUFFS.filter((b) => !b._temporary && !b.guild && (!b.jobs || b.jobs.includes(jobKey)))
+  // 公會貴族技能:等級 > 0 才顯示,排在 Combat Orders 之後
+  const guild = BUFFS.filter((b) => b.guild && guildLevel(b.id) > 0)
+  const coIdx = list.findIndex((b) => b.id === 'combat_orders')
+  list.splice(coIdx >= 0 ? coIdx + 1 : list.length, 0, ...guild)
+  return list
 })
 
 // 需要以「相乘疊加」合併的 % 屬性 (1 - Π(1 - Xᵢ/100))
@@ -605,9 +612,12 @@ const breakdowns = computed(() => {
     // MWGB 等臨時增益用:V 矩陣等級 / 其他 buff 開關
     vmatrixLevel: (id) => vmatrixState.levels[id] || 0,
     isBuffActive: (id) => activeBuffs.value.has(id),
+    guildLevel,
+    isPctKey: (k) => PCT_KEYS.has(k),
   }
   for (const buff of BUFFS) {
     if (!activeBuffs.value.has(buff.id)) continue
+    if (buff.guild && !guildLevel(buff.id)) continue
     if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
     const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
@@ -701,6 +711,15 @@ const breakdowns = computed(() => {
     for (const [k, v] of Object.entries(bag)) {
       if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
       else addFlat(k, skillLabel, v, false, cpExc)
+    }
+  }
+
+  // 公會普通技能(被動)— 填等級即增加數值,不計入戰鬥力(cpExclude)
+  for (const { skill: gs, bag } of guildPassiveBags()) {
+    const gLabel = t('cp.tip.skillPrefix', { name: t(`guildSkills.skills.${gs.id}.name`) })
+    for (const [k, v] of Object.entries(bag)) {
+      if (PCT_KEYS.has(k)) addPct(k, gLabel, v, true)
+      else addFlat(k, gLabel, v, false, true)
     }
   }
 
@@ -1601,7 +1620,8 @@ function onPanelOut(e) {
             :title="tooltipText(buff)"
             @click="toggleBuff(buff.id)"
           >
-            <img :src="buff.icon" :alt="displayName(buff)" />
+            <img v-if="buff.icon" :src="buff.icon" :alt="displayName(buff)" />
+            <span v-else class="buff-cell__placeholder">{{ displayName(buff).slice(0, 2) }}</span>
           </button>
         </div>
       </section>
@@ -2289,6 +2309,18 @@ function onPanelOut(e) {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
+  pointer-events: none;
+}
+.buff-cell__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 1px dashed #4a5468;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  color: #8ea6b8;
   pointer-events: none;
 }
 .buff-cell:hover { transform: scale(1.07); }

@@ -132,6 +132,14 @@ state.equipped  = { [slotKey]: uid | null }
 - `COSMETIC_ATTRS`(`constants/cosmetic.js`):依部位固定一種屬性,`state.attrs[slot]` 存已抽選數值(下拉選單),
   帽子=全屬性 / 套服=無視防禦 / 武器=ATT+MATK / 披風=Boss / 臉飾=爆擊率 / 眼飾=一般怪傷;納入 CP breakdown
 
+### 公會技能 (`guildSkills.js`)
+
+- 角色頁技能分頁:祝福技能下、V 矩陣上(`GuildSkillPanel`)
+- `normal`(普通,被動,14 項,**目前隱藏** — `GUILD_VISIBLE_GROUPS` 只有 noble,資料未齊;skillId 91000026~44 有新舊兩版):依公會等級 `guildLevel` 分欄(Lv1×3 / 5×3 / 10×2 / 15×2 / 20×2 / 25×2;Lv30 不收錄);填等級即進 CP breakdown(兩處:`useCpDamage` + `CpCalculatorPage`)
+- `noble`(貴族,buff):Boss Slayers 91001022 / Undeterred 91001023 / For the Guild! 91001024 / Hard Hitter 91001025,Master 15、每級 +2%(首領 / 無視防禦 / 傷害 / 爆傷);`GUILD_NOBLE_BUFFS` 併入 `COMBINED_BUFFS` 末端,`guild: true`;等級 > 0 才顯示於增益欄(Combat Orders 之後),等級 0 時即使開關開著也不生效
+- 效果寫 `effect(lv) → { key: value }`;**一律不計入戰鬥力,只增加數值**(cpExclude,貴族 buff 不在 `CP_SKILL_ALLOWLIST`);`icon: null` 顯示佔位框
+- 圖示:`public/skills/guild/<skillId>.png`
+
 ## 職業系統 (`src/constants/jobs.js`)
 
 三層架構:
@@ -219,6 +227,7 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 | 內潛 | `innerPotential.js` | `useInnerPotential.js` | `msucp.innerPotential.v1` |
 | V 矩陣 | `vmatrix.js` | `useVMatrix.js` | `msucp.vmatrix.v1` |
 | 時裝期限屬性 | `cosmetic.js` | `useCosmetic.js` | `msucp.char.<id>.cosmetic.v1` |
+| 公會技能 | `guildSkills.js` | `useGuildSkills.js` | `msucp.char.<id>.guildSkills.v1` |
 | 戰鬥記錄 | — | `useBattleRecord.js` | `msucp.char.<id>.battleRecord.v1` |
 
 ## CP 計算 (`CpCalculatorPage.vue`)
@@ -450,6 +459,7 @@ per-character key 格式:`msucp.char.<charId>.<suffix>`
 | `innerPotential.v1` | 內潛 3 排 |
 | `vmatrix.v1` | V 矩陣等級 |
 | `cosmetic.v1` | 時裝期限屬性 attrs |
+| `guildSkills.v1` | 公會技能等級(貴族 4;普通 14 隱藏中) |
 | `linkSkills.applied.v3` | 已連結 link skill |
 | `cpBuffs.v1` / `cpSkills.v1` / `cpTitles.v1` | CP 開關 |
 | `cpCompare.v1` | CP 比較快照 |

@@ -16,6 +16,7 @@ import { useCosmetic, cosmeticAttrContributions } from './useCosmetic.js'
 import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
 import { useBlessingSkills } from './useBlessingSkills.js'
+import { useGuildSkills } from './useGuildSkills.js'
 import { useEvent } from './useEvent.js'
 import { activeSkillContributions } from './useLinkSkills.js'
 import { useCpToggles } from './useCpToggles.js'
@@ -181,6 +182,7 @@ export function useCpDamage() {
   const { statContributions: abilityContribs } = useInnerPotential()
   const { statContributions: vmatrixContribs } = useVMatrix()
   const { blessingAtk } = useBlessingSkills()
+  const { guildLevel, guildPassiveBags } = useGuildSkills()
   const { statContributions: eventContribs } = useEvent()
   const {
     state: petState,
@@ -338,9 +340,12 @@ export function useCpDamage() {
       primary,
       effectiveLevel: 0,
       t,
+      guildLevel,
+      isPctKey: (k) => PCT_KEYS.has(k),
     }
     for (const buff of BUFFS) {
       if (!activeBuffs.value.has(buff.id)) continue
+      if (buff.guild && !guildLevel(buff.id)) continue
       if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
       // 臨時增益開關只作用於 CP 頁(CpCalculatorPage 自有 breakdown)— 戰鬥模擬自有 buff 邏輯,
       //   本 composable 供戰鬥模擬讀取,一律不納入以免重複 / 互相影響
@@ -428,6 +433,15 @@ export function useCpDamage() {
       for (const [k, v] of Object.entries(bag)) {
         if (PCT_KEYS.has(k)) addPct(k, skillLabel, v, cpExc)
         else addFlat(k, skillLabel, v, false, cpExc)
+      }
+    }
+
+    // 公會普通技能(被動)— 填等級即增加數值,不計入戰鬥力(cpExclude)
+    for (const { skill: gs, bag } of guildPassiveBags()) {
+      const gLabel = t('cp.tip.skillPrefix', { name: t(`guildSkills.skills.${gs.id}.name`) })
+      for (const [k, v] of Object.entries(bag)) {
+        if (PCT_KEYS.has(k)) addPct(k, gLabel, v, true)
+        else addFlat(k, gLabel, v, false, true)
       }
     }
 

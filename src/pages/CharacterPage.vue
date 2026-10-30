@@ -11,6 +11,7 @@ import ArcanePanel from '../components/ArcanePanel.vue'
 import PetPanel from '../components/PetPanel.vue'
 import InnerPotentialPanel from '../components/InnerPotentialPanel.vue'
 import BlessingSkillPanel from '../components/BlessingSkillPanel.vue'
+import GuildSkillPanel from '../components/GuildSkillPanel.vue'
 import VMatrixPanel from '../components/VMatrixPanel.vue'
 import HyperSkillPanel from '../components/HyperSkillPanel.vue'
 import EventPanel from '../components/EventPanel.vue'
@@ -201,6 +202,7 @@ const { activeSection } = useCharacterSidebar()
         class="char-page__section"
       >
         <BlessingSkillPanel />
+        <GuildSkillPanel />
         <VMatrixPanel />
         <HyperSkillPanel />
       </div>

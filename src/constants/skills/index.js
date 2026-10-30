@@ -13,6 +13,7 @@
 //   - 所有技能 entry 新增 `advancement` 欄位 (0~6 或 'hyper');既有邏輯若沒讀這個欄位就不會受影響
 
 import { ASSET } from './_shared/helpers.js'
+import { GUILD_NOBLE_BUFFS } from '../guildSkills.js'
 import {
   ALL_JOBS_TOGGLE_SKILLS,
   ALL_JOBS_BUFFS,
@@ -81,6 +82,7 @@ export const COMBINED_BUFFS = [
   ...ADVENTURER_THIEF_BUFFS,
   ...ADVENTURER_BUFFS,
   ...ALL_JOBS_BUFFS,
+  ...GUILD_NOBLE_BUFFS,   // 公會貴族技能(等級 > 0 才顯示)
 ]
 
 // ─── 舊 BATTLE_BUFFS export (constants/battleBuffs.js 消費) ──────────────────
