@@ -183,6 +183,7 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 - 表中找不到的 base 值 → `computeFlameByFormula()` 自動計算
 - `weaponBonusTiersFor(item, statKey)`:具名表 → 等級表 → 公式 → null(自由輸入)
 - CP 基準武器(`JOB_CP_REFERENCE_WEAPON`):法師=wand / nightwalker,nightlord=claw / shadower=dagger
+- **創世武器**(`bonusTiersTable: 'genesis'`)改比**創世模板**:`NAMED_REFERENCE_WEAPON_DATA.genesis`(弓 318 = Genesis Bow 1452266 為通用基準;wand 400 / staff 406 / shining_rod 400 / dagger 318 / claw 172),星火查創世表;`jobCpReferenceWeapon` / `universalBowReference` 第 3 參數傳 `item.bonusTiersTable`
 - `REFERENCE_WEAPON_DATA` 等級檔:150 / 160(AbsoLab;bow=192)/ 200 / **98(unmintable 商店檔:wand=Dimon Wand 69/113;bow 基準=90 ATK,同 key 98 與 100 各一筆,100=White Nisrock 95)** — Lv98 wand 穿戴者經 key 98 對到同檔 1.3 基準弓
 
 ## 套裝 (`itemSets.js`)

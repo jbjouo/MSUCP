@@ -171,6 +171,28 @@ export const REFERENCE_WEAPON_DATA = {
   },
 }
 
+// 具名星火表武器的基準(item.bonusTiersTable 對應)— 創世武器改比創世模板,星火查同一張具名表
+//   genesis:Lv200 創世武器(1452266 Genesis Bow = 跨職業通用基準 318)
+export const NAMED_REFERENCE_WEAPON_DATA = {
+  genesis: {
+    wand:        { atk: 237, matk: 400 },  // Genesis Wand (1372237)
+    staff:       { atk: 251, matk: 406 },  // Genesis Staff (1382274)
+    shining_rod: { atk: 237, matk: 400 },  // Genesis Shining Rod (1212129)
+    bow:         { atk: 318 },             // Genesis Bow (1452266)
+    dagger:      { atk: 318 },             // Genesis Dagger (1332289)
+    claw:        { atk: 172 },             // Genesis Guards (1472275)
+  },
+}
+
+function referenceStats(subType, level, table) {
+  if (table) {
+    const named = NAMED_REFERENCE_WEAPON_DATA[table]?.[subType]
+    if (named) return { stats: named, tierTable: table }
+  }
+  const stats = REFERENCE_WEAPON_DATA[subType]?.[level]
+  return stats ? { stats, tierTable: null } : null
+}
+
 // 職業 → CP 基準武器(subType + 主要 attKey)
 //   attKey 對應 JOB_ATT_META.usesMatk(法師 → matk、其他 → atk)
 export const JOB_CP_REFERENCE_WEAPON = {
@@ -193,30 +215,33 @@ export const JOB_CP_REFERENCE_WEAPON = {
 // 取得某職業在指定等級下的基準武器資料(模板,與實際穿戴無關)
 //   回傳:{ subType, level, attKey, stats, base }
 //   若職業未設定 / 等級未定義 → null(delta = 0 fallback)
-export function jobCpReferenceWeapon(jobKey, level) {
+//   table:穿戴武器的 bonusTiersTable(如 'genesis')→ 優先取具名模板,沒有則退回等級模板
+export function jobCpReferenceWeapon(jobKey, level, table = null) {
   const cfg = JOB_CP_REFERENCE_WEAPON[jobKey]
   if (!cfg) return null
-  const stats = REFERENCE_WEAPON_DATA[cfg.subType]?.[level]
-  if (!stats) return null
-  const base = Number(stats[cfg.attKey]) || 0
+  const ref = referenceStats(cfg.subType, level, table)
+  if (!ref) return null
+  const base = Number(ref.stats[cfg.attKey]) || 0
   if (base <= 0) return null
-  return { subType: cfg.subType, level, attKey: cfg.attKey, stats, base }
+  return { subType: cfg.subType, level, attKey: cfg.attKey, stats: ref.stats, base, tierTable: ref.tierTable }
 }
 
 // 通用 Bow 基準(跨職業 CP 比較的標準尺度)
 //   每個 level 提供 bow 的 base ATK 與 stats(供 computeStarStats)
-export function universalBowReference(level) {
-  const stats = REFERENCE_WEAPON_DATA.bow?.[level]
-  if (!stats) return null
-  const base = Number(stats.atk) || 0
+//   table = 'genesis' → 創世弓 (318)
+export function universalBowReference(level, table = null) {
+  const ref = referenceStats('bow', level, table)
+  if (!ref) return null
+  const base = Number(ref.stats.atk) || 0
   if (base <= 0) return null
-  return { subType: 'bow', level, attKey: 'atk', stats, base }
+  return { subType: 'bow', level, attKey: 'atk', stats: ref.stats, base, tierTable: ref.tierTable }
 }
 
 // 給定基準武器 + tier index → 該 tier 的 bonus ATT 值(用基準 base 查表)
 export function referenceBonusAttAtTier(refWeapon, tierIndex) {
   if (!refWeapon || tierIndex <= 0) return 0
-  const table = WEAPON_BONUS_TIERS_BY_LEVEL[refWeapon.level]
+  const table = (refWeapon.tierTable && NAMED_BONUS_TIERS[refWeapon.tierTable])
+    || WEAPON_BONUS_TIERS_BY_LEVEL[refWeapon.level]
   const tiers = table?.[refWeapon.base]
   return Number(tiers?.[tierIndex - 1]) || 0
 }

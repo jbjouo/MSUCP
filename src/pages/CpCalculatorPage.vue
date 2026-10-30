@@ -365,9 +365,9 @@ function computeWeaponContribsForCp(attKey) {
   const item = entry?.item
   if (!item || item.type !== 'weapon') return null
   if (item.unchainedTiers) return null
-  const canonical = jobCpReferenceWeapon(charState.job, item.level)
+  const canonical = jobCpReferenceWeapon(charState.job, item.level, item.bonusTiersTable)
   if (!canonical) return null
-  const bow = universalBowReference(item.level)
+  const bow = universalBowReference(item.level, item.bonusTiersTable)
   if (!bow) return null
   const stars = entry.stars || 0
   const bonusVal = Number(entry.bonusStats?.[attKey]) || 0
