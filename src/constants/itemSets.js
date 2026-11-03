@@ -117,6 +117,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.pitched_boss.name',
     members: [
       { id: 'face_berserked', name: 'Berserked', type: 'face' },
+      { id: 'badge_genesis_badge', name: 'Genesis Badge', type: 'badge' },
       { id: 'ring_endless_terror', name: 'Endless Terror', type: 'ring' },
       { id: 'earrings_commanding_force_earring', name: 'Commanding Force Earring', type: 'earring' },
       { id: 'pendant_source_of_suffering', name: 'Source of Suffering', type: 'pendant' },
@@ -139,8 +140,9 @@ export const ITEM_SETS = [
       { count: 3, stats: { allStat: 10, hp: 250, atk: 10, matk: 10, def: 250, ignoreDef: 10 } },
       { count: 4, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, critDmg: 5 } },
       { count: 5, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, bossDmg: 10 } },
-      { count: 6, stats: { allStat: 15, hp: 375, atk: 15, matk: 15 } },
+      { count: 6, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, ignoreDef: 10 } },
       { count: 7, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, critDmg: 5 } },
+      { count: 8, stats: { allStat: 15, hp: 375, atk: 15, matk: 15, bossDmg: 10 } },
     ],
   },
   {

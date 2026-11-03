@@ -5844,6 +5844,26 @@
       "defaultBonusPotentialTier": "epic",
       "imageUrl": "/msucp/images/items/1482232.png",
       "filterTag": "genesis"
+    },
+    {
+      "id": "badge_genesis_badge",
+      "apiItemId": 1182285,
+      "name": "Genesis Badge",
+      "nameEn": "Genesis Badge",
+      "type": "badge",
+      "level": 200,
+      "maxStars": 0,
+      "stats": {
+        "atk": 10,
+        "matk": 10,
+        "str": 15,
+        "dex": 15,
+        "int": 15,
+        "luk": 15,
+        "moveSpeed": 10,
+        "jump": 10
+      },
+      "imageUrl": "/msucp/images/items/1182285.png"
     }
   ]
 }
