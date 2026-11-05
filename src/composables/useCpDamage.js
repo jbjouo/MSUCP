@@ -17,6 +17,8 @@ import { useInnerPotential } from './useInnerPotential.js'
 import { useVMatrix } from './useVMatrix.js'
 import { useBlessingSkills } from './useBlessingSkills.js'
 import { useGuildSkills } from './useGuildSkills.js'
+import { useHyperSkills } from './useHyperSkills.js'
+import { HYPER_SKILLS } from '../constants/hyperSkills.js'
 import { useEvent } from './useEvent.js'
 import { activeSkillContributions } from './useLinkSkills.js'
 import { useCpToggles } from './useCpToggles.js'
@@ -183,6 +185,9 @@ export function useCpDamage() {
   const { statContributions: vmatrixContribs } = useVMatrix()
   const { blessingAtk } = useBlessingSkills()
   const { guildLevel, guildPassiveBags } = useGuildSkills()
+  const { isPicked: isHyperPicked, meetsLevel: meetsHyperLevel } = useHyperSkills()
+  // 超技能強化配點(需等級達標)— 供職業被動 / buff 讀取(英雄 Combo / AFA 強化)
+  const hasHyper = (id) => isHyperPicked(id) && meetsHyperLevel(HYPER_SKILLS.find((h) => h.id === id) || {})
   const { statContributions: eventContribs } = useEvent()
   const {
     state: petState,
@@ -342,6 +347,7 @@ export function useCpDamage() {
       t,
       guildLevel,
       isPctKey: (k) => PCT_KEYS.has(k),
+      hasHyper,
     }
     for (const buff of BUFFS) {
       if (!activeBuffs.value.has(buff.id)) continue
@@ -405,6 +411,7 @@ export function useCpDamage() {
       weaponSubType: weaponEntry?.item?.subType || null,
       characterLevel: charState.level,
       skillLevelBonus,
+      hasHyper,
     }
     for (const skill of SKILLS) {
       const role = skill.cp?.role

@@ -6,6 +6,7 @@ export * from './archmage-il/index.js'
 export * from './bishop/index.js'
 export * from './buccaneer/index.js'
 export * from './dark-knight/index.js'
+export * from './hero/index.js'
 export * from './luminous/index.js'
 export * from './night-walker/index.js'
 export * from './shadower/index.js'
@@ -67,6 +68,16 @@ import {
   DARK_KNIGHT_HYPER_SKILLS_ALL,
   DARK_KNIGHT_LINK_SKILLS,
 } from './dark-knight/index.js'
+import {
+  HERO_SKILLS,
+  HERO_SIM_SKILLS,
+  HERO_PASSIVE_SKILLS,
+  HERO_BUFFS,
+  HERO_BATTLE_BUFFS,
+  HERO_VMATRIX_SKILLS,
+  HERO_HYPER_SKILLS_ALL,
+  HERO_LINK_SKILLS,
+} from './hero/index.js'
 
 import {
   LUMINOUS_SKILLS,
@@ -177,6 +188,18 @@ export const JOB_SKILL_REGISTRY = [
     vmatrix: DARK_KNIGHT_VMATRIX_SKILLS,
     hyper: DARK_KNIGHT_HYPER_SKILLS_ALL,
     link: DARK_KNIGHT_LINK_SKILLS,
+  },
+  {
+    jobKey: 'hero',
+    branchKey: 'warrior',
+    all: HERO_SKILLS,
+    sim: HERO_SIM_SKILLS,
+    passive: HERO_PASSIVE_SKILLS,
+    buffs: HERO_BUFFS,
+    battleBuffs: HERO_BATTLE_BUFFS,
+    vmatrix: HERO_VMATRIX_SKILLS,
+    hyper: HERO_HYPER_SKILLS_ALL,
+    link: HERO_LINK_SKILLS,
   },
   {
     jobKey: 'shadower',

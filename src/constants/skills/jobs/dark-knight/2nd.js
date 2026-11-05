@@ -23,7 +23,7 @@ export const DARK_KNIGHT_2ND_SKILLS = [
     advancement: 2,
     kind: 'passive',
     contribute(ctx) {
-      if (ctx.weaponSubType === 'Spear') return { dmgPct: 5 }
+      if (ctx.weaponSubType === 'spear') return { dmgPct: 5 }
       return null
     },
     cp: { role: 'passive' },

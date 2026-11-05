@@ -490,7 +490,10 @@
       "mist_eruption": "Mist Eruption",
       "reflection": "Reflection",
       "apocalypse": "Apocalypse",
-      "ender": "Ender"
+      "ender": "Ender",
+      "hero_advanced_combo": "Advanced Combo Attack",
+      "hero_advanced_final_attack": "Advanced Final Attack",
+      "hero_raging_blow": "Raging Blow"
     },
     "skills": {
       "poison_mist_reinforce": {
@@ -612,6 +615,42 @@
       "ender_range_up": {
         "name": "Ender - Range Up",
         "desc": "Ender 射程 +40"
+      },
+      "hero_combo_reinforce": {
+        "name": "Advanced Combo Attack - Reinforce",
+        "desc": "每顆鬥氣終傷 +2%"
+      },
+      "hero_combo_opportunity": {
+        "name": "Advanced Combo Attack - Opportunity",
+        "desc": "一次獲得 2 顆鬥氣機率 +20%"
+      },
+      "hero_combo_boss_rush": {
+        "name": "Advanced Combo Attack - Boss Rush",
+        "desc": "每顆鬥氣首領傷害 +2%"
+      },
+      "hero_afa_reinforce": {
+        "name": "Advanced Final Attack - Reinforce",
+        "desc": "Advanced Final Attack 傷害 +10%"
+      },
+      "hero_afa_ferocity": {
+        "name": "Advanced Final Attack - Ferocity",
+        "desc": "ATT +20"
+      },
+      "hero_afa_opportunity": {
+        "name": "Advanced Final Attack - Opportunity",
+        "desc": "Advanced Final Attack 發動機率 +15%"
+      },
+      "hero_raging_blow_reinforce": {
+        "name": "Raging Blow - Reinforce",
+        "desc": "Raging Blow 傷害 +20%"
+      },
+      "hero_raging_blow_spread": {
+        "name": "Raging Blow - Spread",
+        "desc": "Raging Blow 最大攻擊數 +2"
+      },
+      "hero_raging_blow_extra_strike": {
+        "name": "Raging Blow - Extra Strike",
+        "desc": "Raging Blow 攻擊次數 +1"
       }
     }
   },

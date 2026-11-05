@@ -370,6 +370,7 @@ export const ITEM_SETS = [
     nameKey: 'itemSet.arcane_umbra_warrior.name',
     members: [
       { id: 'shoes_arcane_umbra_knight_shoes', name: 'Arcane Umbra Knight Shoes', type: 'shoes' },
+      { id: 'wpn_arcane_umbra_two_handed_sword', name: 'Arcane Umbra Two-handed Sword', type: 'weapon' },
       { id: 'wpn_arcane_umbra_polearm', name: 'Arcane Umbra Polearm', type: 'weapon' },
       { id: 'wpn_arcane_umbra_spear', name: 'Arcane Umbra Spear', type: 'weapon' },
       { id: 'shoulder_arcane_umbra_knight_shoulder', name: 'Arcane Umbra Knight Shoulder', type: 'shoulder' },

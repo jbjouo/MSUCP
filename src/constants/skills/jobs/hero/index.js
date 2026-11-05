@@ -1,0 +1,62 @@
+// 英雄 (Hero) — 彙整 barrel
+//
+// 僅收錄影響 CP 的被動 / buff(未列入戰鬥模擬);5 轉暫不收錄
+// hyper 強化配點(HyperSkillPanel)→ CP 以 ctx.hasHyper(id) 讀取
+// 0 轉 / 1 轉無 CP 相關職業專屬項目;Maple Warrior 由 all-jobs 共用層涵蓋
+
+import {
+  HERO_2ND_SKILLS, HERO_2ND_SIM_SKILLS, HERO_2ND_PASSIVE_SKILLS,
+  HERO_2ND_BUFFS, HERO_2ND_BATTLE_BUFFS, HERO_2ND_VMATRIX_SKILLS,
+} from './2nd.js'
+import {
+  HERO_3RD_SKILLS, HERO_3RD_SIM_SKILLS, HERO_3RD_PASSIVE_SKILLS,
+  HERO_3RD_BUFFS, HERO_3RD_BATTLE_BUFFS, HERO_3RD_VMATRIX_SKILLS,
+} from './3rd.js'
+import {
+  HERO_4TH_SKILLS, HERO_4TH_SIM_SKILLS, HERO_4TH_PASSIVE_SKILLS,
+  HERO_4TH_BUFFS, HERO_4TH_BATTLE_BUFFS, HERO_4TH_VMATRIX_SKILLS,
+} from './4th.js'
+import { HERO_HYPER_SKILLS, HERO_HYPER_ACTIVE_SKILLS } from './hyper.js'
+
+export const HERO_SKILLS = [
+  ...HERO_2ND_SKILLS,
+  ...HERO_3RD_SKILLS,
+  ...HERO_4TH_SKILLS,
+  ...HERO_HYPER_SKILLS,
+  ...HERO_HYPER_ACTIVE_SKILLS,
+]
+
+export const HERO_SIM_SKILLS = [
+  ...HERO_2ND_SIM_SKILLS,
+  ...HERO_3RD_SIM_SKILLS,
+  ...HERO_4TH_SIM_SKILLS,
+]
+
+export const HERO_PASSIVE_SKILLS = [
+  ...HERO_2ND_PASSIVE_SKILLS,
+  ...HERO_3RD_PASSIVE_SKILLS,
+  ...HERO_4TH_PASSIVE_SKILLS,
+]
+
+export const HERO_BUFFS = [
+  ...HERO_2ND_BUFFS,
+  ...HERO_3RD_BUFFS,
+  ...HERO_4TH_BUFFS,
+  ...HERO_HYPER_ACTIVE_SKILLS.filter((s) => s.cp?.role === 'buff'),
+]
+
+export const HERO_BATTLE_BUFFS = [
+  ...HERO_2ND_BATTLE_BUFFS,
+  ...HERO_3RD_BATTLE_BUFFS,
+  ...HERO_4TH_BATTLE_BUFFS,
+]
+
+export const HERO_VMATRIX_SKILLS = [
+  ...HERO_2ND_VMATRIX_SKILLS,
+  ...HERO_3RD_VMATRIX_SKILLS,
+  ...HERO_4TH_VMATRIX_SKILLS,
+]
+
+export const HERO_HYPER_SKILLS_ALL = HERO_HYPER_SKILLS
+
+export const HERO_LINK_SKILLS = []

@@ -23,6 +23,8 @@ import { useInnerPotential } from '../composables/useInnerPotential.js'
 import { useVMatrix } from '../composables/useVMatrix.js'
 import { useBlessingSkills } from '../composables/useBlessingSkills.js'
 import { useGuildSkills } from '../composables/useGuildSkills.js'
+import { useHyperSkills } from '../composables/useHyperSkills.js'
+import { HYPER_SKILLS } from '../constants/hyperSkills.js'
 import { useEvent } from '../composables/useEvent.js'
 import { useCpToggles } from '../composables/useCpToggles.js'
 import { charKey } from '../composables/useActiveCharacter.js'
@@ -131,6 +133,9 @@ const { statContributions: abilityContribs } = useInnerPotential()
 const { statContributions: vmatrixContribs, state: vmatrixState } = useVMatrix()
 const { blessingAtk } = useBlessingSkills()
 const { guildLevel, guildPassiveBags } = useGuildSkills()
+const { isPicked: isHyperPicked, meetsLevel: meetsHyperLevel } = useHyperSkills()
+// 超技能強化配點(需等級達標)— 供職業被動 / buff 讀取(英雄 Combo / AFA 強化)
+const hasHyper = (id) => isHyperPicked(id) && meetsHyperLevel(HYPER_SKILLS.find((h) => h.id === id) || {})
 const { statContributions: eventContribs } = useEvent()
 const { statContributions: cosmeticAttrContribs } = useCosmetic()
 const {
@@ -614,6 +619,7 @@ const breakdowns = computed(() => {
     isBuffActive: (id) => activeBuffs.value.has(id),
     guildLevel,
     isPctKey: (k) => PCT_KEYS.has(k),
+    hasHyper,
   }
   for (const buff of BUFFS) {
     if (!activeBuffs.value.has(buff.id)) continue
@@ -683,6 +689,7 @@ const breakdowns = computed(() => {
     weaponSubType: weaponEntry?.item?.subType || null,
     characterLevel: charState.level,
     skillLevelBonus, // Combat Orders 等會影響被動技能等級
+    hasHyper,
   }
   for (const skill of SKILLS) {
     const role = skill.cp?.role

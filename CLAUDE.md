@@ -399,10 +399,11 @@ skills/_shared/
 - `battle.source: 'skillCast'` 的 buff 見下方戰鬥模擬章節
 
 - 每職業註冊到 `jobs/index.js` 的 `JOB_SKILL_REGISTRY`
+- **超技能強化配點 → CP**:`useCpDamage` / `CpCalculatorPage` 的 buff ctx 與被動 skillCtx 都帶 `hasHyper(id)`(已點且等級達標);職業被動 / buff 在 `contribute` 內自行判斷
 - 被動技能只收錄影響 CP 的屬性(排除:熟練度、狀態抗性、屬性抗性、damage taken、攻速、HP/MP)
 - 技能提升其他技能傷害的被動(如 Raging Serpent Assault +100%)暫不收錄,待戰鬥模擬時加入
-- 已建立:archmage-fp / archmage-il(僅 CP 被動 / buff,未列入戰鬥模擬)/ bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項) / dark-knight / wind-archer / luminous
-- 技能資料庫(scripts/skill-db):archmage-fp / arch-mage-i-l(冰雷,角色 CHARd0iv7o4aep1s73dr1hfg,圖示 72 張於 `public/skills/archmage-il/`)/ bishop / shadower / buccaneer / night-walker / hoyoung / dark-knight / wind-archer / luminous
+- 已建立:archmage-fp / archmage-il(僅 CP 被動 / buff,未列入戰鬥模擬)/ hero(僅 CP 被動 / buff;Combo Attack 以鬥氣全滿計,顆數 5+floor(lv/6)、每顆終傷 5+ceil(lv/6)% 由 Advanced Combo 等級決定並吃 CO;hyper 9 強化進配點面板,Reinforce / Boss Rush / AFA Ferocity 經 `ctx.hasHyper(id)` 影響 CP;Epic Adventure / Cry Valhalla 為臨時增益;5 轉未收)/ bishop / shadower / buccaneer / night-walker(含完整 hyper 9 項) / dark-knight / wind-archer / luminous
+- 技能資料庫(scripts/skill-db):archmage-fp / hero(角色 CHARd0jnkpfpq2cs73arc9q0,圖示於 `public/skills/hero/`)/ arch-mage-i-l(冰雷,角色 CHARd0iv7o4aep1s73dr1hfg,圖示 72 張於 `public/skills/archmage-il/`)/ bishop / shadower / buccaneer / night-walker / hoyoung / dark-knight / wind-archer / luminous
 
 ## MSU Open API 工具 (`scripts/`)
 
