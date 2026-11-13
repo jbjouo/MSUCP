@@ -229,7 +229,7 @@ ceil(base × %)  百分比 = [4%, 8%, 12%, 17.6%, 24.2%, 31.944%, 40.9948%]
 | V 矩陣 | `vmatrix.js` | `useVMatrix.js` | `msucp.vmatrix.v1` |
 | 時裝期限屬性 | `cosmetic.js` | `useCosmetic.js` | `msucp.char.<id>.cosmetic.v1` |
 | 公會技能 | `guildSkills.js` | `useGuildSkills.js` | `msucp.char.<id>.guildSkills.v1` |
-| 活動 (Alliance Boost Buff) | `event.js` | `useEvent.js` | `msucp.char.<id>.event.v1`(`{ stage }` 0~5;僅收 ATT / Boss / IED / 全屬 / 爆擊率 / 加持) |
+| 活動 (Alliance Boost Buff) | `event.js` | `useEvent.js` | `msucp.char.<id>.event.v1`(`{ <效果id>: lv }` 各自 0~5;skillId 80003189~98;僅收 ATT / Boss / IED / 全屬 / 爆擊率 / 加持) |
 | 戰鬥記錄 | — | `useBattleRecord.js` | `msucp.char.<id>.battleRecord.v1` |
 
 ## CP 計算 (`CpCalculatorPage.vue`)

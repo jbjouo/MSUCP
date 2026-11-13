@@ -1,55 +1,90 @@
-// 活動 EVENT 子系統 — Alliance Boost Buff 單一階段 0~5
+// 活動 EVENT 子系統 — Alliance Boost Buff 6 個效果各自 0~5 等
 //
-// statContributions 提供 { skill, level, stats } 給 useCpDamage / CpCalculatorPage 收斂
-// (level = 目前階段)。舊版(5 技能各自等級)資料載入時一律歸 0。
+// 與 useHyperStat 同形,但無點數限制 — 每個技能各自升降。
+// statContributions 提供 { skill, level, stats } 給 useCpDamage 收斂。
 
 import { reactive, computed } from 'vue'
-import { EVENT_SKILLS, EVENT_MAX_STAGE, EVENT_STAGE_POINTS } from '../constants/event.js'
+import { EVENT_SKILLS, EVENT_SKILLS_BY_ID } from '../constants/event.js'
 import { charKey } from './useActiveCharacter.js'
 
 const STORAGE_KEY = charKey('event.v1')
 
-function clampStage(v) {
-  return Math.max(0, Math.min(EVENT_MAX_STAGE, Math.floor(Number(v) || 0)))
-}
-
 function load() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
-    return { stage: clampStage(parsed?.stage) }
-  } catch { return { stage: 0 } }
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch { return {} }
 }
 
-const state = reactive(load())
+const initial = Object.fromEntries(EVENT_SKILLS.map((s) => [s.id, 0]))
+const saved = load()
+for (const s of EVENT_SKILLS) {
+  const v = Number(saved[s.id])
+  if (Number.isFinite(v) && v > 0) {
+    initial[s.id] = Math.max(0, Math.min(s.maxLevel, Math.floor(v)))
+  }
+}
+const state = reactive(initial)
 
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ stage: state.stage })) } catch { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch {}
 }
 
 export function useEvent() {
-  function setStage(st) {
-    state.stage = clampStage(st)
+  function getLevel(id) { return state[id] || 0 }
+
+  function canIncrement(id) {
+    const s = EVENT_SKILLS_BY_ID[id]
+    if (!s) return false
+    return (state[id] || 0) < s.maxLevel
+  }
+  function canDecrement(id) { return (state[id] || 0) > 0 }
+
+  function increment(id) {
+    if (!canIncrement(id)) return
+    state[id] = (state[id] || 0) + 1
     persist()
   }
-  function increment() { setStage(state.stage + 1) }
-  function decrement() { setStage(state.stage - 1) }
-  function resetAll() { setStage(0) }
+  function decrement(id) {
+    if (!canDecrement(id)) return
+    state[id] = Math.max(0, (state[id] || 0) - 1)
+    persist()
+  }
+  function setLevel(id, level) {
+    const s = EVENT_SKILLS_BY_ID[id]
+    if (!s) return
+    state[id] = Math.max(0, Math.min(s.maxLevel, Math.floor(Number(level) || 0)))
+    persist()
+  }
+  function resetAll() {
+    for (const s of EVENT_SKILLS) state[s.id] = 0
+    persist()
+  }
 
-  // 一個 entry / 一個效果;階段 0 時無輸出
+  // 一個 entry / 一個技能;空等級的技能不出現在輸出
   const statContributions = computed(() => {
-    const st = state.stage
-    if (!st) return []
-    return EVENT_SKILLS.map((s) => ({ skill: s, level: st, stats: s.valueAt(st) || {} }))
+    const out = []
+    for (const s of EVENT_SKILLS) {
+      const lv = state[s.id] || 0
+      if (!lv) continue
+      const bag = s.valueAt(lv) || {}
+      if (!Object.keys(bag).length) continue
+      out.push({ skill: s, level: lv, stats: bag })
+    }
+    return out
   })
 
   return {
     state,
     EVENT_SKILLS,
-    EVENT_MAX_STAGE,
-    EVENT_STAGE_POINTS,
-    setStage,
+    getLevel,
+    canIncrement,
+    canDecrement,
     increment,
     decrement,
+    setLevel,
     resetAll,
     statContributions,
   }

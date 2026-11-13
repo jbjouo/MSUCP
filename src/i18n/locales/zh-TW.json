@@ -822,10 +822,8 @@
     }
   },
   "event": {
-    "title": "EVENT · 聯盟加成 Buff",
+    "title": "EVENT · Alliance Boost Buff",
     "reset": "重設",
-    "stage": "階段",
-    "points": "需 {n} Boost 點",
     "skills": {
       "att": "ATT / MATT",
       "bossDmg": "首領傷害",
@@ -1601,7 +1599,7 @@
       "legionPrefix": "聯盟:{name} 階 {tier}",
       "puzzlePrefix": "拼圖:{name} Lv.{lv}",
       "hyperPrefix": "極限屬性:{name} Lv.{lv}",
-      "eventPrefix": "活動:{name}(階段 {lv})",
+      "eventPrefix": "活動:{name} Lv.{lv}",
       "setPrefix": "套裝:{name}",
       "equipSkillPrefix": "裝備技能:{name}",
       "arcanePrefix": "秘法:{name} Lv.{lv}",

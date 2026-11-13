@@ -1,6 +1,6 @@
 // 活動 EVENT 加成 — Alliance Boost Buff(新版)
 //
-// 單一階段 0~5(依 Boost Points 解鎖),每階所有效果一起提升。
+// 每個效果為獨立技能(skillId 80003189~80003198),各自配點 0~5 級。
 // 只收錄 CP / 傷害計算需要的效果 + Buff Duration;不收:Max HP/MP、Normal Enemy Damage、
 //   Arcane Power、Bonus EXP
 //
@@ -10,41 +10,49 @@
 //
 // id          — 唯一 id
 // labelKey    — i18n 鍵
-// valueAt(st) — 階段 st 的 stat bag
+// maxLevel    — 5
+// valueAt(lv) — 等級 lv 的 stat bag
 
-export const EVENT_MAX_STAGE = 5
-
-// 各階段所需 Boost Points(僅顯示用)
-export const EVENT_STAGE_POINTS = [0, 4, 6, 15, 30, 50]
+export const EVENT_MAX_LEVEL = 5
 
 export const EVENT_SKILLS = [
   {
     id: 'att',
     labelKey: 'event.skills.att',
-    valueAt: (st) => ({ atk: 5 * st, matk: 5 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ atk: 5 * lv, matk: 5 * lv }),
   },
   {
     id: 'bossDmg',
     labelKey: 'event.skills.bossDmg',
-    valueAt: (st) => ({ bossDmg: 5 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ bossDmg: 5 * lv }),
   },
   {
     id: 'ignoreDef',
     labelKey: 'event.skills.ignoreDef',
-    valueAt: (st) => ({ ignoreDef: 5 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ ignoreDef: 5 * lv }),
   },
   {
     id: 'allStat',
     labelKey: 'event.skills.allStat',
-    valueAt: (st) => ({ str: 10 * st, dex: 10 * st, int: 10 * st, luk: 10 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ str: 10 * lv, dex: 10 * lv, int: 10 * lv, luk: 10 * lv }),
   },
   {
     id: 'critRate',
     labelKey: 'event.skills.critRate',
-    valueAt: (st) => ({ critRate: 5 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ critRate: 5 * lv }),
   },  {
     id: 'buffDuration',
     labelKey: 'event.skills.buffDuration',
-    valueAt: (st) => ({ buffDuration: 5 * st }),
+    maxLevel: EVENT_MAX_LEVEL,
+    valueAt: (lv) => ({ buffDuration: 5 * lv }),
   },
 ]
+
+export const EVENT_SKILLS_BY_ID = Object.fromEntries(
+  EVENT_SKILLS.map((s) => [s.id, s]),
+)
