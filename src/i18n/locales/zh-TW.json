@@ -822,14 +822,17 @@
     }
   },
   "event": {
-    "title": "EVENT",
+    "title": "EVENT · 聯盟加成 Buff",
     "reset": "重設",
+    "stage": "階段",
+    "points": "需 {n} Boost 點",
     "skills": {
-      "normalMobDmg": "一般怪物傷害",
-      "ignoreDef": "無視防禦",
       "att": "ATT / MATT",
+      "bossDmg": "首領傷害",
+      "ignoreDef": "無視防禦",
       "allStat": "全屬性",
-      "bonusExp": "額外經驗值"
+      "critRate": "爆擊率",
+      "buffDuration": "加持時間"
     }
   },
   "puzzle": {
@@ -1598,7 +1601,7 @@
       "legionPrefix": "聯盟:{name} 階 {tier}",
       "puzzlePrefix": "拼圖:{name} Lv.{lv}",
       "hyperPrefix": "極限屬性:{name} Lv.{lv}",
-      "eventPrefix": "活動:{name} Lv.{lv}",
+      "eventPrefix": "活動:{name}(階段 {lv})",
       "setPrefix": "套裝:{name}",
       "equipSkillPrefix": "裝備技能:{name}",
       "arcanePrefix": "秘法:{name} Lv.{lv}",

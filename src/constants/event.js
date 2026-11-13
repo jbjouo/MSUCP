@@ -1,59 +1,50 @@
-// 活動 EVENT 加成
+// 活動 EVENT 加成 — Alliance Boost Buff(新版)
 //
-// 5 個獨立技能,各 0-10 等。每等的數值由 valueAt(lv) 直接回傳
-// 最終 stat bag。CP 計算與戰鬥模擬都會吃這些值。
+// 單一階段 0~5(依 Boost Points 解鎖),每階所有效果一起提升。
+// 只收錄 CP / 傷害計算需要的效果 + Buff Duration;不收:Max HP/MP、Normal Enemy Damage、
+//   Arcane Power、Bonus EXP
 //
 // 設計慣例:
-//   - 每個技能 emit 一筆 contribution(避免 ignoreDef 被 combineIgnorePct
-//     誤拆,讓「同技能相加」成立)
+//   - 每個效果 emit 一筆 contribution(ignoreDef 單一來源,不被 combineIgnorePct 誤拆)
 //   - allStat 直接展開為 str/dex/int/luk 4 鍵,走一般非 fixed 路徑(吃 %)
-//   - 全部數值非 fixed(可吃 %)
 //
 // id          — 唯一 id
 // labelKey    — i18n 鍵
-// maxLevel    — 10
-// valueAt(lv) — { statKey: value, ... }
+// valueAt(st) — 階段 st 的 stat bag
 
-export const EVENT_MAX_LEVEL = 10
+export const EVENT_MAX_STAGE = 5
+
+// 各階段所需 Boost Points(僅顯示用)
+export const EVENT_STAGE_POINTS = [0, 4, 6, 15, 30, 50]
 
 export const EVENT_SKILLS = [
   {
-    id: 'normalMobDmg',
-    labelKey: 'event.skills.normalMobDmg',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ normalMobDmg: lv }),
+    id: 'att',
+    labelKey: 'event.skills.att',
+    valueAt: (st) => ({ atk: 5 * st, matk: 5 * st }),
+  },
+  {
+    id: 'bossDmg',
+    labelKey: 'event.skills.bossDmg',
+    valueAt: (st) => ({ bossDmg: 5 * st }),
   },
   {
     id: 'ignoreDef',
     labelKey: 'event.skills.ignoreDef',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ ignoreDef: lv }),
-  },
-  {
-    id: 'att',
-    labelKey: 'event.skills.att',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ atk: lv, matk: lv }),
+    valueAt: (st) => ({ ignoreDef: 5 * st }),
   },
   {
     id: 'allStat',
     labelKey: 'event.skills.allStat',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({
-      str: lv * 2,
-      dex: lv * 2,
-      int: lv * 2,
-      luk: lv * 2,
-    }),
+    valueAt: (st) => ({ str: 10 * st, dex: 10 * st, int: 10 * st, luk: 10 * st }),
   },
   {
-    id: 'bonusExp',
-    labelKey: 'event.skills.bonusExp',
-    maxLevel: EVENT_MAX_LEVEL,
-    valueAt: (lv) => ({ bonusExp: lv }),
+    id: 'critRate',
+    labelKey: 'event.skills.critRate',
+    valueAt: (st) => ({ critRate: 5 * st }),
+  },  {
+    id: 'buffDuration',
+    labelKey: 'event.skills.buffDuration',
+    valueAt: (st) => ({ buffDuration: 5 * st }),
   },
 ]
-
-export const EVENT_SKILLS_BY_ID = Object.fromEntries(
-  EVENT_SKILLS.map((s) => [s.id, s]),
-)

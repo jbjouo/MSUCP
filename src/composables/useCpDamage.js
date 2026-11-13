@@ -352,6 +352,7 @@ export function useCpDamage() {
     for (const buff of BUFFS) {
       if (!activeBuffs.value.has(buff.id)) continue
       if (buff.guild && !guildLevel(buff.id)) continue
+      if (buff.hidden) continue
       if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
       // 臨時增益開關只作用於 CP 頁(CpCalculatorPage 自有 breakdown)— 戰鬥模擬自有 buff 邏輯,
       //   本 composable 供戰鬥模擬讀取,一律不納入以免重複 / 互相影響

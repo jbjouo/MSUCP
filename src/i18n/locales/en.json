@@ -822,14 +822,17 @@
     }
   },
   "event": {
-    "title": "EVENT",
+    "title": "EVENT · Alliance Boost Buff",
     "reset": "Reset",
+    "stage": "Stage",
+    "points": "{n} Boost Points",
     "skills": {
-      "normalMobDmg": "Normal Enemy Damage",
-      "ignoreDef": "Ignore Defense",
       "att": "ATT / MATT",
+      "bossDmg": "Boss Damage",
+      "ignoreDef": "Ignore Defense",
       "allStat": "All Stats",
-      "bonusExp": "Bonus EXP"
+      "critRate": "Critical Rate",
+      "buffDuration": "Buff Duration"
     }
   },
   "puzzle": {
@@ -1598,7 +1601,7 @@
       "legionPrefix": "Legion: {name} Tier {tier}",
       "puzzlePrefix": "Puzzle: {name} Lv.{lv}",
       "hyperPrefix": "Hyper: {name} Lv.{lv}",
-      "eventPrefix": "Event: {name} Lv.{lv}",
+      "eventPrefix": "Event: {name} (Stage {lv})",
       "setPrefix": "Set: {name}",
       "equipSkillPrefix": "Equip Skill: {name}",
       "arcanePrefix": "Arcane: {name} Lv.{lv}",

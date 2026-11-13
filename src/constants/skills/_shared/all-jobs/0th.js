@@ -72,6 +72,7 @@ export const ALL_JOBS_0TH_SKILLS = [
       buffDuration: 25,
     },
     cp: { role: 'buff', group: 'event_buff' },
+    hidden: true,  // 活動已結束 — 增益欄隱藏且不生效(保留定義)
   },
   {
     id: 'golden_radiance',
@@ -91,6 +92,7 @@ export const ALL_JOBS_0TH_SKILLS = [
       buffDuration: 25,
     },
     cp: { role: 'buff', group: 'event_buff' },
+    hidden: true,  // 活動已結束 — 增益欄隱藏且不生效(保留定義)
   },
   // ── Hero's Echo ──────────────────────────────────────────────────────────
   // 可施放 buff 技能(Max Lv 1,Lv1 +4% ATT/MATK, 2400s, cooldown 300s)。

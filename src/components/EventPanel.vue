@@ -6,33 +6,21 @@ const { t } = useI18n()
 const {
   state,
   EVENT_SKILLS,
-  canIncrement,
-  canDecrement,
+  EVENT_MAX_STAGE,
+  EVENT_STAGE_POINTS,
   increment,
   decrement,
   resetAll,
 } = useEvent()
 
-const PCT_KEYS_EVENT = new Set(['normalMobDmg', 'ignoreDef', 'bonusExp'])
+const PCT_KEYS_EVENT = new Set(['bossDmg', 'ignoreDef', 'critRate', 'buffDuration'])
 
 function currentValueText(skill) {
-  const lv = state[skill.id] || 0
-  if (!lv) return '0'
-  const bag = skill.valueAt(lv) || {}
-  const entries = Object.entries(bag)
-  if (!entries.length) return '0'
-  const isStatGroup = entries.length === 4 &&
-    entries.every(([k]) => ['str', 'dex', 'int', 'luk'].includes(k))
-  if (isStatGroup) {
-    const v = entries[0][1]
-    return `+${v}`
-  }
-  const vals = entries.map(([k, v]) => {
-    const isPct = PCT_KEYS_EVENT.has(k)
-    const sign = v > 0 ? '+' : ''
-    return `${sign}${v}${isPct ? '%' : ''}`
-  })
-  return vals.every((x) => x === vals[0]) ? vals[0] : vals.join(' / ')
+  const st = state.stage
+  if (!st) return '0'
+  const [k, v] = Object.entries(skill.valueAt(st) || {})[0] || []
+  if (k === undefined) return '0'
+  return `+${v}${PCT_KEYS_EVENT.has(k) ? '%' : ''}`
 }
 </script>
 
@@ -46,33 +34,39 @@ function currentValueText(skill) {
     </header>
 
     <div class="ev-panel__body">
+      <div class="ev-row ev-row--stage">
+        <span class="ev-row__name">{{ t('event.stage') }}</span>
+        <span class="ev-row__value" :class="{ 'ev-row__value--zero': !state.stage }">
+          {{ t('event.points', { n: EVENT_STAGE_POINTS[state.stage] }) }}
+        </span>
+        <span class="ev-row__controls">
+          <button
+            class="ev-btn"
+            type="button"
+            :disabled="state.stage <= 0"
+            @click="decrement"
+          >−</button>
+          <button
+            class="ev-btn ev-btn--plus"
+            type="button"
+            :disabled="state.stage >= EVENT_MAX_STAGE"
+            @click="increment"
+          >＋</button>
+        </span>
+        <span class="ev-row__lv">
+          Stage
+          <span class="ev-row__num">{{ state.stage }}</span>
+          <span class="ev-row__cap">/ {{ EVENT_MAX_STAGE }}</span>
+        </span>
+      </div>
       <div
         v-for="skill in EVENT_SKILLS"
         :key="skill.id"
         class="ev-row"
       >
         <span class="ev-row__name">{{ t(skill.labelKey) }}</span>
-        <span class="ev-row__value" :class="{ 'ev-row__value--zero': !(state[skill.id] || 0) }">
+        <span class="ev-row__value" :class="{ 'ev-row__value--zero': !state.stage }">
           {{ currentValueText(skill) }}
-        </span>
-        <span class="ev-row__controls">
-          <button
-            class="ev-btn"
-            type="button"
-            :disabled="!canDecrement(skill.id)"
-            @click="decrement(skill.id)"
-          >−</button>
-          <button
-            class="ev-btn ev-btn--plus"
-            type="button"
-            :disabled="!canIncrement(skill.id)"
-            @click="increment(skill.id)"
-          >＋</button>
-        </span>
-        <span class="ev-row__lv">
-          Lv.
-          <span class="ev-row__num">{{ state[skill.id] || 0 }}</span>
-          <span class="ev-row__cap">/ {{ skill.maxLevel }}</span>
         </span>
       </div>
     </div>
@@ -150,6 +144,11 @@ function currentValueText(skill) {
   min-width: 0;
 }
 .ev-row:hover { background: rgba(255, 255, 255, 0.04); }
+.ev-row--stage {
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 .ev-row__name {
   color: #e8edf2;
   overflow: hidden;

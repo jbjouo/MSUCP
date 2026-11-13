@@ -288,7 +288,7 @@ const toggleableSkills = computed(() => {
 // BUFF 側欄只顯示符合當前職業的 buff（排除臨時 buff）
 const visibleBuffs = computed(() => {
   const jobKey = currentJob.value?.key || null
-  const list = BUFFS.filter((b) => !b._temporary && !b.guild && (!b.jobs || b.jobs.includes(jobKey)))
+  const list = BUFFS.filter((b) => !b._temporary && !b.guild && !b.hidden && (!b.jobs || b.jobs.includes(jobKey)))
   // 公會貴族技能:等級 > 0 才顯示,排在 Combat Orders 之後
   const guild = BUFFS.filter((b) => b.guild && guildLevel(b.id) > 0)
   const coIdx = list.findIndex((b) => b.id === 'combat_orders')
@@ -624,6 +624,7 @@ const breakdowns = computed(() => {
   for (const buff of BUFFS) {
     if (!activeBuffs.value.has(buff.id)) continue
     if (buff.guild && !guildLevel(buff.id)) continue
+    if (buff.hidden) continue
     if (buff.jobs && !buff.jobs.includes(currentJob.value?.key)) continue
     const cpExc = !CP_SKILL_ALLOWLIST.has(buff.id)
     const buffLabel = t('cp.tip.buffPrefix', { name: displayName(buff) })
