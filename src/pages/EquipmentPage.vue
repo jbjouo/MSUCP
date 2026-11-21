@@ -52,8 +52,12 @@ function onSlotClick(slot) {
 }
 
 function onEntryClick(entry) {
-  const ok = equipEntry(entry.uid, selectedSlot.value?.key || null)
-  if (ok) selectedSlot.value = null
+  // 未指定槽 → 穿到 tooltip 當前比較對象 (中鍵切換結果)
+  const ok = equipEntry(entry.uid, selectedSlot.value?.key || null, compareStep.value)
+  if (ok) {
+    selectedSlot.value = null
+    compareStep.value = 0
+  }
 }
 
 function onEntryEdit(entry) {

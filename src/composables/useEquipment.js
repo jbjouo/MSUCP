@@ -268,13 +268,14 @@ function resolveEntry(uid) {
   }
 }
 
-function resolveTargetSlot(item, preferredSlotKey = null) {
+// 穿戴 / CP 比較共用的候選槽順序 (同遊戲):
+// 1. 技能戒指:同種 (active/passive) 已穿戴 → 只能替換那一槽
+// 2. 有空槽 → 最下面的空槽優先 (多個空槽只取一個代表,由下而上填)
+// 3. 其後為已裝備的槽,由下而上 (中鍵往上切換)
+function candidateSlots(item) {
+  if (!item) return []
   const slots = slotsAcceptingType(item.type, item)
-  if (slots.length === 0) return null
-  if (preferredSlotKey) {
-    const preferred = slots.find((s) => s.key === preferredSlotKey)
-    if (preferred) return preferred
-  }
+  if (slots.length === 0) return []
   if (item.skillRing) {
     const sameTypeSlot = slots.find((s) => {
       const uid = state.equipped[s.key]
@@ -282,10 +283,24 @@ function resolveTargetSlot(item, preferredSlotKey = null) {
       const e = state.entries[uid]
       return e && getItem(e.itemId)?.skillRing === item.skillRing
     })
-    if (sameTypeSlot) return sameTypeSlot
+    if (sameTypeSlot) return [sameTypeSlot]
   }
-  const empty = slots.find((s) => !state.equipped[s.key])
-  return empty || slots[0]
+  // 由下而上:row 大者在前;同 row 以定義順序反向 (右 → 左)
+  const bottomUp = [...slots].reverse().sort((a, b) => b.row - a.row)
+  const empty = bottomUp.find((s) => !state.equipped[s.key])
+  const occupied = bottomUp.filter((s) => state.equipped[s.key])
+  return empty ? [empty, ...occupied] : occupied
+}
+
+// step = 中鍵切換次數 (與 tooltip 比較對象一致)
+function resolveTargetSlot(item, preferredSlotKey = null, step = 0) {
+  if (preferredSlotKey) {
+    const preferred = slotsAcceptingType(item.type, item).find((s) => s.key === preferredSlotKey)
+    if (preferred) return preferred
+  }
+  const candidates = candidateSlots(item)
+  if (!candidates.length) return null
+  return candidates[step % candidates.length]
 }
 
 function getEquippedSkillRings() {
@@ -310,10 +325,10 @@ function canEquipSkillRing(item, targetSlotKey) {
   return equipped[item.skillRing].length === 0
 }
 
-function equipEntry(uid, targetSlotKey = null) {
+function equipEntry(uid, targetSlotKey = null, compareStep = 0) {
   const entry = resolveEntry(uid)
   if (!entry) return false
-  const slot = resolveTargetSlot(entry.item, targetSlotKey)
+  const slot = resolveTargetSlot(entry.item, targetSlotKey, compareStep)
   if (!slot) return false
   if (!canEquipSkillRing(entry.item, slot.key)) return false
   // 目標槽有裝備 → 退回背包
@@ -544,6 +559,7 @@ export function useEquipment() {
     CATALOG,
     getItem,
     resolveEntry,
+    candidateSlots,
     resolveTargetSlot,
     equipEntry,
     unequipSlot,

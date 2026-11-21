@@ -6,9 +6,8 @@ import { setsForItem, countActiveSet, determineActiveLuckyItem, getMemberDisplay
 import { ITEMS_BY_ID, useEquipment } from '../composables/useEquipment.js'
 import { useCpDamage } from '../composables/useCpDamage.js'
 import { computeStarStats } from '../constants/starForce.js'
-import { slotsAcceptingType } from '../constants/equipmentSlots.js'
 
-const { state: equipState, resolveEntry } = useEquipment()
+const { state: equipState, resolveEntry, candidateSlots } = useEquipment()
 const { combatPower, combatPowerForEntries } = useCpDamage()
 // 當前穿在身上的 item id 集合 (供套裝面板判斷點亮狀態用)
 const equippedIds = computed(() => {
@@ -186,7 +185,7 @@ const imgUrl = computed(() => item.value?.imageUrl || item.value?.icon || null)
 // ── CP 差值 (hover 試算) ─────────────────────────────────────────────
 // 把 hover entry 套進「目標槽」後重算 CP,顯示與當前 CP 的差。
 // - 已穿在身上的 entry → 目標 = 自己當前的槽 → delta = 0(不顯示)
-// - 背包 / 圖鑑 hover → 用 resolveTargetSlot 找預設目標(空槽優先,否則第一個可接受的槽)
+// - 背包 / 圖鑑 hover → 依 candidateSlots 順序 + 中鍵切換次數決定目標槽
 // - 圖鑑 hover 沒有 uid / starStats,合成空白 entry
 function normalizeForCp(raw) {
   if (!raw?.item) return null
@@ -208,19 +207,8 @@ function findEquippedSlotForUid(uid) {
   return null
 }
 
-// 比較對象候選:
-// 1. 有空槽 → 優先放第一位 (加裝 = 完整 CP 加成);多個空槽 CP 相同,只取最下面一個代表
-// 2. 其後為同類型「已裝備」的槽,由下而上 (遊戲內預設比最下面那件,中鍵往上切)
-const compareTargets = computed(() => {
-  const it = item.value
-  if (!it) return []
-  const slots = slotsAcceptingType(it.type, it)
-  if (!slots.length) return []
-  const bottomUp = [...slots].reverse().sort((a, b) => b.row - a.row)
-  const empty = bottomUp.find((s) => !equipState.equipped[s.key])
-  const occupied = bottomUp.filter((s) => equipState.equipped[s.key])
-  return empty ? [empty, ...occupied] : occupied
-})
+// 比較對象候選 — 與實際穿戴共用 candidateSlots (useEquipment),中鍵切換後點擊即穿到該槽
+const compareTargets = computed(() => candidateSlots(item.value))
 const compareIndex = computed(() => {
   const n = compareTargets.value.length
   return n ? props.compareStep % n : 0

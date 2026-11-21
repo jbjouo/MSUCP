@@ -7,25 +7,26 @@ export const EQUIP_GRID_ROWS = 6
 // 特殊彈藥欄位 — 僅特定職業顯示 (star=飛鏢 / arrow=箭矢 / bullet=子彈)
 export const PROJECTILE_TYPES = ['star', 'arrow', 'bullet']
 
+// 戒指 / 項鍊編號由下而上 (最下面 = 1),與穿戴 / CP 比較順序一致
 export const EQUIP_SLOTS = [
   // Row 1
-  { key: 'ring1',     row: 1, col: 1, accepts: ['ring'] },
+  { key: 'ring4',     row: 1, col: 1, accepts: ['ring'] },
   { key: 'skillRing', row: 1, col: 2, accepts: ['ring'], skillRingOnly: true },
   { key: 'hat',       row: 1, col: 3, accepts: ['hat'] },
   { key: 'emblem',    row: 1, col: 5, accepts: ['emblem'] },
   // Row 2
-  { key: 'ring2',     row: 2, col: 1, accepts: ['ring'] },
-  { key: 'pendant1',  row: 2, col: 2, accepts: ['pendant'] },
+  { key: 'ring3',     row: 2, col: 1, accepts: ['ring'] },
+  { key: 'pendant2',  row: 2, col: 2, accepts: ['pendant'] },
   { key: 'face',      row: 2, col: 3, accepts: ['face'] },
   { key: 'badge',     row: 2, col: 5, accepts: ['badge'] },
   // Row 3
-  { key: 'ring3',     row: 3, col: 1, accepts: ['ring'] },
-  { key: 'pendant2',  row: 3, col: 2, accepts: ['pendant'] },
+  { key: 'ring2',     row: 3, col: 1, accepts: ['ring'] },
+  { key: 'pendant1',  row: 3, col: 2, accepts: ['pendant'] },
   { key: 'eye',       row: 3, col: 3, accepts: ['eye'] },
   { key: 'earring',   row: 3, col: 4, accepts: ['earring'] },
   { key: 'medal',     row: 3, col: 5, accepts: ['medal'] },
   // Row 4
-  { key: 'ring4',     row: 4, col: 1, accepts: ['ring'] },
+  { key: 'ring1',     row: 4, col: 1, accepts: ['ring'] },
   { key: 'weapon',    row: 4, col: 2, accepts: ['weapon'] },
   { key: 'top',       row: 4, col: 3, accepts: ['top', 'overall'] },
   { key: 'shoulder',  row: 4, col: 4, accepts: ['shoulder'] },

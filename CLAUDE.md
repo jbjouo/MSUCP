@@ -81,7 +81,7 @@
 }
 ```
 
-- `skillRing` slot 位於 Row 1 Col 2（ring1 和 hat 之間），`skillRingOnly: true`
+- `skillRing` slot 位於 Row 1 Col 2（ring4 和 hat 之間），`skillRingOnly: true`
 - 一個角色最多 1 active + 1 passive 技能戒指
 - `skillLevel` 存在 entry，編輯器有等級選擇 tab
 - CP 面板：常駐效果顯示在技能欄，臨時效果顯示在「臨時增益」欄
@@ -113,6 +113,7 @@
 - 5 × 6 grid,`projectile` slot (`conditional: true`) 位於 Row 6 Col 2(腰帶下方)
 - 僅當前職業有 `projectile` 屬性時顯示,label 依 type 動態切換(飛鏢/箭矢/子彈)
 - `PROJECTILE_TYPES = ['star', 'arrow', 'bullet']`
+- 多槽部位(戒指/項鍊)目標槽:`candidateSlots(item)`(useEquipment)為穿戴與 tooltip CP 比較**共用**順序 — 同種技能戒指已穿 → 只能換該槽;否則最下面的空槽優先,其後已裝備槽由下而上(**編號也由下而上:ring1 / pendant1 在最下面**);滑鼠中鍵切換(`compareStep`,重新 hover 歸零),未選槽時點擊即穿到當前比較對象
 
 ### Entry (`useEquipment.js`)
 
