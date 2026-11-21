@@ -1038,7 +1038,8 @@
       "speedUnit": "Level",
       "cpDelta": "Combat Power Δ",
       "compareTarget": "vs. {slot} · {name} ({pos})",
-      "compareHint": "Middle-click to switch comparison"
+      "compareHint": "Middle-click to switch comparison",
+      "compareEmpty": "Empty"
     },
     "selectedHint": "Selected {slot}. Click an inventory item to equip. Click the slot again to cancel or unequip."
   },

@@ -1038,7 +1038,8 @@
       "speedUnit": "Level",
       "cpDelta": "Combat Power 增加量",
       "compareTarget": "比較:{slot} · {name}({pos})",
-      "compareHint": "滑鼠中鍵切換比較對象"
+      "compareHint": "滑鼠中鍵切換比較對象",
+      "compareEmpty": "空欄位"
     },
     "selectedHint": "已選擇 {slot} 槽位,點背包物品以裝備。再次點該槽可取消或卸下。"
   },

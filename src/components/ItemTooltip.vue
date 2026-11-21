@@ -208,18 +208,18 @@ function findEquippedSlotForUid(uid) {
   return null
 }
 
-// 比較對象候選:同類型「已裝備」的槽,由下而上排序 (遊戲內預設比最下面那件,中鍵往上切)。
-// 沒有同類型已裝備時(全空)退回第一個可接受的槽 → 顯示「加裝」的全 CP 加成。
+// 比較對象候選:
+// 1. 有空槽 → 優先放第一位 (加裝 = 完整 CP 加成);多個空槽 CP 相同,只取最下面一個代表
+// 2. 其後為同類型「已裝備」的槽,由下而上 (遊戲內預設比最下面那件,中鍵往上切)
 const compareTargets = computed(() => {
   const it = item.value
   if (!it) return []
   const slots = slotsAcceptingType(it.type, it)
   if (!slots.length) return []
-  const occupied = slots
-    .filter((s) => equipState.equipped[s.key])
-    .reverse()
-    .sort((a, b) => b.row - a.row)
-  return occupied.length ? occupied : [slots[0]]
+  const bottomUp = [...slots].reverse().sort((a, b) => b.row - a.row)
+  const empty = bottomUp.find((s) => !equipState.equipped[s.key])
+  const occupied = bottomUp.filter((s) => equipState.equipped[s.key])
+  return empty ? [empty, ...occupied] : occupied
 })
 const compareIndex = computed(() => {
   const n = compareTargets.value.length
@@ -230,7 +230,7 @@ const compareLabel = computed(() => {
   const slot = compareSlot.value
   if (!slot || compareTargets.value.length < 2) return null
   const e = resolveEntry(equipState.equipped[slot.key])
-  const name = e?.displayName || e?.item?.name || ''
+  const name = e ? (e.displayName || e.item?.name || '') : t('equipment.tip.compareEmpty')
   return {
     slot: t(`equipment.slots.${slot.key}`),
     name,
