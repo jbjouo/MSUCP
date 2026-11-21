@@ -1036,7 +1036,9 @@
       "potential": "Potential",
       "bonusPotential": "Bonus Potential",
       "speedUnit": "Level",
-      "cpDelta": "Combat Power Δ"
+      "cpDelta": "Combat Power Δ",
+      "compareTarget": "vs. {slot} · {name} ({pos})",
+      "compareHint": "Middle-click to switch comparison"
     },
     "selectedHint": "Selected {slot}. Click an inventory item to equip. Click the slot again to cancel or unequip."
   },

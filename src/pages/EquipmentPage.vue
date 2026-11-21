@@ -79,11 +79,24 @@ function onTouchStart(e) {
 
 function setHoverEntry(entry) {
   hoveredEntry.value = entry
+  compareStep.value = 0
 }
 // catalog picker 只有 item,包成 { item } 給 tooltip 使用
 function setHoverItem(item) {
   hoveredEntry.value = item ? { item, stars: 0 } : null
+  compareStep.value = 0
 }
+
+// CP 比較對象切換 (同遊戲:滑鼠中鍵)。多槽部位 (戒指/項鍊) 由下而上循環;
+// 每次重新 hover 開啟 tooltip 時重置回最下面那件。
+const compareStep = ref(0)
+function onCompareMouseDown(e) {
+  if (e.button !== 1 || !hoveredEntry.value) return
+  e.preventDefault() // 擋掉瀏覽器中鍵自動捲動
+  compareStep.value += 1
+}
+onMounted(() => window.addEventListener('mousedown', onCompareMouseDown))
+onUnmounted(() => window.removeEventListener('mousedown', onCompareMouseDown))
 
 function triggerImport() {
   importFileInput.value?.click()
@@ -209,7 +222,7 @@ onUnmounted(() => {
 
     <!-- 浮動 tooltip (teleport 到 body 避免被裁切) -->
     <Teleport to="body">
-      <ItemTooltip :entry="hoveredEntry" :x="mouse.x" :y="mouse.y" />
+      <ItemTooltip :entry="hoveredEntry" :x="mouse.x" :y="mouse.y" :compare-step="compareStep" />
     </Teleport>
 
     <CatalogPicker

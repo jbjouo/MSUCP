@@ -53,6 +53,8 @@ const props = defineProps({
   entry: { type: Object, default: null },
   x: { type: Number, default: 0 },
   y: { type: Number, default: 0 },
+  // 中鍵切換次數 (EquipmentPage 管理,重新 hover 時歸零) → 決定多槽部位的比較對象
+  compareStep: { type: Number, default: 0 },
 })
 
 const { t } = useI18n()
@@ -206,15 +208,35 @@ function findEquippedSlotForUid(uid) {
   return null
 }
 
-// 目標槽選擇:優先選擇「已裝備同類型」的槽 → 才能做替換比較。
-// 沒有同類型已裝備時(全空)才退回第一個可接受的槽 → 顯示「加裝」的全 CP 加成。
-// 多槽類型(戒指/項鍊):有 1 個已裝備就會比那個;全裝滿就比 slot[0]。
-function pickCompareSlot(item) {
-  const slots = slotsAcceptingType(item.type, item)
-  if (!slots.length) return null
-  const occupied = slots.find((s) => equipState.equipped[s.key])
-  return occupied || slots[0]
-}
+// 比較對象候選:同類型「已裝備」的槽,由下而上排序 (遊戲內預設比最下面那件,中鍵往上切)。
+// 沒有同類型已裝備時(全空)退回第一個可接受的槽 → 顯示「加裝」的全 CP 加成。
+const compareTargets = computed(() => {
+  const it = item.value
+  if (!it) return []
+  const slots = slotsAcceptingType(it.type, it)
+  if (!slots.length) return []
+  const occupied = slots
+    .filter((s) => equipState.equipped[s.key])
+    .reverse()
+    .sort((a, b) => b.row - a.row)
+  return occupied.length ? occupied : [slots[0]]
+})
+const compareIndex = computed(() => {
+  const n = compareTargets.value.length
+  return n ? props.compareStep % n : 0
+})
+const compareSlot = computed(() => compareTargets.value[compareIndex.value] || null)
+const compareLabel = computed(() => {
+  const slot = compareSlot.value
+  if (!slot || compareTargets.value.length < 2) return null
+  const e = resolveEntry(equipState.equipped[slot.key])
+  const name = e?.displayName || e?.item?.name || ''
+  return {
+    slot: t(`equipment.slots.${slot.key}`),
+    name,
+    pos: `${compareIndex.value + 1}/${compareTargets.value.length}`,
+  }
+})
 
 const cpDelta = computed(() => {
   const raw = props.entry
@@ -222,7 +244,7 @@ const cpDelta = computed(() => {
   if (!normalized) return null
   // 已穿在身上 → swap 為 no-op
   if (raw?.uid && findEquippedSlotForUid(raw.uid)) return 0
-  const targetSlot = pickCompareSlot(normalized.item)
+  const targetSlot = compareSlot.value
   if (!targetSlot) return null
   // 收集當前所有 equipped entries,以 slotKey → entry 對應
   const byKey = {}
@@ -331,12 +353,16 @@ function formatTierStats(stats) {
   <div class="tip">
     <!-- CP 差值 (hover 試算)。已裝備的 entry delta=0 不顯示;無可換槽則隱藏 -->
     <div
-      v-if="cpDelta !== null && cpDelta !== 0"
+      v-if="cpDelta !== null && (cpDelta !== 0 || compareLabel)"
       class="tip__cp-delta"
       :class="{ 'tip__cp-delta--up': cpDelta > 0, 'tip__cp-delta--down': cpDelta < 0 }"
     >
       <span class="tip__cp-delta-label">{{ t('equipment.tip.cpDelta') }}</span>
       <span class="tip__cp-delta-value">{{ fmtDelta(cpDelta) }}</span>
+      <span v-if="compareLabel" class="tip__cp-delta-target">
+        {{ t('equipment.tip.compareTarget', compareLabel) }}
+      </span>
+      <span v-if="compareLabel" class="tip__cp-delta-hint">{{ t('equipment.tip.compareHint') }}</span>
     </div>
 
     <!-- 星力條 -->
@@ -631,6 +657,18 @@ function formatTierStats(stats) {
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+.tip__cp-delta-target {
+  color: #c9cfe3;
+  font-size: 0.72rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tip__cp-delta-hint {
+  color: #6b7393;
+  font-size: 0.65rem;
 }
 .tip__cp-delta--up    .tip__cp-delta-value { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.35); }
 .tip__cp-delta--down  .tip__cp-delta-value { color: #ff2d3a; text-shadow: 0 0 8px rgba(255, 45, 58, 0.4); }
