@@ -824,13 +824,19 @@
   "event": {
     "title": "EVENT · Alliance Boost Buff",
     "reset": "Reset",
+    "points": "Points {used} / {total}",
+    "nextCost": "Next stage: {cost} pts",
     "skills": {
       "att": "ATT / MATT",
       "bossDmg": "Boss Damage",
       "ignoreDef": "Ignore Defense",
       "allStat": "All Stats",
+      "hpMp": "Max HP / MP",
+      "buffDuration": "Buff Duration",
       "critRate": "Critical Rate",
-      "buffDuration": "Buff Duration"
+      "normalMobDmg": "Normal Enemy Damage",
+      "arc": "Arcane Power",
+      "bonusExp": "Bonus EXP"
     }
   },
   "puzzle": {

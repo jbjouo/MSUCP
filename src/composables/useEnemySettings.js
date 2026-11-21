@@ -6,6 +6,7 @@ import {
   arcRatioLookup,
 } from '../constants/enemySettings.js'
 import { useArcane } from './useArcane.js'
+import { useEvent } from './useEvent.js'
 
 const STORAGE_KEY = 'msucp.enemy.v1'
 
@@ -39,11 +40,14 @@ watch(state, (s) => {
 
 export function useEnemySettings() {
   const { totalArc } = useArcane()
+  const { arcBonus: eventArc } = useEvent()
+  // 玩家 ARC = 秘法符文 + 活動 Alliance Boost Arcane Power
+  const playerArc = computed(() => totalArc.value + eventArc.value)
 
   const arcInfo = computed(() => {
-    const info = arcRatioLookup(totalArc.value, state.bossArc)
+    const info = arcRatioLookup(playerArc.value, state.bossArc)
     return {
-      playerArc: totalArc.value,
+      playerArc: playerArc.value,
       bossArc: state.bossArc,
       ...info,
     }

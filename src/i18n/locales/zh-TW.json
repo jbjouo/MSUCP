@@ -824,13 +824,19 @@
   "event": {
     "title": "EVENT · Alliance Boost Buff",
     "reset": "重設",
+    "points": "點數 {used} / {total}",
+    "nextCost": "升級需 {cost} 點",
     "skills": {
       "att": "ATT / MATT",
       "bossDmg": "首領傷害",
       "ignoreDef": "無視防禦",
       "allStat": "全屬性",
+      "hpMp": "Max HP / MP",
+      "buffDuration": "加持時間",
       "critRate": "爆擊率",
-      "buffDuration": "加持時間"
+      "normalMobDmg": "一般怪物傷害",
+      "arc": "Arcane Power",
+      "bonusExp": "額外經驗值"
     }
   },
   "puzzle": {

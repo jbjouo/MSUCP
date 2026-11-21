@@ -6,6 +6,10 @@ const { t } = useI18n()
 const {
   state,
   EVENT_SKILLS,
+  EVENT_TOTAL_POINTS,
+  usedPoints,
+  remainingPoints,
+  nextCost,
   canIncrement,
   canDecrement,
   increment,
@@ -13,7 +17,7 @@ const {
   resetAll,
 } = useEvent()
 
-const PCT_KEYS_EVENT = new Set(['bossDmg', 'ignoreDef', 'critRate', 'buffDuration'])
+const PCT_KEYS_EVENT = new Set(['bossDmg', 'ignoreDef', 'critRate', 'buffDuration', 'normalMobDmg', 'bonusExp'])
 
 function currentValueText(skill) {
   const lv = state[skill.id] || 0
@@ -40,6 +44,9 @@ function currentValueText(skill) {
   <section class="ev-panel">
     <header class="ev-panel__head">
       <span>{{ t('event.title') }}</span>
+      <span class="ev-panel__points" :class="{ 'ev-panel__points--empty': remainingPoints === 0 }">
+        {{ t('event.points', { used: usedPoints, total: EVENT_TOTAL_POINTS }) }}
+      </span>
       <button type="button" class="ev-panel__reset" @click="resetAll">
         {{ t('event.reset') }}
       </button>
@@ -66,6 +73,7 @@ function currentValueText(skill) {
             class="ev-btn ev-btn--plus"
             type="button"
             :disabled="!canIncrement(skill.id)"
+            :title="nextCost(skill.id) != null ? t('event.nextCost', { cost: nextCost(skill.id) }) : ''"
             @click="increment(skill.id)"
           >＋</button>
         </span>
@@ -109,6 +117,17 @@ function currentValueText(skill) {
   color: #ffc857;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
+.ev-panel__points {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #f1f3f7;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.ev-panel__points--empty { color: #ff8a8a; }
 .ev-panel__reset {
   position: absolute;
   right: 8px;
