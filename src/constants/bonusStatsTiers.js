@@ -164,6 +164,11 @@ export const REFERENCE_WEAPON_DATA = {
   claw: {
     200: { atk: 149 },              // Arcane Umbra Guards
   },
+  spear: {
+    150: { atk: 171 },              // Fafnir Brionak
+    160: { atk: 205 },              // AbsoLab Piercing Spear
+    200: { atk: 295 },              // Arcane Umbra Spear
+  },
   shining_rod: {
     120: { atk: 81, matk: 133 },    // Necro Shining Rod
     160: { atk: 143, matk: 241 },   // AbsoLab Shining Rod
@@ -210,6 +215,8 @@ export const JOB_CP_REFERENCE_WEAPON = {
   windarcher:  { subType: 'bow', attKey: 'atk' },
   // Heroes (Magician)
   luminous:    { subType: 'shining_rod', attKey: 'matk' },
+  // Adventurer Warrior — 槍 (spear) / 矛 (polearm) 皆以槍為基準(假設遊戲內兩者 CP 相同,待實測)
+  darkKnight:  { subType: 'spear', attKey: 'atk' },
 }
 
 // 取得某職業在指定等級下的基準武器資料(模板,與實際穿戴無關)
