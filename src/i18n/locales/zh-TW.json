@@ -1651,5 +1651,51 @@
     "buffs": {
       "mapleWarriorLabel": "增益:{name} (Lv {lv},+{pct}% AP)"
     }
+  },
+  "fxTest": {
+    "delayHits": "命中特效延後到出手點",
+    "action": "角色動作",
+    "actionTotal": "總長",
+    "preHit": "出手前",
+    "noAction": "此技能無角色動作資料",
+    "timelineNote": "橘 = 出手前(delay 負值)、藍 = 出手後;已依攻速換算(每格 ×(20−Stage)/16,最後一格最低 30ms,總和進位到 30ms);黃框 = 補到 30ms 的格子;特效依勾選類別乘上同一倍率(不取整);紅線 = 傷害時點(hitAfter 為命中動畫內的傷害時點)",
+    "attackSpeed": "攻速",
+    "baseTotal": "基礎總長",
+    "scaleFx": "特效隨攻速加速",
+    "cat": {"cast": "施放", "hit": "命中", "other": "飛行物/場地"},
+    "facing": "面向",
+    "facingLeft": "左(素材原始)",
+    "facingRight": "右(鏡像)",
+    "dmgAt": "傷害",
+    "hitbox": "範圍",
+    "noHitbox": "無範圍資料(一律命中)",
+    "splash": "濺射",
+    "teleport": "瞬移",
+    "tpInterval": "間隔",
+    "tpDist": "水平",
+    "tpUp": "垂直",
+    "controlHint": "←→ 移動 · Shift 瞬移(↑+Shift 往上) · Space / Alt 跳 · ↓ 趴下 · 快捷鍵放技能(按住連發)",
+    "focusHint": "點一下畫面即可用鍵盤操控",
+    "slots": "快捷欄",
+    "slotHint": "點格子後再點技能即可指定;右鍵清除",
+    "slotAssigning": "請點選要放進 {key} 的技能",
+    "bodyMissing": "角色圖未匯出(../msu-wz/tools/export_avatar.py),先以人形框顯示",
+    "title": "技能動畫測試",
+    "caster": "角色",
+    "target": "目標",
+    "loop": "循環",
+    "guide": "參考線",
+    "speed": "速度",
+    "stop": "停止",
+    "loading": "載入中…",
+    "playAll": "全部節點",
+    "loadError": "素材載入失敗:{msg}",
+    "groups": {
+      "adv1": "1 轉",
+      "adv2": "2 轉",
+      "adv3": "3 轉",
+      "adv4": "4 轉 / Hyper",
+      "v": "5 轉 (V)"
+    }
   }
 }

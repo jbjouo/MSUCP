@@ -70,6 +70,13 @@ export const routes = [
   },
 ]
 
+// 技能動畫測試頁 — 不放進選單,只能直接輸入網址 /fx-test 進入;素材在 public/fx-assets(由 ../msu-wz 匯出後複製)
+routes.push({
+  path: '/fx-test',
+  name: 'fxTest',
+  component: () => import('../pages/FxTestPage.vue'),
+})
+
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,

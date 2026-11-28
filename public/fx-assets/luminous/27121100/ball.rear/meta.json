@@ -1,0 +1,17 @@
+{
+ "skillId": 27121100,
+ "node": "ball.rear",
+ "frames": [
+  {
+   "file": "0.png",
+   "w": 118,
+   "h": 67,
+   "origin": [
+    0,
+    0
+   ],
+   "delay": 100,
+   "z": 0
+  }
+ ]
+}

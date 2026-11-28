@@ -1,0 +1,17 @@
+{
+ "skillId": 400021071,
+ "node": "summon.summoned",
+ "frames": [
+  {
+   "file": null,
+   "w": 0,
+   "h": 0,
+   "origin": [
+    0,
+    0
+   ],
+   "delay": 780,
+   "z": 0
+  }
+ ]
+}

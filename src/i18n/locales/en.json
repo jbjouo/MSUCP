@@ -1651,5 +1651,51 @@
     "buffs": {
       "mapleWarriorLabel": "Buff: {name} (Lv {lv}, +{pct}% AP)"
     }
+  },
+  "fxTest": {
+    "delayHits": "Delay hit FX to attack point",
+    "action": "Action",
+    "actionTotal": "Total",
+    "preHit": "Pre-hit",
+    "noAction": "No character action data",
+    "timelineNote": "Orange = before attack (negative delay), blue = after; scaled by attack speed (frame × (20−Stage)/16, last frame min 30ms, total rounded up to 30ms); yellow outline = floored to 30ms; FX of checked categories use the same multiplier (no rounding); red line = damage time (hitAfter = damage point inside the hit animation)",
+    "attackSpeed": "Attack speed",
+    "baseTotal": "Base total",
+    "scaleFx": "Scale FX by attack speed",
+    "cat": {"cast": "Cast", "hit": "Hit", "other": "Projectile/Field"},
+    "facing": "Facing",
+    "facingLeft": "Left (original)",
+    "facingRight": "Right (mirrored)",
+    "dmgAt": "Damage",
+    "hitbox": "Hitbox",
+    "noHitbox": "no range data (always hits)",
+    "splash": "splash",
+    "teleport": "Teleport",
+    "tpInterval": "interval",
+    "tpDist": "horizontal",
+    "tpUp": "vertical",
+    "controlHint": "←→ move · Shift teleport (↑+Shift up) · Space / Alt jump · ↓ prone · quickslot keys cast (hold to repeat)",
+    "focusHint": "Click the stage to use the keyboard",
+    "slots": "Quickslots",
+    "slotHint": "Click a slot, then a skill to assign; right-click to clear",
+    "slotAssigning": "Pick a skill for {key}",
+    "bodyMissing": "Avatar not exported (../msu-wz/tools/export_avatar.py); showing a placeholder",
+    "title": "Skill FX Test",
+    "caster": "Caster",
+    "target": "Target",
+    "loop": "Loop",
+    "guide": "Guides",
+    "speed": "Speed",
+    "stop": "Stop",
+    "loading": "Loading…",
+    "playAll": "All nodes",
+    "loadError": "Failed to load assets: {msg}",
+    "groups": {
+      "adv1": "1st Job",
+      "adv2": "2nd Job",
+      "adv3": "3rd Job",
+      "adv4": "4th Job / Hyper",
+      "v": "5th Job (V)"
+    }
   }
 }

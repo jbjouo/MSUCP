@@ -1,0 +1,1974 @@
+[
+ {
+  "skillId": 27001002,
+  "name": "Light Speed",
+  "img": "2700.img",
+  "nodes": {
+   "effect": {
+    "frames": 6,
+    "durationMs": 540
+   },
+   "effect0": {
+    "frames": 1,
+    "durationMs": 60
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27001005,
+  "name": "",
+  "img": "2700.img",
+  "nodes": {
+   "mob": {
+    "frames": 16,
+    "durationMs": 1920,
+    "props": {
+     "repeat": 1,
+     "pos": 2
+    }
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27001008,
+  "name": "",
+  "img": "2700.img",
+  "nodes": {
+   "special": {
+    "frames": 8,
+    "durationMs": 480,
+    "props": {
+     "z": -2,
+     "fix": 1
+    }
+   },
+   "effect": {
+    "frames": 8,
+    "durationMs": 480
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27001100,
+  "name": "",
+  "img": "2700.img",
+  "nodes": {
+   "effect": {
+    "frames": 5,
+    "durationMs": 600
+   },
+   "hit.0": {
+    "frames": 6,
+    "durationMs": 720
+   },
+   "ball": {
+    "frames": 3,
+    "durationMs": 180
+   }
+  },
+  "actions": [
+   {
+    "name": "LMtwinkleFlash",
+    "frames": [
+     [
+      "stabO2",
+      1,
+      120
+     ],
+     [
+      "stabO2",
+      1,
+      480
+     ],
+     [
+      "stabO1",
+      0,
+      240
+     ]
+    ],
+    "totalMs": 840,
+    "preHitMs": 0
+   }
+  ],
+  "hitbox": {
+   "mobCount": 5,
+   "attackCount": 1,
+   "range": 400,
+   "piercing": 1,
+   "type": 2
+  }
+ },
+ {
+  "skillId": 27001201,
+  "name": "Abyssal Drop",
+  "img": "2700.img",
+  "nodes": {
+   "effect": {
+    "frames": 8,
+    "durationMs": 870
+   },
+   "effect0": {
+    "frames": 7,
+    "durationMs": 780
+   },
+   "hit.0": {
+    "frames": 4,
+    "durationMs": 360
+   }
+  },
+  "actions": [
+   {
+    "name": "LMdarkFalling",
+    "frames": [
+     [
+      "swingO2",
+      0,
+      -360
+     ],
+     [
+      "swingO2",
+      1,
+      -150
+     ],
+     [
+      "swingO2",
+      2,
+      270
+     ],
+     [
+      "alert",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 870,
+    "preHitMs": 510
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -310,
+    -140
+   ],
+   "rb": [
+    0,
+    42
+   ],
+   "mobCount": 6,
+   "attackCount": 3,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27101100,
+  "name": "Sylvan Lance",
+  "img": "2710.img",
+  "nodes": {
+   "effect": {
+    "frames": 5,
+    "durationMs": 450
+   },
+   "special": {
+    "frames": 12,
+    "durationMs": 1080
+   },
+   "ball.0": {
+    "frames": 2,
+    "durationMs": 180
+   },
+   "ball.1": {
+    "frames": 2,
+    "durationMs": 180
+   },
+   "ball.2": {
+    "frames": 2,
+    "durationMs": 180
+   },
+   "hit.0": {
+    "frames": 5,
+    "durationMs": 450
+   },
+   "hit.1": {
+    "frames": 5,
+    "durationMs": 450
+   },
+   "hit.2": {
+    "frames": 5,
+    "durationMs": 450
+   }
+  },
+  "actions": [
+   {
+    "name": "LMsylphidLancer",
+    "frames": [
+     [
+      "alert",
+      1,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      -180
+     ],
+     [
+      "swingO2",
+      0,
+      450
+     ],
+     [
+      "alert",
+      2,
+      180
+     ]
+    ],
+    "totalMs": 900,
+    "preHitMs": 270
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -400,
+    -150
+   ],
+   "rb": [
+    0,
+    0
+   ],
+   "mobCount": 6,
+   "bulletCount": 4,
+   "areaAttack": 1,
+   "type": 2
+  }
+ },
+ {
+  "skillId": 27101101,
+  "name": "Blinding Pillar",
+  "img": "2710.img",
+  "nodes": {
+   "effect0": {
+    "frames": 13,
+    "durationMs": 900,
+    "props": {
+     "z": -2,
+     "fix": 1
+    }
+   },
+   "effect": {
+    "frames": 5,
+    "durationMs": 900
+   },
+   "mob": {
+    "frames": 3,
+    "durationMs": 300,
+    "props": {
+     "pos": 2,
+     "repeat": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMinviolability",
+    "frames": [
+     [
+      "alert",
+      1,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      -450
+     ],
+     [
+      "alert",
+      0,
+      180
+     ]
+    ],
+    "totalMs": 720,
+    "preHitMs": 540
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -322,
+    -161
+   ],
+   "rb": [
+    327,
+    16
+   ],
+   "mobCount": 10,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27101202,
+  "name": "Pressure Void",
+  "img": "2710.img",
+  "nodes": {
+   "prepare": {
+    "frames": 6,
+    "durationMs": 360,
+    "props": {
+     "time": 360,
+     "action": "LMvoidPressurePrepare"
+    }
+   },
+   "keydown": {
+    "frames": 10,
+    "durationMs": 900,
+    "props": {
+     "action": "LMvoidPressureKeydown"
+    }
+   },
+   "keydown0": {
+    "frames": 10,
+    "durationMs": 1200,
+    "props": {
+     "action": "LMvoidPressureKeydown"
+    }
+   },
+   "keydownend": {
+    "frames": 6,
+    "durationMs": 540,
+    "props": {
+     "z": -2,
+     "time": 360,
+     "action": "LMvoidPressureEnd"
+    }
+   },
+   "special": {
+    "frames": 4,
+    "durationMs": 480,
+    "props": {
+     "action": "LMvoidPressureEnd",
+     "time": 360,
+     "z": -2
+    }
+   },
+   "hit.0": {
+    "frames": 4,
+    "durationMs": 480
+   }
+  },
+  "actions": [
+   {
+    "name": "LMvoidPressureKeydown",
+    "frames": [
+     [
+      "swingO2",
+      0,
+      -90
+     ]
+    ],
+    "totalMs": 90,
+    "preHitMs": 90
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -233,
+    -197
+   ],
+   "rb": [
+    11,
+    36
+   ],
+   "mobCount": 8,
+   "attackCount": 1,
+   "areaAttack": 1,
+   "rapidAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27110005,
+  "name": "Dusk Guard",
+  "img": "2711.img",
+  "nodes": {
+   "special": {
+    "frames": 3,
+    "durationMs": 360
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27111004,
+  "name": "Shadow Shell",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 15,
+    "durationMs": 900
+   },
+   "effect0": {
+    "frames": 13,
+    "durationMs": 900,
+    "props": {
+     "z": -2
+    }
+   },
+   "special": {
+    "frames": 16,
+    "durationMs": 1440
+   }
+  },
+  "actions": [
+   {
+    "name": "alert9",
+    "frames": [
+     [
+      "alert",
+      0,
+      90
+     ],
+     [
+      "alert",
+      1,
+      90
+     ],
+     [
+      "alert",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 270,
+    "preHitMs": 0
+   }
+  ]
+ },
+ {
+  "skillId": 27111006,
+  "name": "Photic Meditation",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 21,
+    "durationMs": 1260
+   },
+   "effect0": {
+    "frames": 20,
+    "durationMs": 1200,
+    "props": {
+     "z": -2
+    }
+   },
+   "affected": {
+    "frames": 10,
+    "durationMs": 900
+   }
+  },
+  "actions": [
+   {
+    "name": "alert2",
+    "frames": [
+     [
+      "alert",
+      0,
+      200
+     ],
+     [
+      "alert",
+      1,
+      200
+     ],
+     [
+      "alert",
+      2,
+      200
+     ]
+    ],
+    "totalMs": 600,
+    "preHitMs": 0
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -300,
+    -200
+   ],
+   "rb": [
+    300,
+    200
+   ],
+   "type": 10
+  }
+ },
+ {
+  "skillId": 27111008,
+  "name": "Light Speed Boost",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 11,
+    "durationMs": 660
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27111100,
+  "name": "Spectral Light",
+  "img": "2711.img",
+  "nodes": {
+   "prepare": {
+    "frames": 6,
+    "durationMs": 360,
+    "props": {
+     "action": "LMspectralLightPrepare",
+     "time": 360
+    }
+   },
+   "keydown": {
+    "frames": 12,
+    "durationMs": 1080,
+    "props": {
+     "action": "LMspectralLightKeydown"
+    }
+   },
+   "keydownend": {
+    "frames": 7,
+    "durationMs": 630,
+    "props": {
+     "action": "LMspectralLightEnd"
+    }
+   },
+   "hit.0": {
+    "frames": 6,
+    "durationMs": 540
+   }
+  },
+  "actions": [
+   {
+    "name": "LMspectralLightKeydown",
+    "frames": [
+     [
+      "stabO2",
+      1,
+      90
+     ]
+    ],
+    "totalMs": 90,
+    "preHitMs": 0
+   }
+  ],
+  "hitbox": {
+   "mobCount": 8,
+   "attackCount": 4,
+   "range": 530,
+   "areaAttack": 1,
+   "rapidAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27111101,
+  "name": "Ray of Redemption",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 20,
+    "durationMs": 1710
+   },
+   "effect0": {
+    "frames": 17,
+    "durationMs": 1440
+   },
+   "affected": {
+    "frames": 8,
+    "durationMs": 720
+   },
+   "hit.0": {
+    "frames": 6,
+    "durationMs": 540
+   }
+  },
+  "actions": [
+   {
+    "name": "LMshineRedemption",
+    "frames": [
+     [
+      "alert",
+      1,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      -720
+     ],
+     [
+      "swingO2",
+      1,
+      90
+     ]
+    ],
+    "totalMs": 900,
+    "preHitMs": 810
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -400,
+    -230
+   ],
+   "rb": [
+    19,
+    150
+   ],
+   "mobCount": 6,
+   "attackCount": 3,
+   "areaAttack": 1,
+   "type": 31
+  }
+ },
+ {
+  "skillId": 27111202,
+  "name": "Moonlight Spear",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 5,
+    "durationMs": 600
+   },
+   "effect0": {
+    "frames": 7,
+    "durationMs": 840,
+    "props": {
+     "z": -2
+    }
+   },
+   "hit.0": {
+    "frames": 9,
+    "durationMs": 1080,
+    "props": {
+     "hitAfter": 360,
+     "pos": 5
+    }
+   },
+   "hit.1": {
+    "frames": 8,
+    "durationMs": 960,
+    "props": {
+     "hitAfter": 240,
+     "pos": 5
+    }
+   },
+   "hit.2": {
+    "frames": 8,
+    "durationMs": 960,
+    "props": {
+     "hitAfter": 240,
+     "pos": 5,
+     "delay": 120
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMnoxSphere",
+    "frames": [
+     [
+      "swingO2",
+      0,
+      -120
+     ],
+     [
+      "swingO2",
+      1,
+      120
+     ],
+     [
+      "swingO2",
+      2,
+      630
+     ]
+    ],
+    "totalMs": 870,
+    "preHitMs": 120
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -250,
+    -150
+   ],
+   "rb": [
+    250,
+    150
+   ],
+   "mobCount": 6,
+   "attackCount": 2,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27111303,
+  "name": "Death Scythe",
+  "img": "2711.img",
+  "nodes": {
+   "effect": {
+    "frames": 15,
+    "durationMs": 1350,
+    "props": {
+     "fix": 1
+    }
+   },
+   "hit.0": {
+    "frames": 6,
+    "durationMs": 600,
+    "props": {
+     "randomHitOrigin": 30,
+     "onlyOnce": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMdarkScythe",
+    "frames": [
+     [
+      "alert",
+      2,
+      -90
+     ],
+     [
+      "alert",
+      1,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      -360
+     ],
+     [
+      "swingO1",
+      1,
+      -90
+     ],
+     [
+      "swingO1",
+      2,
+      90
+     ],
+     [
+      "swingO1",
+      2,
+      90
+     ],
+     [
+      "swingO1",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 900,
+    "preHitMs": 630
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -430,
+    -350
+   ],
+   "rb": [
+    430,
+    200
+   ],
+   "mobCount": 10,
+   "attackCount": 6,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27120005,
+  "name": "Dark Crescendo",
+  "img": "2712.img",
+  "nodes": {
+   "repeat.0.0": {
+    "frames": 9,
+    "durationMs": 810,
+    "props": {
+     "z": -2
+    }
+   },
+   "repeat.1.0": {
+    "frames": 9,
+    "durationMs": 810,
+    "props": {
+     "z": -2
+    }
+   },
+   "repeat.1.1": {
+    "frames": 9,
+    "durationMs": 810
+   },
+   "repeat.2.0": {
+    "frames": 9,
+    "durationMs": 810,
+    "props": {
+     "z": -2
+    }
+   },
+   "repeat.2.1": {
+    "frames": 9,
+    "durationMs": 810
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27120211,
+  "name": "",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 12,
+    "durationMs": 720
+   },
+   "hit.0": {
+    "frames": 8,
+    "durationMs": 480,
+    "props": {
+     "randomHitOrigin": 40,
+     "randomHitAngle": 1
+    }
+   }
+  },
+  "actions": [],
+  "hitbox": {
+   "lt": [
+    -170,
+    -190
+   ],
+   "rb": [
+    170,
+    50
+   ],
+   "mobCount": 8,
+   "attackCount": 1,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27121006,
+  "name": "Arcane Pitch",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 15,
+    "durationMs": 900
+   }
+  },
+  "actions": [
+   {
+    "name": "alert9",
+    "frames": [
+     [
+      "alert",
+      0,
+      90
+     ],
+     [
+      "alert",
+      1,
+      90
+     ],
+     [
+      "alert",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 270,
+    "preHitMs": 0
+   }
+  ]
+ },
+ {
+  "skillId": 27121009,
+  "name": "Maple Warrior",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 13,
+    "durationMs": 1440
+   },
+   "effect0": {
+    "frames": 29,
+    "durationMs": 1740,
+    "props": {
+     "z": -1
+    }
+   },
+   "affected": {
+    "frames": 19,
+    "durationMs": 1440
+   },
+   "affected0": {
+    "frames": 15,
+    "durationMs": 1200
+   }
+  },
+  "actions": [],
+  "hitbox": {
+   "lt": [
+    -400,
+    -300
+   ],
+   "rb": [
+    400,
+    300
+   ],
+   "type": 10
+  }
+ },
+ {
+  "skillId": 27121010,
+  "name": "Hero's Will",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 17,
+    "durationMs": 1020
+   },
+   "effect0": {
+    "frames": 12,
+    "durationMs": 1020,
+    "props": {
+     "z": -1
+    }
+   }
+  },
+  "actions": []
+ },
+ {
+  "skillId": 27121052,
+  "name": "Armageddon",
+  "img": "2712.img",
+  "nodes": {
+   "screen": {
+    "frames": 38,
+    "durationMs": 3420
+   },
+   "effect": {
+    "frames": 34,
+    "durationMs": 3060
+   },
+   "effect0": {
+    "frames": 29,
+    "durationMs": 3160,
+    "props": {
+     "z": -2
+    }
+   },
+   "mob": {
+    "frames": 12,
+    "durationMs": 1080,
+    "props": {
+     "repeat": 1,
+     "pos": 2
+    }
+   },
+   "hit.0": {
+    "frames": 8,
+    "durationMs": 720
+   }
+  },
+  "actions": [
+   {
+    "name": "LMarmageddon",
+    "frames": [
+     [
+      "alert",
+      1,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      -1980
+     ],
+     [
+      "swingO1",
+      2,
+      -450
+     ],
+     [
+      "swingO1",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 2610,
+    "preHitMs": 2520
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -650,
+    -500
+   ],
+   "rb": [
+    650,
+    270
+   ],
+   "mobCount": 15,
+   "attackCount": 3,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27121053,
+  "name": "Heroic Memories",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 17,
+    "durationMs": 2040,
+    "props": {
+     "z": -1
+    }
+   },
+   "affected": {
+    "frames": 7,
+    "durationMs": 840
+   }
+  },
+  "actions": [],
+  "hitbox": {
+   "lt": [
+    -400,
+    -300
+   ],
+   "rb": [
+    400,
+    300
+   ],
+   "type": 10
+  }
+ },
+ {
+  "skillId": 27121054,
+  "name": "Equalize",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 15,
+    "durationMs": 1800
+   }
+  },
+  "actions": [
+   {
+    "name": "alert4",
+    "frames": [
+     [
+      "alert",
+      0,
+      -300
+     ],
+     [
+      "alert",
+      1,
+      -300
+     ],
+     [
+      "alert",
+      2,
+      300
+     ]
+    ],
+    "totalMs": 900,
+    "preHitMs": 600
+   }
+  ]
+ },
+ {
+  "skillId": 27121100,
+  "name": "Reflection",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 17,
+    "durationMs": 1530,
+    "props": {
+     "effectType": 200
+    }
+   },
+   "hit.0": {
+    "frames": 15,
+    "durationMs": 900,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "effectType": 200
+    }
+   },
+   "hit.1": {
+    "frames": 15,
+    "durationMs": 900,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "effectType": 200
+    }
+   },
+   "ball.0": {
+    "frames": 3,
+    "durationMs": 270
+   },
+   "ball.front": {
+    "frames": 1,
+    "durationMs": 100
+   },
+   "ball.rear": {
+    "frames": 1,
+    "durationMs": 100
+   }
+  },
+  "actions": [
+   {
+    "name": "LMlightReflection",
+    "frames": [
+     [
+      "stabO1",
+      0,
+      -90
+     ],
+     [
+      "stabO1",
+      0,
+      -90
+     ],
+     [
+      "stabO1",
+      0,
+      -90
+     ],
+     [
+      "stabO1",
+      0,
+      -270
+     ],
+     [
+      "stabO1",
+      0,
+      90
+     ],
+     [
+      "stabO2",
+      1,
+      180
+     ]
+    ],
+    "totalMs": 810,
+    "preHitMs": 540
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -400,
+    -450
+   ],
+   "rb": [
+    400,
+    450
+   ],
+   "lt2": [
+    -400,
+    -450
+   ],
+   "rb2": [
+    400,
+    450
+   ],
+   "mobCount": 8,
+   "attackCount": 4,
+   "range": 350,
+   "chainAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27121201,
+  "name": "Morning Star",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 17,
+    "durationMs": 1020
+   },
+   "effect0": {
+    "frames": 17,
+    "durationMs": 1020,
+    "props": {
+     "z": -1
+    }
+   },
+   "shootobj.layerList.b1": {
+    "frames": 16,
+    "durationMs": 960
+   },
+   "ball": {
+    "frames": 8,
+    "durationMs": 480
+   },
+   "hit.0": {
+    "frames": 8,
+    "durationMs": 480,
+    "props": {
+     "randomHitOrigin": 40,
+     "randomHitAngle": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMmornigStarfall",
+    "frames": [
+     [
+      "swingO3",
+      0,
+      -360
+     ],
+     [
+      "swingO1",
+      2,
+      -90
+     ],
+     [
+      "swingO3",
+      1,
+      -90
+     ],
+     [
+      "swingO3",
+      2,
+      -90
+     ],
+     [
+      "swingO3",
+      2,
+      -90
+     ],
+     [
+      "swingO3",
+      2,
+      -90
+     ],
+     [
+      "alert",
+      0,
+      60
+     ]
+    ],
+    "totalMs": 870,
+    "preHitMs": 810
+   }
+  ],
+  "attackDelay": {
+   "raw": "210",
+   "atMax": 210
+  },
+  "hitbox": {
+   "mobCount": 8,
+   "attackCount": 2,
+   "areaAttack": 1,
+   "type": 2
+  }
+ },
+ {
+  "skillId": 27121202,
+  "name": "Apocalypse",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 19,
+    "durationMs": 1140,
+    "props": {
+     "a0": 200
+    }
+   },
+   "effect0": {
+    "frames": 16,
+    "durationMs": 960
+   },
+   "hit.0": {
+    "frames": 12,
+    "durationMs": 1080,
+    "props": {
+     "effectType": 200,
+     "onlyOnce": 1
+    }
+   },
+   "hit.1": {
+    "frames": 12,
+    "durationMs": 1080,
+    "props": {
+     "effectType": 200,
+     "onlyOnce": 1
+    }
+   },
+   "hit.2": {
+    "frames": 12,
+    "durationMs": 1080,
+    "props": {
+     "effectType": 200,
+     "onlyOnce": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMapocalypse",
+    "frames": [
+     [
+      "swingO2",
+      1,
+      -60
+     ],
+     [
+      "swingO2",
+      0,
+      -480
+     ],
+     [
+      "swingO2",
+      2,
+      270
+     ],
+     [
+      "alert",
+      0,
+      150
+     ]
+    ],
+    "totalMs": 960,
+    "preHitMs": 540
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -471,
+    -251
+   ],
+   "rb": [
+    -39,
+    -1
+   ],
+   "mobCount": 8,
+   "attackCount": 7,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 27121303,
+  "name": "Ender",
+  "img": "2712.img",
+  "nodes": {
+   "effect": {
+    "frames": 14,
+    "durationMs": 1260
+   },
+   "hit.0": {
+    "frames": 15,
+    "durationMs": 1020,
+    "props": {
+     "hitAfter": 630,
+     "pos": 5,
+     "onlyOnce": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "LMabsoluteKill",
+    "frames": [
+     [
+      "stabO1",
+      0,
+      -90
+     ],
+     [
+      "stabO1",
+      0,
+      -90
+     ],
+     [
+      "stabO1",
+      0,
+      -450
+     ],
+     [
+      "stabO1",
+      1,
+      -90
+     ],
+     [
+      "stabO1",
+      1,
+      -60
+     ]
+    ],
+    "totalMs": 780,
+    "preHitMs": 780
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -400,
+    -150
+   ],
+   "rb": [
+    0,
+    0
+   ],
+   "mobCount": 2,
+   "attackCount": 7,
+   "type": 2
+  }
+ },
+ {
+  "skillId": 400021000,
+  "name": "Mana Overload",
+  "img": "40002.img",
+  "nodes": {
+   "special0": {
+    "frames": 10,
+    "durationMs": 2260,
+    "props": {
+     "z": -2
+    }
+   },
+   "special": {
+    "frames": 15,
+    "durationMs": 2260
+   },
+   "effect0": {
+    "frames": 13,
+    "durationMs": 780,
+    "props": {
+     "z": -2
+    }
+   },
+   "effect": {
+    "frames": 14,
+    "durationMs": 840
+   }
+  },
+  "actions": [
+   {
+    "name": "5thOverloadMana",
+    "frames": [
+     [
+      "alert",
+      0,
+      120
+     ],
+     [
+      "swingT1",
+      1,
+      360
+     ]
+    ],
+    "totalMs": 480,
+    "preHitMs": 0
+   }
+  ]
+ },
+ {
+  "skillId": 400021005,
+  "name": "Gate of Light",
+  "img": "40002.img",
+  "nodes": {
+   "summon.summoned": {
+    "frames": 8,
+    "durationMs": 960
+   },
+   "summon.stand": {
+    "frames": 8,
+    "durationMs": 960
+   },
+   "summon.die": {
+    "frames": 6,
+    "durationMs": 720
+   },
+   "hit2.0": {
+    "frames": 10,
+    "durationMs": 1500,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 1
+    }
+   },
+   "hit.0": {
+    "frames": 10,
+    "durationMs": 1500,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "5thDoorOfTruth",
+    "frames": [
+     [
+      "alert",
+      0,
+      -120
+     ],
+     [
+      "swingO2",
+      1,
+      -120
+     ],
+     [
+      "swingO2",
+      0,
+      -390
+     ],
+     [
+      "swingO2",
+      0,
+      90
+     ],
+     [
+      "swingO2",
+      2,
+      60
+     ]
+    ],
+    "totalMs": 780,
+    "preHitMs": 630
+   }
+  ],
+  "hitbox": {
+   "mobCount": 12,
+   "attackCount": 10,
+   "type": 33
+  }
+ },
+ {
+  "skillId": 400021041,
+  "name": "Aether Conduit",
+  "img": "40002.img",
+  "nodes": {
+   "effect": {
+    "frames": 16,
+    "durationMs": 1440
+   },
+   "effect0": {
+    "frames": 9,
+    "durationMs": 810,
+    "props": {
+     "z": -1
+    }
+   },
+   "prepare": {
+    "frames": 11,
+    "durationMs": 990,
+    "props": {
+     "z": -1
+    }
+   },
+   "hit.0": {
+    "frames": 8,
+    "durationMs": 720,
+    "props": {
+     "randomHitOrigin": 15
+    }
+   },
+   "tile": {
+    "frames": 8,
+    "durationMs": 720,
+    "props": {
+     "z": -1
+    }
+   },
+   "special": {
+    "frames": 5,
+    "durationMs": 450,
+    "props": {
+     "z": -1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "5thPunishingResonater",
+    "frames": [
+     [
+      "swingO2",
+      1,
+      360
+     ],
+     [
+      "swingO2",
+      0,
+      420
+     ]
+    ],
+    "totalMs": 780,
+    "preHitMs": 0
+   }
+  ],
+  "attackDelay": {
+   "raw": "990",
+   "atMax": 990
+  },
+  "hitbox": {
+   "lt": [
+    -390,
+    -290
+   ],
+   "rb": [
+    390,
+    50
+   ],
+   "mobCount": 10,
+   "attackCount": 4,
+   "areaAttack": 1,
+   "type": 1
+  }
+ },
+ {
+  "skillId": 400021060,
+  "name": "Ethereal Form",
+  "img": "40002.img",
+  "nodes": {
+   "effect": {
+    "frames": 18,
+    "durationMs": 1080
+   },
+   "effect1": {
+    "frames": 15,
+    "durationMs": 900,
+    "props": {
+     "z": -1
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "5thEtherealForm",
+    "frames": [
+     [
+      "alert",
+      0,
+      90
+     ],
+     [
+      "alert",
+      1,
+      90
+     ],
+     [
+      "alert",
+      2,
+      90
+     ]
+    ],
+    "totalMs": 270,
+    "preHitMs": 0
+   }
+  ]
+ },
+ {
+  "skillId": 400021071,
+  "name": "Baptism of Light and Darkness",
+  "img": "40002.img",
+  "nodes": {
+   "effect": {
+    "frames": 19,
+    "durationMs": 1140
+   },
+   "summon.attack1": {
+    "frames": 1,
+    "durationMs": 100
+   },
+   "summon.summoned": {
+    "frames": 1,
+    "durationMs": 780
+   },
+   "summon.stand": {
+    "frames": 1,
+    "durationMs": 100
+   },
+   "summon.die": {
+    "frames": 1,
+    "durationMs": 100
+   },
+   "hit.0": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.1": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.2": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.3": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.4": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.5": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.6": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.7": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.8": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.9": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.10": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.11": {
+    "frames": 11,
+    "durationMs": 770,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 140
+    }
+   },
+   "hit.12": {
+    "frames": 10,
+    "durationMs": 900,
+    "props": {
+     "onlyOnce": 1,
+     "pos": 3,
+     "delayedTime": 540
+    }
+   }
+  },
+  "actions": [
+   {
+    "name": "5thSwordBaptism",
+    "frames": [
+     [
+      "swingO2",
+      1,
+      -120
+     ],
+     [
+      "swingO2",
+      0,
+      -540
+     ],
+     [
+      "swingO2",
+      2,
+      -60
+     ],
+     [
+      "swingO2",
+      2,
+      60
+     ]
+    ],
+    "totalMs": 780,
+    "preHitMs": 720
+   }
+  ],
+  "hitbox": {
+   "lt": [
+    -800,
+    -300
+   ],
+   "rb": [
+    800,
+    300
+   ],
+   "attackCount": 7,
+   "range": 550,
+   "type": 33
+  }
+ },
+ {
+  "skillId": 400021105,
+  "name": "Liberation Orb",
+  "img": "40002.img",
+  "nodes": {
+   "effect": {
+    "frames": 18,
+    "durationMs": 1620
+   },
+   "special.0": {
+    "frames": 23,
+    "durationMs": 2070,
+    "props": {
+     "repeatIdx": 15,
+     "repeat": 1,
+     "z": -3
+    }
+   },
+   "special.1": {
+    "frames": 23,
+    "durationMs": 2070,
+    "props": {
+     "repeatIdx": 15,
+     "repeat": 1,
+     "z": -3
+    }
+   },
+   "repeat": {
+    "frames": 26,
+    "durationMs": 2340,
+    "props": {
+     "repeatIdx": 18,
+     "repeat": 1
+    }
+   },
+   "repeat0": {
+    "frames": 9,
+    "durationMs": 2340,
+    "props": {
+     "repeatIdx": 1,
+     "repeat": 1
+    }
+   },
+   "end0": {
+    "frames": 7,
+    "durationMs": 630
+   },
+   "end1": {
+    "frames": 7,
+    "durationMs": 630
+   },
+   "end2": {
+    "frames": 8,
+    "durationMs": 720
+   },
+   "end3": {
+    "frames": 8,
+    "durationMs": 720
+   }
+  },
+  "actions": [
+   {
+    "name": "5thEquinox",
+    "frames": [
+     [
+      "alert",
+      0,
+      90
+     ],
+     [
+      "swingO2",
+      1,
+      90
+     ],
+     [
+      "swingO2",
+      0,
+      450
+     ],
+     [
+      "swingO2",
+      1,
+      30
+     ]
+    ],
+    "totalMs": 660,
+    "preHitMs": 0
+   }
+  ],
+  "hitbox": {
+   "mobCount": 7,
+   "range": 150,
+   "type": 50
+  }
+ }
+]
