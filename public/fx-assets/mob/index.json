@@ -1,0 +1,47 @@
+[
+ {
+  "id": "9834020",
+  "title": "[보스/반감]",
+  "level": 60,
+  "maxHP": 1000000000,
+  "boss": 1,
+  "PDRate": 10,
+  "noFlip": 1,
+  "actions": [
+   "stand",
+   "hit1",
+   "die1",
+   "regen"
+  ]
+ },
+ {
+  "id": "9834024",
+  "title": "[보스/반감]",
+  "level": 60,
+  "maxHP": 1000000000,
+  "boss": 1,
+  "PDRate": 10,
+  "noFlip": 1,
+  "actions": [
+   "stand",
+   "hit1",
+   "die1",
+   "regen"
+  ]
+ },
+ {
+  "id": "9834028",
+  "title": "[보스/반감]",
+  "level": 60,
+  "maxHP": 1000000000,
+  "boss": 1,
+  "PDRate": 10,
+  "noFlip": 1,
+  "actions": [
+   "stand",
+   "hit1",
+   "die1",
+   "regen"
+  ]
+ }
+]

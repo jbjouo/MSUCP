@@ -1,6 +1,6 @@
 <script setup>
 // 技能動畫測試頁(不在選單,只能打網址 /fx-test 進入)— 素材由 ../msu-wz/tools/export_skill.py / export_avatar.py 匯出到 ../msu-wz/web/,
-//   再複製到 public/fx-assets/:rsync -a --exclude summary.json ../msu-wz/web/luminous ../msu-wz/web/avatar public/fx-assets/
+//   再複製到 public/fx-assets/:rsync -a --exclude summary.json ../msu-wz/web/luminous ../msu-wz/web/avatar ../msu-wz/web/damage ../msu-wz/web/mob public/fx-assets/
 //   <job>/index.json                 技能清單 [{ skillId, name, img, nodes: { <node>: { frames, durationMs, props } }, actions }]
 //   <job>/<skillId>/<node>/meta.json 逐格 { file, w, h, origin, delay, z, a0?, a1? }
 //   avatar/index.json                角色(export_avatar.py 預先合成)  { poses: { <姿勢>: [{ delay, file, origin }] } };缺少 → 佔位人形
@@ -102,7 +102,65 @@ const MOB_X = 260
 const MOB_W = 90
 const MOB_H = 110
 const SPAWN_X = 620
-const MOB_RECT = { x1: MOB_X - MOB_W / 2, y1: GROUND_Y - MOB_H, x2: MOB_X + MOB_W / 2, y2: GROUND_Y }
+// ── 目標怪物(export_mob.py;預設武陵道場訓練石像 中)───────────────────────
+// 身體範圍 = stand 第一格 lt / rb(相對腳底,素材面向左,noFlip);head = 傷害數字位置;沒有素材 → 假怪物框 MOB_W × MOB_H
+const mobList = ref([])
+const mobId = ref('9834024')
+const mobData = new Map()        // id → { info, actions: { stand: [{ ..., img }] } }
+const mobHitUntil = { at: -Infinity }
+async function loadMobs() {
+  try {
+    const res = await fetch(`${BASE}/mob/index.json`)
+    if (!res.ok) return
+    mobList.value = await res.json()
+    await Promise.all(mobList.value.map((m) => loadMob(m.id)))
+  } catch { /* 無怪物素材 → 假怪物框 */ }
+}
+async function loadMob(id) {
+  if (mobData.has(id)) return mobData.get(id)
+  const dir = `${BASE}/mob/${id}`
+  const meta = await (await fetch(`${dir}/meta.json`)).json()
+  for (const [act, frames] of Object.entries(meta.actions)) {
+    if (act !== 'stand' && act !== 'hit1') continue
+    await Promise.all(frames.map(async (f) => { f.img = await loadImage(`${dir}/${f.file}`) }))
+  }
+  mobData.set(id, meta)
+  return meta
+}
+const curMob = () => mobData.get(mobId.value) || null
+function mobStandFrame() {
+  return curMob()?.actions?.stand?.[0] || null
+}
+function mobRect() {
+  const f = mobStandFrame()
+  if (!f?.lt || !f?.rb) return { x1: MOB_X - MOB_W / 2, y1: GROUND_Y - MOB_H, x2: MOB_X + MOB_W / 2, y2: GROUND_Y }
+  return { x1: MOB_X + f.lt[0], y1: GROUND_Y + f.lt[1], x2: MOB_X + f.rb[0], y2: GROUND_Y + f.rb[1] }
+}
+function mobCenter() {
+  const r = mobRect()
+  return { x: (r.x1 + r.x2) / 2, y: (r.y1 + r.y2) / 2 }
+}
+function mobHead() {
+  const f = mobStandFrame()
+  return f?.head ? { x: MOB_X + f.head[0], y: GROUND_Y + f.head[1] } : { x: MOB_X, y: mobRect().y1 }
+}
+function frameOfLoop(frames, tt) {
+  const total = frames.reduce((a, f) => a + f.delay, 0) || 1
+  let r = tt % total
+  for (const f of frames) { if (r < f.delay) return f; r -= f.delay }
+  return frames[0]
+}
+function drawMob(ctx) {
+  const m = curMob()
+  const hitting = gameNow < mobHitUntil.at && m?.actions?.hit1
+  const frames = hitting ? m.actions.hit1 : m?.actions?.stand
+  const f = frames && frameOfLoop(frames, gameNow)
+  if (f?.img) {
+    ctx.drawImage(f.img, MOB_X - f.origin[0], GROUND_Y - f.origin[1])
+    return true
+  }
+  return false
+}
 const showHitbox = ref(true)
 
 // 技能範圍 → 畫面座標矩形 { x1, y1, x2, y2, approx };無資料回 null
@@ -126,8 +184,7 @@ function hitboxRect(skill, cx, cy, facing) {
 function splashRect(skill, facing) {
   const hb = skill?.hitbox
   if (!hb?.chainAttack || !hb.lt || !hb.rb) return null
-  const cx = MOB_X
-  const cy = GROUND_Y - MOB_H / 2
+  const { x: cx, y: cy } = mobCenter()
   const [x1, x2] = facing === 'right' ? [cx - hb.rb[0], cx - hb.lt[0]] : [cx + hb.lt[0], cx + hb.rb[0]]
   return { x1, y1: cy + hb.lt[1], x2, y2: cy + hb.rb[1] }
 }
@@ -234,10 +291,15 @@ const player = {
 const keys = { left: false, right: false, up: false, down: false, jumpPressed: false, shift: false }
 const TELEPORT_ID = 27001002
 // 距離:common x = 110+8x 滿等 190;垂直 common y = 270+5x 滿等 320(推測)
-// 連發間隔 = common time 720ms(使用者比對遊戲手感選定;300 太快)
+// 連發間隔:基礎 = common time 720ms,隨攻速縮放 ×(20 − Stage)/16、進位到 30ms(推測)
+//   Stage 8 → 540ms,與使用者手感吻合;未實測不同攻速,頁面可關閉縮放比對
 const teleportDist = ref(190)
 const teleportUp = ref(320)
-const teleportCooldown = ref(720)
+const teleportBase = ref(720)
+const teleportScaleAS = ref(true)
+const teleportCooldown = computed(() => (teleportScaleAS.value
+  ? Math.ceil((teleportBase.value * asMult.value) / 30 - 1e-9) * 30
+  : teleportBase.value))
 let lastTeleport = -Infinity
 
 // 瞬移:施放硬直中也可用(硬直照算);effect 跟著角色(follow),角色移到目的地(空中:上升速度歸零直接下墜,已在下墜則保留)
@@ -386,7 +448,7 @@ function pickVariants(names) {
 
 function anchorFor(node, cx, cy) {
   const head = node.split('.')[0]
-  if (head === 'hit' || head === 'mob' || head === 'specialAffected') return { x: MOB_X, y: GROUND_Y - MOB_H / 2 }
+  if (head === 'hit' || head === 'mob' || head === 'specialAffected') return mobCenter()
   if (head === 'ball' || head === 'shootobj') return { x: cx, y: cy }
   if (head === 'screen') return { x: STAGE_W / 2, y: STAGE_H / 2 }
   return { x: cx, y: cy }
@@ -417,11 +479,11 @@ async function cast(skill, onlyNode = null, force = false) {
   const cx = player.x
   const cy = GROUND_Y + player.y
   const hb = hitboxRect(skill, cx, cy, player.facing)
-  const inRange = !hb || overlaps(hb, MOB_RECT)
+  const inRange = !hb || overlaps(hb, mobRect())
   // 飛行路徑:發射點 → 目標中心
   const [emitX, emitY] = BALL_EMIT[skill.skillId] || BALL_EMIT.default
   const from = { x: cx + (player.facing === 'right' ? -emitX : emitX), y: cy + emitY }
-  const to = { x: MOB_X, y: GROUND_Y - MOB_H / 2 }
+  const to = mobCenter()
   // MISS:不播 hit / mob,也不播 ball / shootobj
   const tracks = loaded.filter((tr) => inRange || !(isHitNode(tr.node) || /^(ball|shootobj)(\.|$)/.test(tr.node))).map((tr) => {
     const f = nodeScaled(tr.node) ? asMult.value : 1
@@ -459,10 +521,16 @@ async function cast(skill, onlyNode = null, force = false) {
   activeNodes.value = names
   cycleMs.value = cycle
   hitMarks.value = tracks.filter((tr) => tr.dmgAt != null).map((tr) => ({ node: tr.node, at: tr.dmgAt }))
+  // 傷害數字:命中時點(最早的 hit 傷害時點;無 hit 節點則用出手點)
+  if (inRange && skill.damagePct) {
+    const at = hitMarks.value.length ? Math.min(...hitMarks.value.map((m) => m.at)) : hitAt
+    scheduleDamage(skill, c.start + at)
+  }
 }
 
 function stop() {
   casts = []
+  dmgPops = []
   lastCast = null
   player.act = null
   player.actUntil = 0
@@ -597,16 +665,19 @@ function drawStage(ctx) {
   ctx.beginPath()
   ctx.moveTo(0, GROUND_Y); ctx.lineTo(STAGE_W, GROUND_Y)
   ctx.stroke()
-  // 假怪物(命中特效對齊其中心)
-  ctx.fillStyle = 'rgba(255,120,120,0.08)'
-  ctx.fillRect(MOB_X - MOB_W / 2, GROUND_Y - MOB_H, MOB_W, MOB_H)
-  ctx.strokeStyle = 'rgba(255,120,120,0.35)'
-  ctx.strokeRect(MOB_X - MOB_W / 2, GROUND_Y - MOB_H, MOB_W, MOB_H)
+  // 目標:怪物圖(沒有 → 假怪物框);開啟範圍顯示時畫出身體範圍
+  const mr = mobRect()
+  const drawn = drawMob(ctx)
+  if (!drawn || showHitbox.value) {
+    ctx.fillStyle = drawn ? 'rgba(0,0,0,0)' : 'rgba(255,120,120,0.08)'
+    ctx.fillRect(mr.x1, mr.y1, mr.x2 - mr.x1, mr.y2 - mr.y1)
+    ctx.strokeStyle = 'rgba(255,120,120,0.35)'
+    ctx.strokeRect(mr.x1, mr.y1, mr.x2 - mr.x1, mr.y2 - mr.y1)
+  }
   if (showHitbox.value) drawHitboxes(ctx)
   if (showGuide.value) {
     ctx.fillStyle = 'rgba(255,255,255,0.35)'
     ctx.font = '12px sans-serif'
-    ctx.fillText(t('fxTest.target'), MOB_X - 14, GROUND_Y + 22)
     ctx.fillText(t('fxTest.controlHint'), 12, STAGE_H - 14)
   }
 }
@@ -622,7 +693,7 @@ function drawHitboxes(ctx) {
   const busy = casts.some((c) => c.skill === cur && gameNow - c.start < c.cycle)
   const pv = !busy && hitboxRect(cur, player.x, GROUND_Y + player.y, player.facing)
   if (pv) {
-    const hitNow = overlaps(pv, MOB_RECT)
+    const hitNow = overlaps(pv, mobRect())
     ctx.setLineDash([4, 4])
     ctx.strokeStyle = hitNow ? 'rgba(120,230,140,0.45)' : 'rgba(255,255,255,0.25)'
     rectPath(ctx, pv)
@@ -649,9 +720,162 @@ function drawHitboxes(ctx) {
     }
     if (!c.inRange && gameNow - c.start < 800) {
       ctx.setLineDash([])
-      ctx.fillStyle = `rgba(${rgb},${k})`
-      ctx.font = 'bold 16px sans-serif'
-      ctx.fillText('MISS', MOB_X - 20, GROUND_Y - MOB_H - 10)
+      const miss = dmgFont.data?.sets?.NoRed0?.digits?.Miss
+      const missImg = miss && dmgFont.imgs.get(miss.file)
+      if (missImg) {
+        ctx.globalAlpha = k
+        const hd = mobHead()
+        ctx.drawImage(missImg, hd.x - miss.w / 2, hd.y - 12 - miss.h)
+        ctx.globalAlpha = 1
+      } else {
+        ctx.fillStyle = `rgba(${rgb},${k})`
+        ctx.font = 'bold 16px sans-serif'
+        const hd = mobHead()
+        ctx.fillText('MISS', hd.x - 20, hd.y - 10)
+      }
+    }
+  }
+  ctx.restore()
+}
+
+// ── 傷害數字(參考 meaegi:calculateDamageSkinLayout + basic 動畫)─────────────
+// 字型:Effect/DamageSkin.img/208(基本字型 + glUnit 單位 . K M B);NoX1 = 第一位大字、NoX0 = 其餘;爆擊用 NoCri + effect3 符號
+// 排版:下一字 x = x + origin.x + ceil((w − origin.x) × 0.4) + numberSpace;未 bottomFix 時上下交錯 −4 / −1px
+// 多段:每擊 attackCount 行、行間 50ms、行距 30px;距上次 > 400ms 或超過 30 行 → 從第 0 行重新疊
+// 動畫(basic):1000ms 內上飄 30px,alpha = (1 − r) / 0.6;數值為簡化隨機值(基礎 × 技能% × 浮動,爆擊 × (1 + 爆傷%))
+const DMG_SKIN = 208
+const DMG_DURATION = 1000
+const DMG_LINE_GAP = 30
+const DMG_LINE_DELAY = 50
+const showDamage = ref(true)
+const dmgBase = ref(5000000)
+const dmgVariance = ref(90)      // 最低浮動 %(90 = 90%~100%)
+const critRate = ref(100)
+const critDmg = ref(100)
+const dmgFont = { data: null, imgs: new Map() }
+let dmgPops = []                 // [{ at, line, layout, value, crit }]
+let dmgLineCursor = 0
+let dmgLastAt = -Infinity
+
+async function loadDamageFont() {
+  try {
+    const dir = `${BASE}/damage/${DMG_SKIN}`
+    const res = await fetch(`${dir}/index.json`)
+    if (!res.ok) return
+    const data = await res.json()
+    const files = []
+    for (const grp of [data.sets, data.units?.sets || {}]) {
+      for (const st of Object.values(grp)) for (const d of Object.values(st.digits)) files.push(d.file)
+    }
+    await Promise.all(files.map(async (f) => dmgFont.imgs.set(f, await loadImage(`${dir}/${f}`))))
+    dmgFont.data = data
+  } catch { /* 無字型 → 文字顯示 */ }
+}
+
+// 數值 → 字元;glUnit:≥ 1000 以 K / M / B 表示,小數最多 2 位(截斷,去尾 0)— 遊戲實際位數待確認
+function damageChars(v) {
+  const n = Math.floor(v)
+  if (dmgFont.data?.units?.customType !== 'glUnit' || n < 1000) return String(n).split('')
+  const [div, unit] = [[1e9, '3'], [1e6, '2'], [1e3, '1']].find(([d]) => n >= d)
+  const txt = (Math.floor((n / div) * 100) / 100).toFixed(2).replace(/\.?0+$/, '')
+  return [...txt.split('').map((ch) => (ch === '.' ? { unit: '0' } : ch)), { unit }]
+}
+
+function layoutDamage(value, crit) {
+  const f = dmgFont.data
+  if (!f) return null
+  const S = f.sets
+  const U = f.units?.sets || {}
+  const small = S[crit ? 'NoCri0' : 'NoRed0'] || S.NoRed0
+  const big = S[crit ? 'NoCri1' : 'NoRed1'] || S.NoRed1 || small
+  const uSmall = U[crit ? 'NoCri0' : 'NoRed0'] || U.NoRed0
+  const uBig = U[crit ? 'NoCri1' : 'NoRed1'] || U.NoRed1 || uSmall
+  let firstUnit = true
+  const items = []
+  damageChars(value).forEach((ch, i) => {
+    let g
+    let key
+    if (typeof ch === 'object') {
+      key = ch.unit
+      if (firstUnit && uBig?.digits[key]) { g = uBig; firstUnit = false } else g = uSmall?.digits[key] ? uSmall : uBig
+    } else {
+      key = ch
+      g = i === 0 && big?.digits[key] ? big : small?.digits[key] ? small : big
+    }
+    const el = g?.digits[key]
+    if (el) items.push({ el, g, unit: typeof ch === 'object', key })
+  })
+  const gh = Math.max(0, ...items.map((it) => it.el.h))
+  const out = []
+  let x = 0
+  let jit = 0
+  for (const it of items) {
+    const { w, h, origin: [ox, oy] } = it.el
+    let y = it.g.relmoveOriginH ? -oy : gh - h
+    if (!it.g.bottomFix) y -= jit++ % 2 ? 1 : 4
+    out.push({ el: it.el, x, y })
+    const space = it.unit ? (it.key === '0' ? it.g.dotSpace || 0 : 0) : it.g.numberSpace || 0
+    x = x + ox + Math.ceil((w - ox) * 0.4) + space
+  }
+  if (crit && out.length) {
+    const e = big?.digits.effect3 || big?.digits.effect
+    if (e) {
+      const t0 = out[0]
+      out.unshift({ el: e, x: t0.x + t0.el.origin[0] - e.origin[0], y: t0.y + t0.el.origin[1] - e.origin[1] })
+    }
+  }
+  const minX = Math.min(...out.map((o) => o.x))
+  const minY = Math.min(...out.map((o) => o.y))
+  const maxX = Math.max(...out.map((o) => o.x + o.el.w))
+  const maxY = Math.max(...out.map((o) => o.y + o.el.h))
+  for (const o of out) { o.x -= minX; o.y -= minY }
+  return { items: out, w: maxX - minX, h: maxY - minY }
+}
+
+function scheduleDamage(skill, at) {
+  if (!showDamage.value) return
+  const lines = Math.max(1, Math.min(15, skill.hitbox?.attackCount || 1))
+  if (at - dmgLastAt > 400 || dmgLineCursor + lines > 30) dmgLineCursor = 0
+  const lo = Math.max(0, Math.min(100, dmgVariance.value)) / 100
+  for (let i = 0; i < lines; i++) {
+    const crit = Math.random() * 100 < critRate.value
+    let value = dmgBase.value * (skill.damagePct / 100) * (lo + (1 - lo) * Math.random())
+    if (crit) value *= 1 + critDmg.value / 100
+    dmgPops.push({ at: at + i * DMG_LINE_DELAY, line: dmgLineCursor + i, value, crit, layout: layoutDamage(value, crit) })
+    const hitDur = curMob()?.actions?.hit1?.reduce((a, f) => a + f.delay, 0) || 0
+    mobHitUntil.at = Math.max(mobHitUntil.at, at + i * DMG_LINE_DELAY + hitDur)
+  }
+  dmgLineCursor += lines
+  dmgLastAt = at
+}
+
+function drawDamage(ctx) {
+  dmgPops = dmgPops.filter((d) => gameNow - d.at <= DMG_DURATION)
+  const hd = mobHead()
+  const headY = hd.y
+  ctx.save()
+  for (const d of dmgPops) {
+    const tt = gameNow - d.at
+    if (tt < 0) continue
+    const r = tt / DMG_DURATION
+    ctx.globalAlpha = Math.max(0, Math.min(1, (1 - r) / 0.6))
+    const bottom = headY - 12 - DMG_LINE_GAP * d.line - 30 * r
+    if (d.layout) {
+      const x0 = Math.round(hd.x - d.layout.w / 2)
+      const y0 = Math.round(bottom - d.layout.h)
+      for (const it of d.layout.items) {
+        const im = dmgFont.imgs.get(it.el.file)
+        if (im) ctx.drawImage(im, x0 + it.x, y0 + it.y)
+      }
+    } else {
+      ctx.font = 'bold 22px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.lineWidth = 4
+      ctx.strokeStyle = '#431407'
+      ctx.fillStyle = d.crit ? '#ff5fa2' : '#fb923c'
+      const txt = Math.floor(d.value).toLocaleString()
+      ctx.strokeText(txt, hd.x, bottom)
+      ctx.fillText(txt, hd.x, bottom)
     }
   }
   ctx.restore()
@@ -685,6 +909,7 @@ function tick(now) {
   drawTracks(ctx, true)
   drawPlayer(ctx)
   drawTracks(ctx, false)
+  drawDamage(ctx)
 }
 
 // ── 鍵盤(只在畫面取得焦點時)──────────────────────────────────────────
@@ -737,6 +962,8 @@ function skillLabel(s) {
 onMounted(() => {
   loadJob()
   loadBody()
+  loadDamageFont()
+  loadMobs()
   raf = requestAnimationFrame(tick)
 })
 onBeforeUnmount(() => cancelAnimationFrame(raf))
@@ -793,7 +1020,20 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
         <label><input v-model="loop" type="checkbox"> {{ t('fxTest.loop') }}</label>
         <label><input v-model="showGuide" type="checkbox"> {{ t('fxTest.guide') }}</label>
         <label><input v-model="delayHits" type="checkbox"> {{ t('fxTest.delayHits') }}</label>
+        <label v-if="mobList.length">
+          {{ t('fxTest.target') }}
+          <select v-model="mobId" class="fx-select">
+            <option v-for="m in mobList" :key="m.id" :value="m.id">{{ t(`fxTest.mob.${m.id}`, m.id) }}</option>
+          </select>
+        </label>
         <label><input v-model="showHitbox" type="checkbox"> {{ t('fxTest.hitbox') }}</label>
+        <span class="fx-scale">
+          <label><input v-model="showDamage" type="checkbox"> {{ t('fxTest.damage') }}</label>
+          <label>{{ t('fxTest.dmgBase') }} <input v-model.number="dmgBase" type="number" min="0" step="100000" class="fx-num fx-num--wide"></label>
+          <label>{{ t('fxTest.dmgVar') }} <input v-model.number="dmgVariance" type="number" min="0" max="100" class="fx-num">%</label>
+          <label>{{ t('fxTest.critRate') }} <input v-model.number="critRate" type="number" min="0" max="100" class="fx-num">%</label>
+          <label>{{ t('fxTest.critDmg') }} <input v-model.number="critDmg" type="number" min="0" class="fx-num">%</label>
+        </span>
         <label>
           {{ t('fxTest.attackSpeed') }}
           <select v-model.number="stage" class="fx-select">
@@ -817,7 +1057,8 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
         </label>
         <span class="fx-scale">
           {{ t('fxTest.teleport') }}:
-          <label>{{ t('fxTest.tpInterval') }} <input v-model.number="teleportCooldown" type="number" min="0" step="30" class="fx-num">ms</label>
+          <label>{{ t('fxTest.tpInterval') }} <input v-model.number="teleportBase" type="number" min="0" step="30" class="fx-num">ms</label>
+          <label><input v-model="teleportScaleAS" type="checkbox"> {{ t('fxTest.tpScaleAS') }} → {{ teleportCooldown }}ms</label>
           <label>{{ t('fxTest.tpDist') }} <input v-model.number="teleportDist" type="number" min="0" step="10" class="fx-num">px</label>
           <label>{{ t('fxTest.tpUp') }} <input v-model.number="teleportUp" type="number" min="0" step="10" class="fx-num">px</label>
         </span>
@@ -941,6 +1182,7 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
 .fx-dmg { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ff4d6d; }
 .fx-dmg-label { color: #ff6b85; }
 .fx-hb { color: #7fe08f; }
+.fx-num--wide { width: 7em !important; }
 .fx-num { width: 4.2em; background: #232838; color: #e8edf2; border: 1px solid #3d4554; border-radius: 4px; padding: 1px 4px; }
 .fx-cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 4px #fff; }
 .fx-note { margin: 0; font-size: 0.7rem; color: #6b7393; }

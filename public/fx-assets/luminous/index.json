@@ -99,7 +99,8 @@
    "range": 400,
    "piercing": 1,
    "type": 2
-  }
+  },
+  "damagePct": 280
  },
  {
   "skillId": 27001201,
@@ -161,7 +162,8 @@
    "attackCount": 3,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 107
  },
  {
   "skillId": 27101100,
@@ -243,7 +245,8 @@
    "bulletCount": 4,
    "areaAttack": 1,
    "type": 2
-  }
+  },
+  "damagePct": 115
  },
  {
   "skillId": 27101101,
@@ -387,7 +390,8 @@
    "areaAttack": 1,
    "rapidAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 168
  },
  {
   "skillId": 27110005,
@@ -569,7 +573,8 @@
    "areaAttack": 1,
    "rapidAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 121
  },
  {
   "skillId": 27111101,
@@ -630,7 +635,8 @@
    "attackCount": 3,
    "areaAttack": 1,
    "type": 31
-  }
+  },
+  "damagePct": 180
  },
  {
   "skillId": 27111202,
@@ -710,7 +716,8 @@
    "mobCount": 6,
    "attackCount": 2,
    "type": 1
-  }
+  },
+  "damagePct": 371
  },
  {
   "skillId": 27111303,
@@ -790,7 +797,8 @@
    "attackCount": 6,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 230
  },
  {
   "skillId": 27120005,
@@ -861,7 +869,8 @@
    "attackCount": 1,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 370
  },
  {
   "skillId": 27121006,
@@ -1030,7 +1039,8 @@
    "attackCount": 3,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 1000
  },
  {
   "skillId": 27121053,
@@ -1201,7 +1211,8 @@
    "range": 350,
    "chainAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 440
  },
  {
   "skillId": 27121201,
@@ -1289,7 +1300,8 @@
    "attackCount": 2,
    "areaAttack": 1,
    "type": 2
-  }
+  },
+  "damagePct": 180
  },
  {
   "skillId": 27121202,
@@ -1374,7 +1386,8 @@
    "attackCount": 7,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 375
  },
  {
   "skillId": 27121303,
@@ -1441,7 +1454,8 @@
    "mobCount": 2,
    "attackCount": 7,
    "type": 2
-  }
+  },
+  "damagePct": 455
  },
  {
   "skillId": 400021000,
@@ -1563,7 +1577,8 @@
    "mobCount": 12,
    "attackCount": 10,
    "type": 33
-  }
+  },
+  "damagePct": 900
  },
  {
   "skillId": 400021041,
@@ -1646,7 +1661,8 @@
    "attackCount": 4,
    "areaAttack": 1,
    "type": 1
-  }
+  },
+  "damagePct": 900
  },
  {
   "skillId": 400021060,
@@ -1874,7 +1890,8 @@
    "attackCount": 7,
    "range": 550,
    "type": 33
-  }
+  },
+  "damagePct": 900
  },
  {
   "skillId": 400021105,
